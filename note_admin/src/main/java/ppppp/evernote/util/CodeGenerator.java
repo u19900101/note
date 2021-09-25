@@ -32,7 +32,7 @@ public class CodeGenerator {
         System.out.println(help.toString());
         if (scanner.hasNext()) {
             String ipt = scanner.next();
-            if (StringUtils.isNotBlank(ipt)) {
+            if (StringUtils.isEmpty(ipt)) {
                 return ipt;
             }
         }

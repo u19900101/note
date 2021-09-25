@@ -1,6 +1,6 @@
 package ppppp.evernote;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ppppp.evernote.entity.Notebook;
@@ -15,9 +15,7 @@ import java.util.List;
 @SpringBootTest
 class EvernoteApplicationTests {
 
-    @Test
-    void contextLoads() {
-    }
+
     @Autowired
     private TagMapper userMapper;
 
