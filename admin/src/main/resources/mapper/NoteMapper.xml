@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ppppp.evernote.mapper.NoteMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="ppppp.evernote.entity.Note">
+        <id column="uid" property="uid" />
+        <result column="pid" property="pid" />
+        <result column="title" property="title" />
+        <result column="status" property="status" />
+        <result column="summary" property="summary" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="remind_time" property="remindTime" />
+        <result column="content" property="content" />
+        <result column="tag_uid" property="tagUid" />
+        <result column="media_uid" property="mediaUid" />
+        <result column="star" property="star" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        uid, pid, title, status, summary, create_time, update_time, remind_time, content, tag_uid, media_uid, star
+    </sql>
+
+</mapper>
