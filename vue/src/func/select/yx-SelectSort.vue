@@ -79,10 +79,10 @@
                   way:item.way,
                });
                this.$router.push({
+                  // 加随机时间 强制进行 initContent的执行
                   path:'/home/' + Math.random()
                });
-             // 同步笔记列表时间
-             this.getDateTimes.getDateTimes.call(this,this.$store.state.allList)
+
            }
         }
       }

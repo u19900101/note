@@ -16,7 +16,7 @@
         <!--有收藏列表内容------------------------------->
         <div class="quickList" v-if="$store.getters.shortcutHander">
           <div class="item clearfix actions"
-               v-for="item in datalist"
+               v-for="item in notes"
                :key="item.id"
                @click="clickHander(item)"
           >
@@ -68,7 +68,7 @@
       },
      computed:{
          //vuex中的所有笔记列表
-         datalist(){
+         notes(){
             // return this.$store.state.allList;
             return this.$store.state.allList.filter(item => item.shortcut);
          }

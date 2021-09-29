@@ -1,5 +1,5 @@
 <template>
-      <div class="bijibenHDC" v-show="$store.state.noteBookShow">
+      <div class="bijibenHDC" v-show="$store.state.noteBookModule.isNoteBooksShow">
         <div class="bijibenInfo">
           <h2>笔记本</h2>
           <img src="@/assets/images/huachuangbijiben.png" alt="" class="xinjian" title="创建笔记本" @click="createHander">
@@ -15,7 +15,7 @@
           <!--笔记本数据列表-->
           <div class="liebiao"
                v-for="(item,index) in noteBooks"
-               :key="item.id" @click="clickHander(item,item.id)"
+               :key="item.id" @click="enterNoteBook(item,item.id)"
                :style="{backgroundColor:$store.state.noteBookBg === item.id ? 'rgb(236,236,236)' : ''}"
                @mouseover="state=index"
                @mouseout="state=-1"
@@ -25,7 +25,7 @@
                 <div class="noteTitle">
                   {{item.title}}
                 </div>
-                <p class="number">{{item.children.length}} 条笔记</p>
+                <p class="number">{{item.noteCount}} 条笔记</p>
                  <div class="delnotes" title="删除笔记本" @click.stop="deleteNoteBook(item)" v-show="state===index"></div>
               </div>
             </div>
@@ -51,33 +51,31 @@
             })
           },
           // 进入详细的笔记本信息
-          clickHander(obj,index){
+          enterNoteBook(currentNoteBook,currentNoteBookIndex){
              // 如果当前笔记是全屏状态,那么应该让笔记列表显示
               this.$store.commit('noteListTrue');
               this.$store.commit('closeHander');
 
              //笔记本背景颜色的下标
-             this.$store.commit('notebookState',index);
+             this.$store.commit('notebookState',currentNoteBookIndex);
 
-             /*
-             * 进入这条笔记本,如果当前笔记本的笔记列表的长度为0,说明当前笔记本为空
-             * */
-             if(obj.children.length < 1){
+             // 进入这条笔记本,如果当前笔记本的笔记列表的长度为0,说明当前笔记本为空
+             if(currentNoteBook.noteCount < 1){
                this.$store.commit('deleteAll')
              }
-             this.$store.commit('inNotelist',{
-                obj:obj,
-             });
+
+             // 进入笔记本详细列表
+             this.$store.dispatch('enterNoteBook',currentNoteBook);
 
              // 跳转路由到详细笔记本列表中的第一个id
-             let booklist = this.$store.state.joinNoteList;
-             if(booklist.length > 0){
-                this.$router.push({
-                   path:'/home/1111111'
-                })
-             }
+             // let booklist = this.$store.state.joinNoteList;
+             // if(booklist.length > 0){
+             //    this.$router.push({
+             //       path:'/home/1111111'
+             //    })
+             // }
              // 进入笔记列表,获取最新的笔记创建时间
-             this.getDateTimes.getDateTimes.call(this,booklist);
+             this.getDateTimes.getDateTimes.call(this,noteBooks);
              // 如果当搜索框为显示的时候再关闭
               if(this.$store.state.searchBox){
                 this.$store.commit('hideSearchShow')
@@ -96,7 +94,7 @@
         computed:{
            //从vuex中取笔记列表
            noteBooks(){
-              return this.$store.state.dataList;
+              return this.$store.state.noteBookModule.noteBooks;
            }
         }
     }

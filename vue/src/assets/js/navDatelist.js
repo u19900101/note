@@ -7,19 +7,19 @@ let navDateList = [
   },
   {
     title:"笔记",
-    click:"goHome",
+    click:"note",
     class:"notesbook",
     id:1,
   },
   {
     title:"笔记本",
-    click:"noteBookHander",
+    click:"noteBook",
     class:"notethis",
     id:"2",
   },
   {
     title:"标签",
-    click:"tagClickHander",
+    click:"tag",
     class:"yinxltag",
     id:3,
   }

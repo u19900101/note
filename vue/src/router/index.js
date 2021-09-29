@@ -18,7 +18,7 @@ let routes = [
   },
   {
     path:'*',
-    redirect:'/home/123456'
+    redirect:'/home/1'
   }
 ];
 

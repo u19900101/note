@@ -17,7 +17,7 @@
                    @mouseout="outHander"
               >
                   <div class="s-tag" title="进入标签笔记" @click="JoinTagNotes(item)">
-                    <span class="z-cont">{{item.tag}}</span><span class="t-number">{{item.len}}</span>
+                    <span class="z-cont">{{item.title}}</span><span class="t-number">{{item.noteCount}}</span>
                   </div>
                 <!--v-if="index===state"-->
                   <div class="nt-func" v-if="item === state">
@@ -36,14 +36,14 @@
             </div>
 
               <!--当标签为空的时候-->
-              <div class="xJtagPic" v-if="!this.$store.state.tagAllList.length">
+              <div class="xJtagPic" v-if="!this.$store.state.allTags.length">
                 <div class="xJn-cont">
                   <div class="ico"></div>
                   <p style="font-weight: 700">点击笔记,去新建个自己的专属标签吧!</p>
                   <p class="tipmecces">添加标签,查找更容易</p>
                 </div>
               </div>
-            {{filterstag}}
+<!--            {{filterstag}}-->
           </div>
         </div>
       </div>
@@ -53,7 +53,7 @@
   export default {
       data(){
         return {
-           tagDate:[],
+           currentTags: this.$store.state.allTags,
            state:-1, //删除,编辑下标
            editContShow:'', //用来和输入的input框控制显隐
            editValue:'',  //和编辑标签进行双向数据绑定
@@ -68,9 +68,9 @@
         this.state = -1;
       },
       //进入标签笔记
-      JoinTagNotes(obj){
+      JoinTagNotes(tag){
          this.state = -1;
-         this.$store.commit('joinTagNotes',obj.tag); //根据当前标签找到笔记对象
+         this.$store.commit('joinTagNotes',tag); //根据当前标签找到笔记对象
          this.$router.push({
            path:'/home/1111111',
          });
@@ -121,67 +121,40 @@
       },
     },
     computed:{
-        filterstag(){
-          let arr = [];
-          let tagArr = [];
-          // 从数据中去到标签的id和数据,同步到当前组件的data中
-          let bl = this.$store.state.allList;
-          bl.forEach(item => {
-            let label = item.label;
-            if(label.length >= 1){
-              tagArr.push({
-                obj:item,
-                tag:label
-              })
-            }
-          });
-          // 将tagArr中的内容抽离出需要的部分
-          let newArr = [];
-          for(let i = 0; i < tagArr.length; i++){
-            for(let j = 0; j < tagArr[i].tag.length; j++){
-              newArr.push({
-                obj:tagArr[i].obj,
-                tag:tagArr[i].tag[j]
-              })
-            }
-          }
 
-          //给对象先进行排序,再找相同的元素
-          newArr.sort(function(a,b){
-            return a.tag.charCodeAt() - b.tag.charCodeAt()
-          });
-
-          let _res = []; //
-          for (let i = 0; i < newArr.length;) {
-            let count = 0;
-            for (let j = i; j < newArr.length; j++) {
-              if (newArr[i].tag == newArr[j].tag) {
-                count++;
-              }
-            }
-            _res.push({
-              tag:newArr[i].tag,
-              len:count,
-              id:Math.random(),
-            });
-            i += count;
-          }
-          // 将所有的笔记tag列表,同步到vuex状态中
-          this.$store.commit('tagdataList',_res);
-          // 将标签数据同步在editValue
-          this.tagDate = _res;
-      },
+      //   // 过滤完成的标签
+      //   filterstag(){
+      //
+      //     // 从数据库中取出所有的tag
+      //     let allTags = this.$store.state.allTags;
+      //     // tag:newArr[i].tag,
+      //     //   len:count,
+      //     //   id:Math.random(),
+      //     // 将所有的笔记tag列表,同步到vuex状态中
+      //     // this.$store.commit('setAllTags',allTags);
+      //     // // 将标签数据同步在editValue
+      //     // this.currentTags = allTags;
+      //     return allTags
+      // },
       findTagList(){
-          return this.tagDate.filter(item => {
-            return item.tag.match(this.searchTag)
-          })
+
+          if(this.searchTag == undefined || this.searchTag.length == 0){
+            return this.currentTags
+          }else {
+            return this.currentTags.filter(item => {
+              return item.title.match(this.searchTag)
+            })
+          }
+
       }
     },
     // 要在Tag组件侦听标签组件的变化,如果显示就像vuex中同步标签数据。
     watch:{
        '$store.state.noteTagState':function(){
           if(this.$store.state.noteTagState){
-            this.$store.commit('tagdataList',this.tagDate);
+            // this.$store.commit('filterstag',this.$store.state.allTags);
+            this.currentTags = this.$store.state.allTags;
+            // filterstag()
           }
        }
     },

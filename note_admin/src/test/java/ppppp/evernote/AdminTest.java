@@ -1,0 +1,86 @@
+package ppppp.evernote;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
+import ppppp.evernote.entity.Note;
+import ppppp.evernote.entity.Notebook;
+import ppppp.evernote.entity.Tag;
+import ppppp.evernote.mapper.NoteMapper;
+import ppppp.evernote.mapper.TagMapper;
+import ppppp.evernote.service.NoteService;
+import ppppp.evernote.service.NotebookService;
+import ppppp.evernote.service.TagService;
+import ppppp.evernote.util.ResultUtil;
+
+import java.util.Date;
+import java.util.List;
+
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class AdminTest {
+    @Autowired
+    private NoteMapper noteMapper;
+
+    @Autowired
+    private TagMapper tagMapper;
+
+    @Test
+    public void testSelect() {
+        System.out.println(("----- selectAll method test ------"));
+        List<Note> notes = noteMapper.selectList(null);
+        notes.forEach(System.out::println);
+    }
+
+
+    @Autowired
+    private NoteService noteService;
+    @Test
+    public void T_note(){
+        List<Note> noteList = noteService.lambdaQuery().list();
+        for (Note note : noteList) {
+            for (String tag : note.getTagUid().split(",")) {
+                note.getTagList().add(tag);
+            }
+        }
+        System.out.println(ResultUtil.successWithData(noteList));
+    }
+
+    @Test
+    public void T_note_updateTime(){
+        Note note = new Note();
+        note.setUpdateTime(new Date());
+        note.setId("1");
+        boolean b = noteService.updateById(note);
+        System.out.println(b);
+    }
+
+    @Test
+    public void T_(){
+        System.out.println(new Date(1632905983000L));
+    }
+
+    @Autowired
+    private NotebookService notebookService;
+    @Test
+    public void T_noteBook(){
+        List<Notebook> list = notebookService.lambdaQuery().list();
+        //list.forEach(System.out::println);
+        System.out.println(ResultUtil.successWithData(list));
+    }
+
+    @Autowired
+    private TagService tagService;
+    @Test
+    public void T_tag(){
+        List<Tag> list = tagService.lambdaQuery().list();
+
+        System.out.println(ResultUtil.successWithData(list));
+    }
+
+}

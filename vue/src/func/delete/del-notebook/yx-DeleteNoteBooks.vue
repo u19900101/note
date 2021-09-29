@@ -8,7 +8,7 @@
       <div style="height: 58px;"></div>
       <div class="n-note">
         确定删除<strong style="font-weight: normal">{{delDate.title}}</strong>吗?
-        <p class="tip" v-show="$store.state.dataList.length <= 1">至少留一个笔记本,你可以创建一个新的笔记本,再删除这个</p>
+        <p class="tip" v-show="$store.state.noteBookModule.noteBooks.length <= 1">至少留一个笔记本,你可以创建一个新的笔记本,再删除这个</p>
       </div>
       <div style="height: 66px"></div>
       <div class="btn clearfix">
@@ -35,7 +35,7 @@
         },
         //确定删除
         yesDelete(){
-            if(this.$store.state.dataList.length > 1){
+            if(this.$store.state.noteBooks.length > 1){
                this.$store.commit('isDeleteBook');
                this.$router.push({
                   path:'/home/' + Math.random()
@@ -47,7 +47,7 @@
         },
         // 还剩最后一个笔记本,拒绝删除
         overFn(){
-           if(this.$store.state.dataList.length <=1){
+           if(this.$store.state.noteBooks.length <=1){
              let btn = this.$refs.notDel;
              btn.style.cursor = 'not-allowed';
              btn.style.backgroundColor = 'rgb(40,169,85)'

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<div id="app">
+  <h1>网站列表</h1>
+  <div
+    v-for="site in info"
+  >
+    {{ site.name }}
+  </div>
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+
+  new Vue({
+    el: '#app',
+    data () {
+      return {
+        info: null
+      }
+    },
+    mounted () {
+      axios
+        .post('http://admin.note.com/api/admin/note/update')
+        .then(response => (function (){
+            this.info = response
+            console.log(response);
+          }
+
+
+        ))
+        .catch(function (error) { // 请求失败处理
+          console.log(error);
+        });
+    }
+  })
+</script>
+</html>

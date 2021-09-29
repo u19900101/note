@@ -6,7 +6,10 @@ export function getDateTimes(data){
   //在这里计算时间
   let newTime = dayjs().unix();
   data.forEach(item => {
-    let diffTime = newTime - item.beginTime;   // 获取到时间差,计算 小时 分钟 天 周
+    // 第三种方式 "2014-07-10 10:21:12"
+    let date = new Date(item.createTime); //时间对象
+    let strTime = date.getTime()/1000; //转换成时
+    let diffTime = newTime - strTime;   // 获取到时间差,计算 小时 分钟 天 周
 
     //创建时间为7天之内的笔记对象
     let day = parseInt(diffTime / 86400);
@@ -47,9 +50,10 @@ export function getDateTimes(data){
     }
     // 通过 对象的时间戳 转换为 18/xx/xx
     else if(day > 31){
-      let dateObj = item.beginTime;
+      // let dateObj = strTime;
       // 获取到 2018/4/10格式的时间
-      let newTimer = new Date(dateObj*1000).toLocaleString().split(' ')[0].split('/').join(' /');
+      // let newTimer = new Date(dateObj*1000).toLocaleString().split(' ')[0].split('/').join(' /');
+      let newTimer = item.createTime;
       // 提交mutations 修改vuex中数据的createTime
       this.$store.commit('sevendays',{
         time:newTimer,
