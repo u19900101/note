@@ -5,8 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 
+import ppppp.evernote.entity.Note;
 import ppppp.evernote.entity.Notebook;
+import ppppp.evernote.entity.Tag;
+import ppppp.evernote.mapper.NoteMapper;
 import ppppp.evernote.mapper.NotebookMapper;
+import ppppp.evernote.mapper.TagMapper;
 import ppppp.evernote.util.ResultUtil;
 
 import java.util.List;
@@ -21,18 +25,25 @@ import java.util.List;
  */
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/admin/noteBook")
 public class NotebookController {
     @Autowired
     private NotebookMapper notebookMapper;
 
+    @Autowired
+    private NoteMapper noteMapper;
 
-    @GetMapping("/notebook")
-    public String getList() {
+    @Autowired
+    private TagMapper tagMapper;
+
+    @RequestMapping("/allNoteBooks")
+    public String allNotebooks() {
 
         List<Notebook> notebooksList = notebookMapper.selectList(null);
         //notebooks.forEach(System.out::println);
         return ResultUtil.successWithData(notebooksList);
     }
+
+
 }
 

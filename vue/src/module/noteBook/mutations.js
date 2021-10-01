@@ -27,4 +27,14 @@ export default {
 
     state.yinListopation = false;
   },
+  // 选项列表显示
+  isSortShow(state) {
+    state.isSortShow = !state.isSortShow;
+  },
+  // 修改排序方式
+  changeSort(state, {rootState,sortWay}) {
+    // rootState.noteBookModule.noteListSortWay = sortWay;
+    state.noteListSortWay = sortWay;
+    state.isSortShow = false; //隐藏排序选项列表
+  },
 }

@@ -9,6 +9,9 @@ export default {
     currentNoteBook: {},
     currentNoteBookName: '', // 当前笔记本的名称，也有可能是当前 tag的名称
 
+    isSortShow: false,
+    noteListSortWay: 'createLatest', //笔记本列表排序方式,默认 创建日期(最新优先)
+
     delNoteBookShow: false,  //删除笔记本组件显隐
     delNoteBookObj: {}, // 要删除的笔记本
   },

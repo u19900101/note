@@ -10,7 +10,7 @@
 <script>
     // 没有搜索到提示组件
     export default {
-        name: "notsearch"
+        name: "noteSearch"
     }
 </script>
 

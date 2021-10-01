@@ -49,7 +49,7 @@ const store = new Vuex.Store({
 
     /*------ 选项列表功能状态------*/
     selectDown: false, //选项列表组件的显隐
-    noteListSortway: 'createLatest', //笔记本列表排序方式,默认 创建日期(最新优先)
+
     showTextState: true,  // 笔记列表 显示文字功能(yx-SelectSort组件)
 
 

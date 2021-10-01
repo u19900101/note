@@ -4,7 +4,8 @@ import VueRouter from 'vue-router'
 Vue.use(VueRouter);
 
 import Home from '@/components/Home'
-// import Edit from '@/components/Edit'
+import noteList from "../func/note/noteList";
+import note from "../func/note/note";
 const Edit = () => import('@/components/Edit');
 
 let routes = [
@@ -12,6 +13,10 @@ let routes = [
     path:'/home/:id?',
     component:Home,
   },
+  // {
+  //   path:'/noteList/:id?',
+  //   component:noteList,
+  // },
   {
     path:'/edit',
     component:Edit,

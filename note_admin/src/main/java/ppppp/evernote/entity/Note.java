@@ -1,9 +1,14 @@
 package ppppp.evernote.entity;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.io.Serializable;
+import java.util.List;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -11,18 +16,19 @@ import lombok.EqualsAndHashCode;
  * </p>
  *
  * @author ppppp
- * @since 2021-09-25
+ * @since 2021-09-26
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
+@Accessors(chain = true)
 public class Note implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID=1L;
 
     /**
      * 唯一uid
      */
-      private String uid;
+    private String id;
 
     /**
      * 所属笔记本id
@@ -78,6 +84,14 @@ public class Note implements Serializable {
      * 收藏
      */
     private Boolean star;
+    @TableField(exist = false)
+    // 解决初始化赋值时为null
+    private List<String> tagList = new ArrayList<>();
 
+    /**
+     * 图片，视频，文件,一篇博客对应多媒体文件路径
+     */
+    @TableField(exist = false)
+    private List<String> mediaList = new ArrayList<>();
 
 }

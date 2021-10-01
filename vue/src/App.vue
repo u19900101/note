@@ -1,8 +1,8 @@
 <template>
   <div id="app" v-cloak>
     <div class="content clearfix" @click="closeSelect">
-      <yxDeleteNote></yxDeleteNote>
-      <yxDeleteNoteBooks></yxDeleteNoteBooks>
+<!--      <yxDeleteNote></yxDeleteNote>-->
+<!--      <yxDeleteNoteBooks></yxDeleteNoteBooks>-->
       <yx-CreateBook></yx-CreateBook>
       <yxInforMationBook></yxInforMationBook>
       <!--删除标签-->
@@ -63,8 +63,8 @@
 
 <script>
 
-import yxDeleteNote from '@/func/delete/del-notes/yx-DeleteNote'  //删除笔记组件
-import yxDeleteNoteBooks from '@/func/delete/del-notebook/yx-DeleteNoteBooks' //删除笔记本组件
+// import yxDeleteNote from '@/func/delete/del-notes/yx-DeleteNote'  //删除笔记组件
+// import yxDeleteNoteBooks from '@/func/delete/del-notebook/yx-DeleteNoteBooks' //删除笔记本组件
 import yxCreateBook from '@/func/create/yx-CreateBook'
 import yxInforMationBook from '@/func/info-book/yx-InforMationBook'
 import yxDeleteTags from '@/func/delete/del-notetags/yx-DeleteTags'
@@ -90,8 +90,8 @@ export default {
     }
   },
   components: {
-    yxDeleteNote,
-    yxDeleteNoteBooks,
+    // yxDeleteNote,
+    // yxDeleteNoteBooks,
     'yx-CreateBook': yxCreateBook,
     yxInforMationBook,
     yxDeleteTags,
@@ -113,8 +113,8 @@ export default {
         // this.$store.commit('savefilterNote',{
         //   obj:[],
         // });
-        // 进行排他显示 todo 写个函数进行封装？
-        this.$store.dispatch('noteShow');
+
+        this.$store.getters.getNoteShow();
 
         //删除vuex中管理的 搜索框隐藏
         this.$store.commit('searchNone');
@@ -234,8 +234,11 @@ export default {
         this.navShow = true;
       }
     }
-  }
+  },
+
 }
+
+
 </script>
 <style>
 [v-cloak] {

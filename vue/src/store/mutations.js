@@ -217,10 +217,7 @@ export default {
     state.information = false;
   },
 
-  // 选项列表显示
-  selectShowHander(state) {
-    state.selectDown = !state.selectDown;
-  },
+
 
   /***********同步数据日期****************/
 
@@ -234,11 +231,7 @@ export default {
   },
   /***************************/
 
-  // 修改排序方式
-  changeSort(state, params) {
-    state.noteListSortway = params.way;
-    state.selectDown = false; //隐藏排序选项列表
-  },
+
   // 点击任何移除,收起选项下拉框
   closeSelectHander(state) {
     state.selectDown = false;

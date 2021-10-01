@@ -29,7 +29,7 @@ Vue.use(message);
 import store from '@/store/index'
 
 Vue.config.productionTip = false;
-
+Vue.prototype.globalRouter = router
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

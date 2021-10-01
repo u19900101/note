@@ -9,4 +9,7 @@ export default {
   enterNoteBook({state, commit, rootState},currentNoteBook) {
    commit('enterNoteBook', {rootState,currentNoteBook})
   },
+  changeSort({state, commit, rootState},sortWay) {
+   commit('changeSort', {rootState,sortWay})
+  },
 }

@@ -1,7 +1,7 @@
 export default {
-  notesSuccess(state,{rootState,data}){
-    rootState.noteModule.notes = data;
-  },
+
+
+
 
 
   moveNotes(state,params){

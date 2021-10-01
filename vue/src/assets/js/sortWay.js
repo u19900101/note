@@ -4,18 +4,19 @@
 import Vue from 'vue'
 export function sortWay(notes){
 
-  let sWay = this.$store.state.noteListSortway;
+  let sWay = this.$store.state.noteBookModule.noteListSortWay;
 
   //创建日期(最新优先) 更新日期(最新优先)
+  // console.log("排序前 ",this.$store.state.noteModule.currentNotes);
   if(sWay === 'createLatest' || sWay === 'updataEarliest'){
-    this.$store.state.noteModule.currentNotes.sort(function(a,b){
+   this.$store.state.noteModule.currentNotes.sort(function(a,b){
       return getTime(b.createTime) - getTime(a.createTime);
     });
   }
 
   //创建日期(最早优先) 更新日期(最新优先)
   else if(sWay === 'createEarliest' || sWay === 'updataLatest'){
-    this.$store.state.noteModule.currentNotes.sort(function(a,b){
+   this.$store.state.noteModule.currentNotes.sort(function(a,b){
       return getTime(a.createTime) - getTime(b.createTime);
     });
   }
@@ -32,7 +33,7 @@ export function sortWay(notes){
       return a.title.length - b.title.length;
     })
   }
-
+  // console.log("排序后 ",this.$store.state.noteModule.currentNotes);
   // 实时同步笔记列表时间
   this.getDateTimes.getDateTimes.call(this,notes)
 
