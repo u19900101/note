@@ -12,10 +12,8 @@ export default {
     noteId: '', //编辑的Id
     title: '',  //标题
     content: '', //内容
-
-
     pid: '', // noteContent对象的pid
-    noteBookName: '',
+    currentNoteBookName: '',
   },
   mutations,
   actions,

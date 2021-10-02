@@ -109,7 +109,7 @@
         <div class="yidong clearfix">
           <img src="@/assets/images/dijijieduanbiji.png" alt="" class="tubiao" title="移动笔记" @mousedown.prevent>
           <div class="notecont" title="移动笔记" @click.stop="clickMove" @mousedown.prevent>
-            {{ noteBookName }}
+           {{ $store.state.noteModule.currentNoteBookName }}
           </div>
           <div class="qianwangBJB" title="前往笔记本" @mousedown.prevent>
             <img src="@/assets/images/qianwangbijiben.png" alt="" @click="qWnoteBooks">
@@ -196,7 +196,7 @@ export default {
       content:  this.$store.state.noteModule.content ,  //标题, //内容
 
       pid: '', // noteContent对象的pid
-      noteBookName: '',
+
       moveNote: false, //移动笔记本显隐
 
       findNotes: '', //查找笔记本
@@ -228,11 +228,14 @@ export default {
     showtimes,
 
   },
-  mounted() {
-
-    // clientAuto();
-
-  },
+  // mounted: {
+  //   // noteBookName: function (){
+  //   //   let noteBookName = this.$store.state.noteBookModule.currentNoteBookName
+  //   //   return noteBookName?noteBookName:""
+  //   // },
+  //   // clientAuto();
+  //
+  // },
   methods: {
 // 渲染最右侧页面 展示笔记内容
     initNoteContent() {
@@ -252,10 +255,11 @@ export default {
       this.content = currentNoteToShow.content;
       this.pid = currentNoteToShow.pid; //单条笔记的pid
 
-      // this.$store.state.noteModule.title= this.title = currentNoteToShow.title;
-      // this.$store.state.noteModule.content = this.content = currentNoteToShow.content;
-      // this.$store.state.noteModule.pid = this.pid = currentNoteToShow.pid; //单条笔记的pid
-      this.$store.state.noteModule.noteBookName = this.noteBookName = this.$store.state.noteBookModule.currentNoteBookName;
+
+      // 2.2 写入 currentNoteBookName
+      let currentNoteBook = this.$store.state.noteBookModule.noteBooks.filter(item =>item.id == currentNoteToShow.pid)[0]
+      this.$store.state.noteModule.currentNoteBookName = currentNoteBook.title
+
       window.document.title = this.noteContent.title;
 
       // 同步标签 此时this.count和this.noteContent引用的是同一个对象label
@@ -623,7 +627,7 @@ export default {
           })
         }
       })
-      console.log(this.$store.state.noteModule.currentNotes);
+      // console.log(this.$store.state.noteModule.currentNotes);
     },
     // 监听textarea内容
     content(newTextArea) {
