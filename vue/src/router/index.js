@@ -18,7 +18,8 @@ let routes = [
   //   component:noteList,
   // },
   {
-    path:'/edit',
+    // 新建笔记
+    path:'/createNote',
     component:Edit,
   },
   {

@@ -41,7 +41,7 @@
                        :key="item.id"
                        :to="/home/+item.id"
                        @click.native="state=item.id"
-                       :class="state == item.id ? 'sel' : ''"
+                       :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
                        v-show="!$store.state.notelistNumber"
 
           >
@@ -111,6 +111,7 @@ export default {
   },
   data() {
     return {
+      // 笔记选中的状态
       state: 1,
     }
   },
@@ -123,20 +124,18 @@ export default {
     getData() {
       // 1.获取笔记本数据
       this.https.getNotebooks().then(({data}) => {
-        this.$store.dispatch('getNotebooks', data.data);
+        this.$store.getters.initNoteBooks(data.data);
       }).then(() => {
-        // 将 state 数据写到当前 noteBooks
-        this.noteBooks = this.$store.state.noteBooks;
         // 2.获取笔记数据
         this.https.getNotes().then(({data}) => {
-          this.$store.getters.getNotes(data.data);
+          this.$store.getters.initNotes(data.data);
         }).then(() => {
           // 2.1 将state数据写到当前 notes
           this.$store.state.noteModule.currentNotes = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
-          // console.log(this.$store.state.noteModule.notes);
+
           // 3.获取标签数据
           this.https.getTags().then(({data}) => {
-            this.$store.dispatch('getTags', data.data);
+            this.$store.getters.initTags(data.data);
           }).then(() => {
             console.log("标签数据请求完成");
             //关闭loading动画

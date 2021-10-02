@@ -28,12 +28,13 @@ public class Note implements Serializable {
     /**
      * 唯一uid
      */
-    private String id;
+    @TableField()
+    private Integer id;
 
     /**
      * 所属笔记本id
      */
-    private String pid;
+    private Integer pid;
 
     /**
      * 笔记标题

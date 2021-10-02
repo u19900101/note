@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import ppppp.evernote.entity.Note;
 import ppppp.evernote.entity.Notebook;
 import ppppp.evernote.entity.Tag;
@@ -38,6 +40,19 @@ public class AdminTest {
     }
 
 
+    @Test
+    public void insertNote() {
+        // 设置修改时间为当前时间
+        Note note = new Note();
+        note.setCreateTime(new Date());
+        note.setPid(1);
+        noteService.save(note);
+        Note byId = noteService.getById(note.getId());
+        String s = ResultUtil.successWithData(byId);
+        System.out.println(s);
+
+    }
+
     @Autowired
     private NoteService noteService;
     @Test
@@ -55,7 +70,7 @@ public class AdminTest {
     public void T_note_updateTime(){
         Note note = new Note();
         note.setUpdateTime(new Date());
-        note.setId("1");
+        note.setId(1);
         boolean b = noteService.updateById(note);
         System.out.println(b);
     }

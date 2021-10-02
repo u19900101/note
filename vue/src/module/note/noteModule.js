@@ -14,7 +14,7 @@ export default {
     content: '', //内容
 
 
-    Pid: '', // noteContent对象的pid
+    pid: '', // noteContent对象的pid
     noteBookName: '',
   },
   mutations,

@@ -16,15 +16,13 @@
         <div class="yinxt">
           <img src="./assets/images/leftToppic.png" alt="">
         </div>
-        <!-- 新建搜索分享 -->
-        <div class="yinxfcn">
-          <router-link tag="div" to="/edit" class="newnotes"
-                       @mouseover.native="overxJ"
-                       @mouseout.native="outxJ"
-          >
+        <!-- 新建笔记 -->
+        <div class="yinxfcn" >
+          <div class="newnotes" @mouseover="overxJ" @mouseout="outxJ">
             <img src="./assets/images/xinjian1.png" alt="" v-if="xJ">
-            <img src="./assets/images/xinjian.png" alt="" v-if="!xJ" title="新建笔记" @click="Edithander">
-          </router-link>
+            <img src="./assets/images/xinjian.png" alt="" v-if="!xJ" title="新建笔记" @click="insertNote">
+          </div>
+
           <div class="newSearch" @mouseover="sSoverHander" @mouseout="sSoutHander">
             <img src="./assets/images/sousuo1.png" alt="" v-show="!searchshow ">
             <img src="./assets/images/sousuo2.png" alt="" v-show="searchshow" title="搜索" @click="searchState">
@@ -42,7 +40,7 @@
           <div v-for="(item,index) in navList"
                :class="[item.class,navState === index ? 'active' : '']"
                :title="item.title"
-               :key="item.id" @click="navClickHander(item,index)"
+               :key="item.id" @click="navClickHandler(item,index)"
           ></div>
         </div>
 
@@ -102,7 +100,7 @@ export default {
     showtimes,
   },
   methods: {
-    navClickHander(obj, index) {
+    navClickHandler(obj, index) {
       //
       // 收藏
       if (obj.click === 'start') {
@@ -161,16 +159,57 @@ export default {
       }
 
     },
+
+    // 新建笔记
+    insertNote() {
+      // 1.操作数据库 新建一条空笔记  返回id
+
+      this.https.insertNote({'pid': this.$store.state.noteModule.pid}).then(({data})=>{
+        let newNote = data.data;
+        console.log("note created ",newNote);
+        this.$store.state.noteModule.noteId = newNote.id
+        // 默认情况下未返回 title 和 content
+        // 给当前 note 清空
+        this.$store.state.noteModule.title = ''
+        this.$store.state.noteModule.content = ''
+        newNote = {
+          "id": newNote.id,
+          "pid": this.$store.state.noteModule.pid,
+          "title": "",
+          "status": false,
+          "summary": "",
+          "createTime": newNote.createTime,
+          "updateTime": "",
+          "remindTime": "",
+          "content": "",
+          "tagUid": "",
+          "mediaUid": "",
+          "star": false,
+          "tagList": [
+
+          ],
+          "mediaList": [
+
+          ]
+        }
+        // 2.修改 currentNotes,将新建置顶
+        // 让置顶的笔记处于选中状态
+        this.$store.state.noteModule.currentNotes.unshift(newNote)
+
+        // 3.刷新路由 让 note组件显示最新新建的值
+        this.$router.push({
+          path: '/home/'+newNote.id
+        });
+      })
+
+
+    },
     // 新建鼠标移入移出事件
     overxJ() {
       this.xJ = false;
     },
     outxJ() {
       this.xJ = true;
-    },
-    // 新建笔记
-    Edithander() {
-      this.navShow = false;
     },
     // 鼠标移入搜索框
     sSoverHander() {
@@ -225,14 +264,14 @@ export default {
   watch: {
     $route() {
       //通过侦听路由对象的变化
-      let routeName = this.$route.path.slice(0, 5);
-      if (routeName === '/edit') {
-        if (this.navShow !== false) {
-          this.navShow = false;
-        }
-      } else if (routeName === '/home') {
-        this.navShow = true;
-      }
+      // let routeName = this.$route.path;
+      // if (routeName === '/insertNote') {
+      //   // if (this.navShow !== false) {
+      //   //   this.navShow = false;
+      //   // }
+      // } else if (routeName === '/home') {
+      //   this.navShow = true;
+      // }
     }
   },
 

@@ -1,8 +1,5 @@
 export default {
-  // action异步请求提交
-  noteBooksSuccess(state,data){
-    state.noteBooks = data;
-  },
+
   noteBookShow(state,rootState){
     //第几阶段笔记本列表显示和隐藏
     state.isNoteBooksShow = true;

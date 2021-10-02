@@ -11,7 +11,7 @@ export default {
     state.currentNotes = state.notes;
 
   },
-  getNotes: (state, getters, rootState) =>  (data) => {
+  initNotes: (state, getters, rootState) =>  (data) => {
     rootState.noteModule.notes = data;
   },
   // 同步 title和textarea内容

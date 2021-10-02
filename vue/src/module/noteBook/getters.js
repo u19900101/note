@@ -6,5 +6,9 @@ export default {
     return sortWay
   },
 
+  // 初始化 noteBooks
+  initNoteBooks: (state, getters, rootState) =>  (data) => {
+    state.noteBooks = data;
+  },
 
 }

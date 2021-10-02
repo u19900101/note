@@ -1,5 +1,6 @@
 import axios from 'axios'
 import Vue from 'vue'
+import {data} from "autoprefixer";
 // import qs from 'qs'
 const vm = axios.create({
     baseURL:'http://admin.note.com',
@@ -13,10 +14,13 @@ export function getNotebooks(){
    return vm.get('/api/admin/noteBook/allNoteBooks')
 }
 
+/* note CRUD */
 export function getNotes(){
-  // return vm.get('/api/admin/notebook')
-  // 直接访问网关目录下的 静态资源用作测试
   return vm.get('/api/admin/note/allNotes')
+}
+
+export function insertNote(data){
+  return vm.post('/api/admin/note/insert',data)
 }
 
 export function getTags(){
@@ -35,7 +39,8 @@ export default {
        getNotebooks,
        getNotes,
        getTags,
-       noteEditChange
+       noteEditChange,
+       insertNote
      }
   }
 }

@@ -127,7 +127,7 @@
             <div class="mynotesbook"
                  v-for="(item,index) in filterNoteBooks"
                  :key="index"
-                 :class="item.id === Pid ? 'active' : ''"
+                 :class="item.id === pid ? 'active' : ''"
                  @click="moveByNotes(item,item.id)"
                  @mousedown.prevent
             >
@@ -165,10 +165,10 @@
 
       <div class="root">
         <div class="editTitle">
-          <input type="text" v-model="title" class="editValue">
+          <input type="text" v-model="title" class="editValue" placeholder="请输入标题">
         </div>
         <div class="textArea">
-          <textarea v-model="content"></textarea>
+          <textarea v-model="content" placeholder="请输入内容"></textarea>
         </div>
       </div>
     </div>
@@ -192,13 +192,10 @@ export default {
   data() {
     return {
       noteContent: {}, // title 和 textarea展示内容的对象  也是Home组件消息弹窗的数据
-      title: '',  //标题
-      content: '', //内容
-      EditTitle: '',     //修改后的标题
-      EditTextarea: '', //修改后的内容
-      EditId: '', //编辑的Id
+      title: this.$store.state.noteModule.title,
+      content:  this.$store.state.noteModule.content ,  //标题, //内容
 
-      Pid: '', // noteContent对象的pid
+      pid: '', // noteContent对象的pid
       noteBookName: '',
       moveNote: false, //移动笔记本显隐
 
@@ -250,13 +247,14 @@ export default {
       }
       this.$store.state.noteModule.currentNoteToShow = this.noteContent = currentNoteToShow;
       this.$store.state.noteModule.noteId = noteShowId;
+      this.$store.state.noteModule.pid = currentNoteToShow.pid;
       this.title = currentNoteToShow.title;
       this.content = currentNoteToShow.content;
-      this.Pid = currentNoteToShow.pid; //单条笔记的pid
+      this.pid = currentNoteToShow.pid; //单条笔记的pid
 
       // this.$store.state.noteModule.title= this.title = currentNoteToShow.title;
       // this.$store.state.noteModule.content = this.content = currentNoteToShow.content;
-      // this.$store.state.noteModule.Pid = this.Pid = currentNoteToShow.pid; //单条笔记的pid
+      // this.$store.state.noteModule.pid = this.pid = currentNoteToShow.pid; //单条笔记的pid
       this.$store.state.noteModule.noteBookName = this.noteBookName = this.$store.state.noteBookModule.currentNoteBookName;
       window.document.title = this.noteContent.title;
 
@@ -327,7 +325,7 @@ export default {
 
       this.$store.commit('moveNotes', {
         gid: gId,
-        pid: this.Pid,
+        pid: this.pid,
         obj: this.noteContent,
         moveObj: noteBook.title, //移动到的笔记本名称
       });
@@ -625,6 +623,7 @@ export default {
           })
         }
       })
+      console.log(this.$store.state.noteModule.currentNotes);
     },
     // 监听textarea内容
     content(newTextArea) {

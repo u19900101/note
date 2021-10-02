@@ -1,6 +1,7 @@
 package ppppp.evernote.controller;
 
 
+import com.sun.javafx.binding.ObjectConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,13 +31,19 @@ public class NoteController {
     public String getAllNotes() {
         List<Note> noteList = noteService.lambdaQuery().list();
         for (Note note : noteList) {
-            for (String tag : note.getTagUid().split(",")) {
-                note.getTagList().add(tag);
+
+            if(note.getTagUid() != null){
+                for (String tag : note.getTagUid().split(",")) {
+                    note.getTagList().add(tag);
+                }
             }
-            for (String mediaId : note.getMediaUid().split(",")) {
-                //todo 图片视频表
-                note.getMediaList().add(mediaId);
+            if(note.getMediaUid() != null){
+                for (String mediaId : note.getMediaUid().split(",")) {
+                    //todo 图片视频表
+                    note.getMediaList().add(mediaId);
+                }
             }
+
         }
         return ResultUtil.successWithData(noteList);
     }
@@ -49,6 +56,16 @@ public class NoteController {
         note.setUpdateTime(new Date());
         boolean b = noteService.updateById(note);
 
+        Note byId = noteService.getById(note.getId());
+        return ResultUtil.successWithData(byId);
+
+    }
+
+    @PostMapping("/insert")
+    public String insertNote(@RequestBody Note note) {
+        // 设置修改时间为当前时间
+        note.setCreateTime(new Date());
+        noteService.save(note);
         Note byId = noteService.getById(note.getId());
         return ResultUtil.successWithData(byId);
 
