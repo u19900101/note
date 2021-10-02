@@ -27,11 +27,13 @@ export function getTags(){
   return vm.get('/tag.json')
 }
 
-export function noteEditChange(data){
+// 更新笔记的标题和内容
+export function updateNote(data){
   // 方法2
   // return vm.post('/api/admin/note/update',qs.stringify(data))
   return vm.post('/api/admin/note/update',data)
 }
+
 
 export default {
   install(Vue){
@@ -39,7 +41,8 @@ export default {
        getNotebooks,
        getNotes,
        getTags,
-       noteEditChange,
+       updateNote,
+
        insertNote
      }
   }

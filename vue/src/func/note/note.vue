@@ -108,8 +108,10 @@
       <div class="dijijieduanBJ clearfix">
         <div class="yidong clearfix">
           <img src="@/assets/images/dijijieduanbiji.png" alt="" class="tubiao" title="移动笔记" @mousedown.prevent>
+
+<!--          显示当前笔记所在的笔记本-->
           <div class="notecont" title="移动笔记" @click.stop="clickMove" @mousedown.prevent>
-           {{ $store.state.noteModule.currentNoteBookName }}
+            {{ $store.state.noteModule.currentNoteBookName }}
           </div>
           <div class="qianwangBJB" title="前往笔记本" @mousedown.prevent>
             <img src="@/assets/images/qianwangbijiben.png" alt="" @click="qWnoteBooks">
@@ -125,10 +127,10 @@
               <span @mousedown.prevent>创建新笔记本</span>
             </div>
             <div class="mynotesbook"
-                 v-for="(item,index) in filterNoteBooks"
+                 v-for="(item,index) in $store.state.noteBookModule.noteBooks"
                  :key="index"
-                 :class="item.id === pid ? 'active' : ''"
-                 @click="moveByNotes(item,item.id)"
+                 :class="item.id == pid ? 'active' : ''"
+                 @click="moveByNotes(item.id,item.title)"
                  @mousedown.prevent
             >
               {{ item.title }}
@@ -160,7 +162,7 @@
       </div>
     </div>
 
-    <!--文本编辑框-->
+    <!--笔记的标题和内容展示-->
     <div class="editCount" ref="editScroll" @click="closeQuick">
 
       <div class="root">
@@ -186,6 +188,7 @@ import undoremin from '@/func/reminders/UndoRemin'
 import showtimes from '@/func/reminders/showTimes'
 import {Tag, Button} from 'iview'
 import {clientAuto} from '@/assets/js/client'
+import {updateNote} from "../../server";
 
 export default {
   name: "note",
@@ -193,7 +196,7 @@ export default {
     return {
       noteContent: {}, // title 和 textarea展示内容的对象  也是Home组件消息弹窗的数据
       title: this.$store.state.noteModule.title,
-      content:  this.$store.state.noteModule.content ,  //标题, //内容
+      content: this.$store.state.noteModule.content,  //标题, //内容
 
       pid: '', // noteContent对象的pid
 
@@ -238,18 +241,18 @@ export default {
   // },
   methods: {
 // 渲染最右侧页面 展示笔记内容
-    initNoteContent() {
+    initNoteContent(currentNoteId) {
 
-      // 根据路由 id 从vuex中获取到要展示的数据
-      let noteShowId = this.$route.params.id;
-      let currentNoteToShow = this.$store.state.noteModule.currentNotes.filter(item => item.id == noteShowId)[0];
+      // 不能根据路由来进行跳转 有 bug
+      this.$store.state.noteModule.noteId = currentNoteId;
+      let currentNoteToShow = this.$store.state.noteModule.currentNotes.filter(item => item.id == currentNoteId)[0];
 
       // 若 当前id所对应的笔记不存在，那就默认 渲染当前笔记的第一条
       if (currentNoteToShow == undefined) {
         currentNoteToShow = this.$store.state.noteModule.currentNotes[0];
       }
       this.$store.state.noteModule.currentNoteToShow = this.noteContent = currentNoteToShow;
-      this.$store.state.noteModule.noteId = noteShowId;
+
       this.$store.state.noteModule.pid = currentNoteToShow.pid;
       this.title = currentNoteToShow.title;
       this.content = currentNoteToShow.content;
@@ -257,7 +260,7 @@ export default {
 
 
       // 2.2 写入 currentNoteBookName
-      let currentNoteBook = this.$store.state.noteBookModule.noteBooks.filter(item =>item.id == currentNoteToShow.pid)[0]
+      let currentNoteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == currentNoteToShow.pid)[0]
       this.$store.state.noteModule.currentNoteBookName = currentNoteBook.title
 
       window.document.title = this.noteContent.title;
@@ -318,26 +321,46 @@ export default {
     },
 
     // 开始移动 移动到哪个阶段笔记本的id----------
-    moveByNotes(noteBook, gId) {
-      /*
-      * 向gid的children添加,从pid的children移出
-      * gid @ 要移动到哪个笔记本的 id
-      * pid @ 移出的那个笔记本的 id
-      * obj @ 当前显示的对象
-      * moveObj @ 移动到哪个笔记本的名称
-      * */
+    moveByNotes(noteBookId,noteBookName) {
 
-      this.$store.commit('moveNotes', {
-        gid: gId,
-        pid: this.pid,
-        obj: this.noteContent,
-        moveObj: noteBook.title, //移动到的笔记本名称
-      });
-      this.moveNote = false; //关闭移动下拉框
-      this.initNoteContent();  // 从vuex 获取最新的数据 同步到当前的组件
+      // 判断目标笔记本是否为当前笔记本
+      // 不为原笔记本时 进行更新笔记本操作
+      if(noteBookId != this.$store.state.noteModule.pid){
+        // 1.修改本笔记的pid
+        // 2.修改 tag相关的笔记数量
+        // 刷新数据 重新请求
+        let noteToUpdate = {
+          id: this.$store.state.noteModule.noteId,
+          pid: noteBookId
+        }
+        this.https.updateNote(noteToUpdate).then(({data}) => {
 
-      // @ 移动提醒
-      this.message.message.call(this);
+          this.moveNote = false; //关闭移动下拉框
+          // @ 移动提醒
+          // this.message.message.call(this);
+          //  2.修改笔记本
+          //  2.1 新的笔记本 数量 +1
+          this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == noteBookId)[0].noteCount += 1
+          this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == this.$store.state.noteModule.pid)[0].noteCount -= 1
+            // .push(currentNote)
+          //  2.2 旧的笔记本 数量 -1
+          // this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == this.$store.state.noteModule.pid)[0].pop(currentNote)
+
+          // 1.修改当前的笔记
+        //  1.1修改 pid
+          this.$store.state.noteModule.pid = noteBookId
+        //  1.2.修改 currentNoteBookName
+          this.$store.state.noteModule.currentNoteBookName = noteBookName
+          console.log("移动笔记成功",data);
+          // 1.3 修改 notes 中受影响的笔记 pid 所有的笔记列表
+          let noteId = this.$store.state.noteModule.noteId
+          this.$store.state.noteModule.notes.filter((item) => item.id == noteId)[0].pid = noteBookId
+
+          // 1.4 修改 currentNotes
+          this.$store.state.noteModule.currentNotes.filter((item) => item.id == noteId)[0].pid = noteBookId
+
+        })
+      }
     },
 
     //关闭某些弹窗
@@ -609,7 +632,7 @@ export default {
     // 侦听路由对象变化
     watch: {
       $route() {
-        // console.log("note中打印路由发生了变化");
+        console.log("note中打印路由发生了变化");
         // this.initNoteContent();
         // this.moveNote = false;
       },
@@ -618,12 +641,12 @@ export default {
     title(newTitle) {
       let noteId = this.$store.state.noteModule.currentNoteToShow.id;
       // 1.切换路由对象的时候 更新
-      this.$store.state.noteModule.currentNotes.forEach( note =>{
+      this.$store.state.noteModule.currentNotes.forEach(note => {
         // 只修改对应数据的值
-        if(note.id == noteId  && note.title != newTitle){
+        if (note.id == noteId && note.title != newTitle) {
           note.title = newTitle
-          this.https.noteEditChange({id:noteId,title:newTitle}).then(({data}) => {
-            console.log("修改数据库成功",data);
+          this.https.updateNote({id: noteId, title: newTitle}).then(({data}) => {
+            console.log("修改数据库成功", data);
           })
         }
       })
@@ -633,12 +656,12 @@ export default {
     content(newTextArea) {
       let noteId = this.$store.state.noteModule.noteId;
       // 1.切换路由对象的时候 更新
-      this.$store.state.noteModule.currentNotes.forEach( note =>{
+      this.$store.state.noteModule.currentNotes.forEach(note => {
         // 只修改对应数据的值
-        if(note.id == noteId  && note.content != newTextArea){
+        if (note.id == noteId && note.content != newTextArea) {
           note.content = newTextArea
-          this.https.noteEditChange({id:noteId,content:newTextArea}).then(({data}) => {
-            console.log("修改数据库成功",data);
+          this.https.updateNote({id: noteId, content: newTextArea}).then(({data}) => {
+            console.log("修改数据库成功", data);
           })
         }
       })

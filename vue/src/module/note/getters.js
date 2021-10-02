@@ -14,16 +14,7 @@ export default {
   initNotes: (state, getters, rootState) =>  (data) => {
     rootState.noteModule.notes = data;
   },
-  // 同步 title和textarea内容
-  noteEditChange: (state, getters, rootState) =>  (params) => {
-    // 修改本地的显示
-    state.notes.forEach(item => {
-      if (item.id == params.id) {
-        item.title = params.title;
-        item.content = params.content;
-      }
-    });
-  },
+
 
 
   // vuex中的notes有没有快捷方式为true的,如果有返回true,没有返回false

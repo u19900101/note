@@ -89,8 +89,8 @@ export default {
     watch: {
       $route() {
         console.log("note中打印路由发生了变化");
-        this.initNoteContent();
-        this.moveNote = false;
+        // this.initNoteContent();
+        // this.moveNote = false;
       },
 
     }

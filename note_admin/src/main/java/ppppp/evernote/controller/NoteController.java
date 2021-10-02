@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import ppppp.evernote.entity.Note;
+import ppppp.evernote.entity.Notebook;
 import ppppp.evernote.entity.Tag;
 import ppppp.evernote.service.NoteService;
+import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.util.ResultUtil;
 
 import java.util.Date;
@@ -26,6 +28,9 @@ import java.util.List;
 public class NoteController {
     @Autowired
     private NoteService noteService;
+
+    @Autowired
+    private NotebookService notebookService;
 
     @RequestMapping("/allNotes")
     public String getAllNotes() {
@@ -54,6 +59,21 @@ public class NoteController {
     public String updateNote(@RequestBody Note note) {
         // 设置修改时间为当前时间
         note.setUpdateTime(new Date());
+
+        // 携带 pid 则表示移动笔记,对笔记本进行操作
+        if(note.getPid() != null){
+            // 新笔记本 +1
+            Notebook notebook = notebookService.getById(note.getPid());
+            notebook.setNoteCount(notebook.getNoteCount() +1);
+            notebookService.updateById(notebook);
+
+            //旧笔记本 -1
+            notebook = notebookService.getById( noteService.getById(note.getId()).getPid());
+            notebook.setNoteCount(notebook.getNoteCount() -1);
+            notebookService.updateById(notebook);
+        }
+
+        // 更新 笔记
         boolean b = noteService.updateById(note);
 
         Note byId = noteService.getById(note.getId());

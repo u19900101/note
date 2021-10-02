@@ -35,16 +35,13 @@
       <!-- 当前笔记内容列表区域-------------->
       <div class="NodesTwoList">
         <div class="nodescroll" id="nodescroll" ref="homeScroll">
-
-          <router-link tag="div" class="n-conts"
-                       v-for="(item,index) in $store.state.noteModule.currentNotes"
-                       :key="item.id"
-                       :to="/home/+item.id"
-                       @click.native="state=item.id"
-                       :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
-                       v-show="!$store.state.notelistNumber"
-
-          >
+<!--            弃用路由跳转 改为使用点击触发函数跳转-->
+          <div class="n-conts"
+               v-for="(item,index) in $store.state.noteModule.currentNotes"
+               :key="item.id"
+               @click="listItemClick(item.id)"
+               :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
+               v-show="!$store.state.notelistNumber">
             <h2 class="n-title">{{ item.title }}</h2>
             <div class="n-times">{{ item.createTime }}</div>
             <div class="n-wrap" v-show="$store.state.showTextState">
@@ -75,8 +72,48 @@
             <!--            &lt;!&ndash;设置提醒组件&ndash;&gt;-->
             <!--          </div>-->
             <div class="n-bot"></div>
-            <!--选项组件-->
-          </router-link>
+          </div>
+          <!--          <router-link tag="div" class="n-conts"-->
+          <!--                       v-for="(item,index) in $store.state.noteModule.currentNotes"-->
+          <!--                       :key="item.id"-->
+          <!--                       :to="/home/+item.id"-->
+          <!--                       @click.native="state=item.id"-->
+          <!--                       :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"-->
+          <!--                       v-show="!$store.state.notelistNumber"-->
+
+          <!--          >-->
+          <!--            <h2 class="n-title">{{ item.title }}</h2>-->
+          <!--            <div class="n-times">{{ item.createTime }}</div>-->
+          <!--            <div class="n-wrap" v-show="$store.state.showTextState">-->
+          <!--              {{ item.content }}-->
+          <!--            </div>-->
+
+          <!--            &lt;!&ndash; 笔记列表 分享 闹钟 收藏 删除 &ndash;&gt;-->
+          <!--            &lt;!&ndash;          <div class="n-fnc">&ndash;&gt;-->
+          <!--            &lt;!&ndash;            <div class="n-shake cont-icon" @click.stop="shareHander(item)" title="分享"></div>&ndash;&gt;-->
+          <!--            &lt;!&ndash;            <div class="n-remind cont-icon remins"&ndash;&gt;-->
+          <!--            &lt;!&ndash;                 title="设置提醒" :class="item.remind ? 'active' : ''"&ndash;&gt;-->
+          <!--            &lt;!&ndash;                 @click.stop="remindHander"&ndash;&gt;-->
+          <!--            &lt;!&ndash;            >&ndash;&gt;-->
+          <!--            &lt;!&ndash;            </div>&ndash;&gt;-->
+
+          <!--            &lt;!&ndash;            <div class="n-collection cont-icon" :title="!item.shortcut ? '添加快捷方式' : '移除快捷方式'">&ndash;&gt;-->
+          <!--            &lt;!&ndash;              <img src="@/assets/images/shoucang_white_24x24.png" alt=""&ndash;&gt;-->
+          <!--            &lt;!&ndash;                   v-if="!kJshow && !item.shortcut"&ndash;&gt;-->
+          <!--            &lt;!&ndash;                   @mouseover="kJoverHander"&ndash;&gt;-->
+          <!--            &lt;!&ndash;              >&ndash;&gt;-->
+          <!--            &lt;!&ndash;              <img src="@/assets/images/shortcuts_solid_white_24x24.png" alt=""&ndash;&gt;-->
+          <!--            &lt;!&ndash;                   v-if="kJshow || item.shortcut"&ndash;&gt;-->
+          <!--            &lt;!&ndash;                   @mouseout="kJoutHander"&ndash;&gt;-->
+          <!--            &lt;!&ndash;                   @click.stop="addkJHander(item)"&ndash;&gt;-->
+          <!--            &lt;!&ndash;              >&ndash;&gt;-->
+          <!--            &lt;!&ndash;            </div>&ndash;&gt;-->
+          <!--            &lt;!&ndash;            <div class="n-delete cont-icon" id="delicom" title="删除笔记" @click.stop="delNoteHandel(item)"></div>&ndash;&gt;-->
+          <!--            &lt;!&ndash;            &lt;!&ndash;设置提醒组件&ndash;&gt;&ndash;&gt;-->
+          <!--            &lt;!&ndash;          </div>&ndash;&gt;-->
+          <!--            <div class="n-bot"></div>-->
+          <!--            &lt;!&ndash;选项组件&ndash;&gt;-->
+          <!--          </router-link>-->
 
           <!--未找到搜索的笔记  动态计算高度----------------->
           <noteSearch></noteSearch>
@@ -99,6 +136,7 @@ import notFindtag from '../../components/prompt/not-findtag'
 import noteBookInfo from '../../components/prompt/noteBookInfo'
 import yxSelectSort from '@/func/select/yx-SelectSort'
 import note from "./note";
+
 export default {
   name: "noteList",
   components: {
@@ -128,6 +166,8 @@ export default {
       }).then(() => {
         // 2.获取笔记数据
         this.https.getNotes().then(({data}) => {
+          // 2.1 初始化 notes
+          // 2.2 初始化 noteId
           this.$store.getters.initNotes(data.data);
         }).then(() => {
           // 2.1 将state数据写到当前 notes
@@ -141,14 +181,22 @@ export default {
             //关闭loading动画
             this.$store.commit('closeLoadding');
             // 创建页面时初始化
-            this.$refs.noteM.initNoteContent();
+            // 1.先初始化 列表  在列表排序中初始化 noteId
             this.initList();
+            // 2.初始化 笔记内容为 排序的第一个
+            this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
+
           }).catch((err) => {
             // alert('网络延迟,请刷新重试')
             console.log(err);
           })
         })
       })
+    },
+
+    listItemClick(currentNoteId) {
+
+      this.$refs.noteM.initNoteContent(currentNoteId);
     },
 
     // 选项列表功能
@@ -168,13 +216,16 @@ export default {
     //   }
     // },
     // 初始化 笔记/笔记本/标签 列表
-    initList(){
+    initList() {
       if (this.$store.state.noteModule.currentNotes.length > 0) {
         this.$store.commit('showNoteList')
       }
       //选项列表数据
 
       this.sortWay.sortWay.call(this, this.$store.state.noteModule.currentNotes);
+
+      // 初始化 笔记内容id
+      this.$store.state.noteModule.noteId = this.$store.state.noteModule.currentNotes[0].id
 
       // this.noteBooks = this.$store.state.noteBookModule.noteBooks; // 全部的第几阶段笔记
       //
@@ -192,7 +243,7 @@ export default {
       //每次路由更新就调用这个方法,同步textarea和笔记列表数据
 
       this.initList();
-      this.$refs.noteM.initNoteContent();
+      this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
 
 
     },
