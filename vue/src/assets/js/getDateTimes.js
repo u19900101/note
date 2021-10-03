@@ -49,17 +49,18 @@ export function getDateTimes(data){
       })
     }
     // 通过 对象的时间戳 转换为 18/xx/xx
-    else if(day > 31){
-      // let dateObj = strTime;
-      // 获取到 2018/4/10格式的时间
-      // let newTimer = new Date(dateObj*1000).toLocaleString().split(' ')[0].split('/').join(' /');
-      let newTimer = item.createTime;
-      // 提交mutations 修改vuex中数据的createTime
-      this.$store.commit('sevendays',{
-        time:newTimer,
-        obj:item,
-      })
-    }
+    //  大于1个月的不需要设置别名
+    // else if(day > 31){
+    //   // let dateObj = strTime;
+    //   // 获取到 2018/4/10格式的时间
+    //   // let newTimer = new Date(dateObj*1000).toLocaleString().split(' ')[0].split('/').join(' /');
+    //   // let newTimer = item.createTime;
+    //   // // 提交mutations 修改vuex中数据的createTime
+    //   // this.$store.commit('sevendays',{
+    //   //   time:newTimer,
+    //   //   obj:item,
+    //   // })
+    // }
     else if(day >= 0 && day < 1){
       // 计算小时 1 <= h < 24
       let hours = parseInt(diffTime / 3600);

@@ -309,17 +309,6 @@ export default {
       // this.findDateList; //搜索笔记列表
 
     },
-
-    // 点击 移动笔记
-    clickMove() {
-      this.moveNote = !this.moveNote;
-      let bl = this.$refs.findval;
-      this.$nextTick(function () {
-        bl.focus()
-      })
-
-    },
-
     // 开始移动 移动到哪个阶段笔记本的id----------
     moveByNotes(noteBookId,noteBookName) {
 
@@ -342,26 +331,40 @@ export default {
           //  2.1 新的笔记本 数量 +1
           this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == noteBookId)[0].noteCount += 1
           this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == this.$store.state.noteModule.pid)[0].noteCount -= 1
-            // .push(currentNote)
+          // .push(currentNote)
           //  2.2 旧的笔记本 数量 -1
           // this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == this.$store.state.noteModule.pid)[0].pop(currentNote)
 
           // 1.修改当前的笔记
-        //  1.1修改 pid
+          //  1.1修改 pid
           this.$store.state.noteModule.pid = noteBookId
-        //  1.2.修改 currentNoteBookName
+          //  1.2.修改 currentNoteBookName
           this.$store.state.noteModule.currentNoteBookName = noteBookName
           console.log("移动笔记成功",data);
           // 1.3 修改 notes 中受影响的笔记 pid 所有的笔记列表
           let noteId = this.$store.state.noteModule.noteId
           this.$store.state.noteModule.notes.filter((item) => item.id == noteId)[0].pid = noteBookId
 
-          // 1.4 修改 currentNotes
-          this.$store.state.noteModule.currentNotes.filter((item) => item.id == noteId)[0].pid = noteBookId
-
+          // 1.4 修改 currentNotes  将当前笔记移除
+          this.$store.state.noteModule.currentNotes = this.$store.state.noteModule.currentNotes.filter((item) => item.id != noteId)
+          let currentNote = this.$store.state.noteModule.currentNotes[0]
+          this.$store.state.noteModule.currentNoteToShow = currentNote
+          this.title = currentNote.title
+          this.content = currentNote.content
         })
       }
     },
+    // 点击 移动笔记
+    clickMove() {
+      this.moveNote = !this.moveNote;
+      let bl = this.$refs.findval;
+      this.$nextTick(function () {
+        bl.focus()
+      })
+
+    },
+
+
 
     //关闭某些弹窗
     closeTag() {
@@ -630,12 +633,10 @@ export default {
   },
   watch: {
     // 侦听路由对象变化
-    watch: {
-      $route() {
-        console.log("note中打印路由发生了变化");
-        // this.initNoteContent();
-        // this.moveNote = false;
-      },
+    $route() {
+      // console.log("note中打印路由发生了变化");
+      // this.initNoteContent();
+      // this.moveNote = false;
     },
     // 监听标题信息  同步修改
     title(newTitle) {

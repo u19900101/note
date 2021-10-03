@@ -9,23 +9,24 @@
     <!--标签组件-->
     <yxNotetags></yxNotetags>
 <!--搜索笔记-------------------------------------------------------------------->
-<!--    <div class="searchNote" v-show="$store.state.searchBox">-->
-<!--      <div class="searchChild">-->
-<!--        <input type="text" class="searchValue" placeholder="搜索笔记"-->
-<!--               v-model="searchValue"-->
-<!--               @keydown.enter="searchDown"-->
-<!--               v-focus-->
-<!--        >-->
-<!--        <img src="@/assets/images/qingchusousuoneirong.png" alt=""-->
-<!--             class="clearSearch"-->
-<!--             v-if="searchValue.trim().length"-->
-<!--             @click="clearSearchVal"-->
-<!--        >-->
-<!--        <div class="tishixinxi">-->
-<!--          正在搜索 <span>你的笔记本</span>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
+    <div class="searchNote" v-show="$store.state.searchBox">
+      <div class="searchChild">
+        <input type="text" class="searchValue" placeholder="搜索笔记"
+               v-model="searchValue"
+               @keydown.enter="searchDown"
+               v-focus
+        >
+<!--        清空搜索内容-->
+        <img src="@/assets/images/qingchusousuoneirong.png" alt=""
+             class="clearSearch"
+             v-if="searchValue.trim().length"
+             @click="clearSearchVal"
+        >
+        <div class="tishixinxi">
+          正在搜索 <span>你的笔记本</span>
+        </div>
+      </div>
+    </div>
     <!-- 笔记列表区域 ------------------------------------------------------->
     <noteList></noteList>
 
@@ -61,16 +62,15 @@ export default {
 
     router,
   },
-  // data() {
-  //   return {
-  //
-  //   }
-  // },
+  data() {
+    return {
+      searchValue: '',
+    }
+  },
   methods: {
-
-
-
-    // 同步笔记时间数据
+    clearSearchVal(){
+      this.searchValue = '';
+    }
   },
 
   // 计算属性
@@ -78,22 +78,22 @@ export default {
 
   },
 
-  // 钩子函数 请求数据同步vuex
   created() {
 
-
-
   },
-
   watch: {
-    watch: {
       $route() {
-        console.log("note中打印路由发生了变化");
+        // console.log("home中打印路由发生了变化");
         // this.initNoteContent();
         // this.moveNote = false;
       },
-
+    searchValue(searchValue){
+      //  根据内容进行全局搜索,并高亮返回
+      //  点击列表可进行预览
+      // 点击笔记 进行修改
+      console.log(searchValue);
     }
+
   },
   // todo  ??
   directives: {

@@ -264,6 +264,7 @@ export default {
   watch: {
     $route() {
       //通过侦听路由对象的变化
+      // console.log("app中 route函数执行了");
       // let routeName = this.$route.path;
       // if (routeName === '/insertNote') {
       //   // if (this.navShow !== false) {

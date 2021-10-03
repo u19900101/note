@@ -10,9 +10,9 @@
              v-show="!$store.state.searchBox"
              v-if="!$store.state.noteBookModule.currentNoteBookName">
           <h2 class="notTitle">所有笔记</h2>
-          <div class="yinxcut">
-            <a href="https://www.yinxiang.com/webclipper/" target="_blank">网页剪藏</a>
-          </div>
+<!--          <div class="yinxcut">-->
+<!--            <a href="https://www.yinxiang.com/webclipper/" target="_blank">网页剪藏</a>-->
+<!--          </div>-->
         </div>
         <div class="tagNames" v-if="$store.state.noteBookModule.currentNoteBookName">
           当前笔记本(标签):{{ $store.state.noteBookModule.currentNoteBookName }}
@@ -32,7 +32,7 @@
         </div>
       </div>
 
-      <!-- 当前笔记内容列表区域-------------->
+      <!-- 笔记列表-------------->
       <div class="NodesTwoList">
         <div class="nodescroll" id="nodescroll" ref="homeScroll">
 <!--            弃用路由跳转 改为使用点击触发函数跳转-->
@@ -43,7 +43,8 @@
                :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
                v-show="!$store.state.notelistNumber">
             <h2 class="n-title">{{ item.title }}</h2>
-            <div class="n-times">{{ item.createTime }}</div>
+            <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
+            <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
             <div class="n-wrap" v-show="$store.state.showTextState">
               {{ item.content }}
             </div>
@@ -73,47 +74,7 @@
             <!--          </div>-->
             <div class="n-bot"></div>
           </div>
-          <!--          <router-link tag="div" class="n-conts"-->
-          <!--                       v-for="(item,index) in $store.state.noteModule.currentNotes"-->
-          <!--                       :key="item.id"-->
-          <!--                       :to="/home/+item.id"-->
-          <!--                       @click.native="state=item.id"-->
-          <!--                       :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"-->
-          <!--                       v-show="!$store.state.notelistNumber"-->
 
-          <!--          >-->
-          <!--            <h2 class="n-title">{{ item.title }}</h2>-->
-          <!--            <div class="n-times">{{ item.createTime }}</div>-->
-          <!--            <div class="n-wrap" v-show="$store.state.showTextState">-->
-          <!--              {{ item.content }}-->
-          <!--            </div>-->
-
-          <!--            &lt;!&ndash; 笔记列表 分享 闹钟 收藏 删除 &ndash;&gt;-->
-          <!--            &lt;!&ndash;          <div class="n-fnc">&ndash;&gt;-->
-          <!--            &lt;!&ndash;            <div class="n-shake cont-icon" @click.stop="shareHander(item)" title="分享"></div>&ndash;&gt;-->
-          <!--            &lt;!&ndash;            <div class="n-remind cont-icon remins"&ndash;&gt;-->
-          <!--            &lt;!&ndash;                 title="设置提醒" :class="item.remind ? 'active' : ''"&ndash;&gt;-->
-          <!--            &lt;!&ndash;                 @click.stop="remindHander"&ndash;&gt;-->
-          <!--            &lt;!&ndash;            >&ndash;&gt;-->
-          <!--            &lt;!&ndash;            </div>&ndash;&gt;-->
-
-          <!--            &lt;!&ndash;            <div class="n-collection cont-icon" :title="!item.shortcut ? '添加快捷方式' : '移除快捷方式'">&ndash;&gt;-->
-          <!--            &lt;!&ndash;              <img src="@/assets/images/shoucang_white_24x24.png" alt=""&ndash;&gt;-->
-          <!--            &lt;!&ndash;                   v-if="!kJshow && !item.shortcut"&ndash;&gt;-->
-          <!--            &lt;!&ndash;                   @mouseover="kJoverHander"&ndash;&gt;-->
-          <!--            &lt;!&ndash;              >&ndash;&gt;-->
-          <!--            &lt;!&ndash;              <img src="@/assets/images/shortcuts_solid_white_24x24.png" alt=""&ndash;&gt;-->
-          <!--            &lt;!&ndash;                   v-if="kJshow || item.shortcut"&ndash;&gt;-->
-          <!--            &lt;!&ndash;                   @mouseout="kJoutHander"&ndash;&gt;-->
-          <!--            &lt;!&ndash;                   @click.stop="addkJHander(item)"&ndash;&gt;-->
-          <!--            &lt;!&ndash;              >&ndash;&gt;-->
-          <!--            &lt;!&ndash;            </div>&ndash;&gt;-->
-          <!--            &lt;!&ndash;            <div class="n-delete cont-icon" id="delicom" title="删除笔记" @click.stop="delNoteHandel(item)"></div>&ndash;&gt;-->
-          <!--            &lt;!&ndash;            &lt;!&ndash;设置提醒组件&ndash;&gt;&ndash;&gt;-->
-          <!--            &lt;!&ndash;          </div>&ndash;&gt;-->
-          <!--            <div class="n-bot"></div>-->
-          <!--            &lt;!&ndash;选项组件&ndash;&gt;-->
-          <!--          </router-link>-->
 
           <!--未找到搜索的笔记  动态计算高度----------------->
           <noteSearch></noteSearch>
@@ -123,10 +84,13 @@
         </div>
       </div>
     </div>
+
+
+
     <!--最右侧笔记本内容信息区域-------------------------------->
     <note ref="noteM"></note>
-  </div>
 
+  </div>
 </template>
 
 <script>
@@ -136,6 +100,7 @@ import notFindtag from '../../components/prompt/not-findtag'
 import noteBookInfo from '../../components/prompt/noteBookInfo'
 import yxSelectSort from '@/func/select/yx-SelectSort'
 import note from "./note";
+
 
 export default {
   name: "noteList",
@@ -220,11 +185,10 @@ export default {
       if (this.$store.state.noteModule.currentNotes.length > 0) {
         this.$store.commit('showNoteList')
       }
-      //选项列表数据
-
+      // 根据排序方式进行当前笔记的排序
       this.sortWay.sortWay.call(this, this.$store.state.noteModule.currentNotes);
 
-      // 初始化 笔记内容id
+      // 初始化 笔记内容id,便于下一步显示
       this.$store.state.noteModule.noteId = this.$store.state.noteModule.currentNotes[0].id
 
       // this.noteBooks = this.$store.state.noteBookModule.noteBooks; // 全部的第几阶段笔记
@@ -241,7 +205,7 @@ export default {
     $route() {
       // this.moveNote = false;
       //每次路由更新就调用这个方法,同步textarea和笔记列表数据
-
+      console.log("noteList中打印路由发生了变化");
       this.initList();
       this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
 

@@ -225,7 +225,7 @@ export default {
   sevendays(state, params) {
     state.noteModule.notes.forEach(item => {
       if (item === params.obj) {
-        item.createTime = params.time;
+        item.createTimeAlias = params.time;
       }
     })
   },
