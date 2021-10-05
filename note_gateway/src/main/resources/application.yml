@@ -18,7 +18,13 @@ spring:
             - Path=/api/admin/**,/hello
           filters:
             - RewritePath=/api/(?<segment>.*),/$\{segment}
-
+#        es 搜索
+        - id: admin_search
+          uri: lb://note-search
+          predicates:
+            - Path=/es/search
+#          filters:
+#            - RewritePath=/(?<segment>.*),/$\{segment}
 
 
     #        #nginx负载均衡

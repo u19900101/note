@@ -8,6 +8,11 @@ const vm = axios.create({
     // headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 });
 
+// 用作搜索
+const vm2 = axios.create({
+  baseURL:'http://192.168.56.10:9200/canal_note/_search',
+});
+
 export function getNotebooks(){
    // return vm.get('/api/admin/notebook')
    // 直接访问网关目录下的 静态资源用作测试
@@ -29,9 +34,13 @@ export function getTags(){
 
 // 更新笔记的标题和内容
 export function updateNote(data){
-  // 方法2
-  // return vm.post('/api/admin/note/update',qs.stringify(data))
+
   return vm.post('/api/admin/note/update',data)
+}
+
+// 使用es 搜索笔记
+export function searchNoteByWords(data){
+  return vm.post('/es/search',data)
 }
 
 
@@ -42,8 +51,8 @@ export default {
        getNotes,
        getTags,
        updateNote,
-
-       insertNote
+       insertNote,
+       searchNoteByWords
      }
   }
 }

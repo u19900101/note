@@ -7,9 +7,9 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
     driver-class-name: com.mysql.jdbc.Driver              # mysql驱动包
 # convertToNull 解决 com.mysql.cj.exceptions.DataReadException: Zero date value prohibited
-    url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://192.168.56.10:3306/canal_test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&zeroDateTimeBehavior=convertToNull
     username: root
-    password: kk
+    password: root
   cloud:
     nacos:
       server-addr: 127.0.0.1:8848

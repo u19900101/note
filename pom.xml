@@ -22,6 +22,8 @@
 
     <modules>
         <module>note_admin</module>
+        <module>note_search</module>
+
     </modules>
 
     <dependencies>
