@@ -165,13 +165,23 @@
     <!--笔记的标题和内容展示-->
     <div class="editCount" ref="editScroll" @click="closeQuick">
 
+<!--      <div class="root">-->
+<!--        <div class="editTitle">-->
+<!--          <input type="text" v-model="title" class="editValue" placeholder="请输入标题">-->
+<!--        </div>-->
+<!--        <div class="textArea">-->
+<!--          <textarea v-model="content" placeholder="请输入内容"></textarea>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      搜索到的结果-->
       <div class="root">
-        <div class="editTitle">
-          <input type="text" v-model="title" class="editValue" placeholder="请输入标题">
+        <!--        v-html 可以对html标签进行解析-->
+        <div class="editTitle" v-html="title"></div>
+        <div class="textArea" v-html="content">
+          <textarea ></textarea>
         </div>
-        <div class="textArea">
-          <textarea v-model="content" placeholder="请输入内容"></textarea>
-        </div>
+
       </div>
     </div>
 
