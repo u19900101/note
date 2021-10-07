@@ -529,12 +529,12 @@
     white-space:normal;
 }
 
+/*.textArea {*/
+/*    !*border: solid 1px green;*!*/
+/*    margin-top: 8px;*/
+/*    position: relative;*/
+/*}*/
 .textArea {
-    /*border: solid 1px green;*/
-    margin-top: 8px;
-    position: relative;
-}
-.textArea textarea {
     position: relative;
     border: none;
     outline: none;

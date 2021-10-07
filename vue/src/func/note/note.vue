@@ -162,27 +162,26 @@
       </div>
     </div>
 
-    <!--笔记的标题和内容展示-->
+    <!--笔记的标题和内容展示  todo 显示的模式 抽取一下？-->
     <div class="editCount" ref="editScroll" @click="closeQuick">
-
-<!--      <div class="root">-->
-<!--        <div class="editTitle">-->
-<!--          <input type="text" v-model="title" class="editValue" placeholder="请输入标题">-->
-<!--        </div>-->
-<!--        <div class="textArea">-->
-<!--          <textarea v-model="content" placeholder="请输入内容"></textarea>-->
-<!--        </div>-->
-<!--      </div>-->
-
-<!--      搜索到的结果-->
-      <div class="root">
-        <!--        v-html 可以对html标签进行解析-->
-        <div class="editTitle" v-html="title"></div>
-        <div class="textArea" v-html="content">
-          <textarea ></textarea>
+      <div class="root" v-if="$store.state.noteModule.editMode">
+        <div class="editTitle">
+          <input type="text" v-model="title" class="editValue" placeholder="请输入标题">
         </div>
-
+        <div >
+          <textarea class="textArea" v-model="content" placeholder="请输入内容"></textarea>
+        </div>
       </div>
+
+<!--      搜索到的结果  只显示 不编辑-->
+      <div class="root" v-show="!$store.state.noteModule.editMode">
+        <div class="editTitle">
+          <div type="text" v-html="$store.state.noteModule.title" class="editValue"></div>
+        </div>
+        <div class="textArea" v-html="$store.state.noteModule.content" contenteditable="true">
+        </div>
+      </div>
+
     </div>
 
     <!--遮罩层-->

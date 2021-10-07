@@ -90,7 +90,7 @@ export default {
       //  根据内容进行全局搜索,并高亮返回
       //  点击列表可进行预览
       // 点击笔记 进行修改
-      console.log("搜索字段 ",searchValue);
+      console.log("搜索字段 ", searchValue);
       let queryData = {
         "query": {
           "bool": {
@@ -104,29 +104,61 @@ export default {
                 "match": {
                   "content": searchValue
                 }
+              },
+              {
+                "wildcard": {
+                  "title": "*" + searchValue + "*"
+                }
+              },
+              {
+                "wildcard": {
+                  "content": "*" + searchValue + "*"
+                }
               }
             ]
           }
         },
         "highlight": {
+          "pre_tags": ["<font style=\"background:yellow\" color=\"red\">"],
+          "post_tags": ["</font>"],
           "fields": {
             "title": {},
             "content": {}
           }
         }
       }
+      if (searchValue.length > 0) {
+        this.https.searchNoteByWords(queryData).then((data) => {
+          console.log("返回的搜索结果", data.data.hits.hits);
+          let result = data.data.hits.hits
+          this.$store.state.noteModule.title = '未搜索到相关信息';
+          this.$store.state.noteModule.content = '';
+          if (result.length > 0) {
+            // 封装 currentNotes  直接利用查询到的数据进行封装note
+            let searchNotes = []
+            result.forEach(item => {
+              let noteTemp = []
+              noteTemp.id = item._id
+              // 有高亮就显示高亮  没高亮就原始值
+              for (let keyValue in item._source) {
+                noteTemp.key = item._source[keyValue]
+              }
+              // 覆盖
+              noteTemp.title = item.highlight.title ? item.highlight.title[0] : item._source.title;
+              noteTemp.content = item.highlight.content ? item.highlight.content[0] : item._source.content;
+              searchNotes.push(noteTemp)
+            })
 
-      this.https.searchNoteByWords(queryData).then((data) =>{
-        console.log("返回的搜索结果",data.data.hits.hits);
-        let result = data.data.hits.hits
-        result.forEach(item => {
-          console.log("title",item.highlight.title);
-          console.log("content",item.highlight.content);
-        })
-      //  highlight:
-      //   content: ['笔记2-内<em>s</em>']
-      //   title: ['笔记-2<em>s</em>']
-      });
+            this.$store.state.noteModule.title = searchNotes[0].title
+            this.$store.state.noteModule.content = searchNotes[0].content
+            this.$store.state.noteModule.searchNotes = searchNotes
+
+          }
+          // 展示搜素结果
+          this.$store.state.noteModule.editMode = false
+        });
+      }
+
     }
 
   },

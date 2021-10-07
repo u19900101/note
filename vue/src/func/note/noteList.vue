@@ -34,7 +34,8 @@
 
       <!-- 笔记列表-------------->
       <div class="NodesTwoList">
-        <div class="nodescroll" id="nodescroll" ref="homeScroll">
+<!--        编辑模式下的显示-->
+        <div class="nodescroll" id="nodescroll" ref="homeScroll" v-if="$store.state.noteModule.editMode">
 <!--            弃用路由跳转 改为使用点击触发函数跳转-->
           <div class="n-conts"
                v-for="(item,index) in $store.state.noteModule.currentNotes"
@@ -72,6 +73,30 @@
             <!--            <div class="n-delete cont-icon" id="delicom" title="删除笔记" @click.stop="delNoteHandel(item)"></div>-->
             <!--            &lt;!&ndash;设置提醒组件&ndash;&gt;-->
             <!--          </div>-->
+            <div class="n-bot"></div>
+          </div>
+
+
+          <!--未找到搜索的笔记  动态计算高度----------------->
+          <noteSearch></noteSearch>
+          <my-tip></my-tip>
+          <!--未找到标签笔记-->
+          <notFindtag></notFindtag>
+        </div>
+
+<!--        搜索模式下的显示-->
+        <div class="nodescroll" id="nodescroll2" ref="homeScroll" v-if="!$store.state.noteModule.editMode">
+          <!--            弃用路由跳转 改为使用点击触发函数跳转-->
+          <div class="n-conts"
+               v-for="(item,index) in $store.state.noteModule.searchNotes"
+               :key="item.id"
+               @click="listItemClick(item.id)"
+               :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
+               v-show="!$store.state.notelistNumber">
+            <h2 class="n-title" v-html="item.title"></h2>
+            <div class="n-times" v-show="item.createTimeAlias" v-html="item.createTimeAlias"></div>
+            <div class="n-times" v-show="!item.createTimeAlias" v-html="item.createTime"></div>
+            <div class="n-wrap" v-show="$store.state.showTextState" v-html="item.content"></div>
             <div class="n-bot"></div>
           </div>
 

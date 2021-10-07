@@ -6,6 +6,7 @@ export default {
     rootState.noteBookModule.isNoteBooksShow = false;
     rootState.noteBookModule.currentNoteBookName = false;
     rootState.tagModule.isTagNotesShow = false;
+    rootState.noteModule.editMode = true
     state.isNotesShow = true;
     // 显示所有的的笔记
     state.currentNotes = state.notes;

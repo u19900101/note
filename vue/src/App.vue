@@ -221,6 +221,7 @@ export default {
 
     // 让搜索框通过vuex中的状态让它显示出来,并且网页剪辑隐藏
     searchState() {
+      this.$store.state.noteModule.editMode = false
       this.$store.commit('searchShow');
       this.$store.commit('noteListTrue');
 
