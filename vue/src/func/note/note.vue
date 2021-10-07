@@ -164,22 +164,26 @@
 
     <!--笔记的标题和内容展示  todo 显示的模式 抽取一下？-->
     <div class="editCount" ref="editScroll" @click="closeQuick">
-      <div class="root" v-if="$store.state.noteModule.editMode">
+      <div class="root" v-if="!$store.state.noteModule.isSearchNoteShow">
         <div class="editTitle">
-          <input type="text" v-model="title" class="editValue" placeholder="请输入标题">
+          <input type="text" v-model="$store.state.noteModule.currentNoteToShow.title" class="editValue" placeholder="请输入标题">
         </div>
-        <div >
-          <textarea class="textArea" v-model="content" placeholder="请输入内容"></textarea>
+        <div>
+          <textarea class="textArea" v-model="$store.state.noteModule.currentNoteToShow.content" contenteditable="true" placeholder="请输入内容"></textarea>
         </div>
       </div>
 
 <!--      搜索到的结果  只显示 不编辑-->
-      <div class="root" v-show="!$store.state.noteModule.editMode">
+      <div class="root" v-show="$store.state.noteModule.isSearchNoteShow">
         <div class="editTitle">
-          <div type="text" v-html="$store.state.noteModule.title" class="editValue"></div>
+          <div type="text" id = "searchTitleResult" v-html="$store.state.noteModule.title" class="editValue" @click = "switchToEditMode"></div>
         </div>
-        <div class="textArea" v-html="$store.state.noteModule.content" contenteditable="true">
+<!--        <div-editable v-model="$store.state.noteModule.content" @click = "switchToEditMode"></div-editable>-->
+
+        <div @click = "switchToEditMode">
+          <div class="textArea" v-html="$store.state.noteModule.content" ></div>
         </div>
+<!--        <div class="textArea" v-html="$store.state.noteModule.content" ></div>-->
       </div>
 
     </div>
@@ -196,6 +200,7 @@ import changeremin from '@/func/reminders/changeremin'
 import undoremin from '@/func/reminders/UndoRemin'
 import showtimes from '@/func/reminders/showTimes'
 import {Tag, Button} from 'iview'
+import DivEditable from "./DivEditable";
 import {clientAuto} from '@/assets/js/client'
 import {updateNote} from "../../server";
 
@@ -207,6 +212,7 @@ export default {
       title: this.$store.state.noteModule.title,
       content: this.$store.state.noteModule.content,  //标题, //内容
 
+      searchContent: '',
       pid: '', // noteContent对象的pid
 
       moveNote: false, //移动笔记本显隐
@@ -238,85 +244,42 @@ export default {
     changeremin,
     undoremin,
     showtimes,
-
+    DivEditable,
   },
-  // mounted: {
-  //   // noteBookName: function (){
-  //   //   let noteBookName = this.$store.state.noteBookModule.currentNoteBookName
-  //   //   return noteBookName?noteBookName:""
-  //   // },
-  //   // clientAuto();
-  //
-  // },
   methods: {
 // 渲染最右侧页面 展示笔记内容
     initNoteContent(currentNoteId) {
 
       // 不能根据路由来进行跳转 有 bug
       this.$store.state.noteModule.noteId = currentNoteId;
-      let currentNoteToShow = this.$store.state.noteModule.currentNotes.filter(item => item.id == currentNoteId)[0];
+      let currentNoteToShow = []
+      let note = this.$store.state.noteModule.currentNotes.filter(item => item.id == currentNoteId)[0];
+      this.title = note.title;
+      this.content = note.content;
+
+      // todo 还是要拆开 耦合有点高
+      if(this.$store.state.noteModule.isSearchNoteListShow && this.$store.state.noteModule.isSearchNoteShow){
+        currentNoteToShow = this.$store.state.noteModule.searchNotes.filter(item => item.id == currentNoteId)[0];
+        this.$store.state.noteModule.title = currentNoteToShow.title
+        this.$store.state.noteModule.content = currentNoteToShow.content
+      }else {
+        currentNoteToShow = this.$store.state.noteModule.currentNotes.filter(item => item.id == currentNoteId)[0];
+      }
 
       // 若 当前id所对应的笔记不存在，那就默认 渲染当前笔记的第一条
       if (currentNoteToShow == undefined) {
         currentNoteToShow = this.$store.state.noteModule.currentNotes[0];
       }
       this.$store.state.noteModule.currentNoteToShow = this.noteContent = currentNoteToShow;
-
       this.$store.state.noteModule.pid = currentNoteToShow.pid;
-      this.title = currentNoteToShow.title;
-      this.content = currentNoteToShow.content;
       this.pid = currentNoteToShow.pid; //单条笔记的pid
-
 
       // 2.2 写入 currentNoteBookName
       let currentNoteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == currentNoteToShow.pid)[0]
       this.$store.state.noteModule.currentNoteBookName = currentNoteBook.title
-
       window.document.title = this.noteContent.title;
-
       // 同步标签 此时this.count和this.noteContent引用的是同一个对象label
       this.count = this.noteContent.tagList;
-
-      // 只需要修改路由对象,会自动更新全部这个组件需要的所有数据
-      // 默认滚动条高度0  当可以获取到这个元素的时候再进行重置0
-      // let editSroll = this.$refs.editScroll;
-      // let homeScroll = this.$refs.homeScroll; //笔记列表滚动条
-      // if (editSroll) {
-      //   editSroll.scrollTo(0, 0)
-      // }
-
-      // //判断 如果是点击了 笔记
-      // if (this.$route.params.id === '11111111' && homeScroll) {
-      //   homeScroll.scrollTo(0, 0)
-      // }
-      //
-      // // 判断搜索关键字是不是和vuex状态管理中的一样
-      // if (this.searchValue !== this.$store.state.searchValue) {
-      //   this.searchValue = this.$store.state.searchValue;
-      // }
-
-      // // vuex的数据同步到Home组件
-      // if (this.$store.state.findNotesList.length > 0) {
-      //   this.$store.state.noteModule.currentNotes = this.$store.state.findNotesList;
-      //   this.$store.commit('deleteNoteState', 'findlist');
-      // }
-      // // 判断 是否显示笔记本
-      // else if (this.$store.state.noteBookModule.isNoteBooksShow) {
-      //   this.$store.state.noteModule.currentNotes = this.$store.state.joinNoteList;
-      //   this.$store.commit('deleteNoteState', 'joinlist');
-      // }
-      // // 判断是否进入标签笔记列表
-      // else if (this.$store.state.tagModule.isTagNotesShow) {
-      //   this.$store.state.noteModule.currentNotes = this.$store.state.tagNotes;
-      //   this.$store.commit('deleteNoteState', 'taglist');
-      // } else if (this.$store.state.noteModule.isNotesShow) {
-      //   //默认开始时 进入 笔记列表页面
-      //   // this.$store.state.noteModule.currentNotes = this.$store.state.noteModule.notes;
-      //   // this.$store.commit('deleteNoteState', 'notes')
-      // }
-
-      // this.findDateList; //搜索笔记列表
-
     },
     // 开始移动 移动到哪个阶段笔记本的id----------
     moveByNotes(noteBookId,noteBookName) {
@@ -363,6 +326,14 @@ export default {
         })
       }
     },
+
+    // 点击搜索结果，笔记展示内容 切换到编辑模式，list保持原状
+    switchToEditMode(){
+      //
+      this.$store.state.noteModule.isSearchNoteShow = false
+      // 直接渲染一个  避免直接赋值产生的修改上一篇笔记的 bug
+      this.initNoteContent(this.$store.state.noteModule.noteId)
+    },
     // 点击 移动笔记
     clickMove() {
       this.moveNote = !this.moveNote;
@@ -372,9 +343,6 @@ export default {
       })
 
     },
-
-
-
     //关闭某些弹窗
     closeTag() {
       //当第几阶段笔记弹窗为true的时候再执行
@@ -382,8 +350,6 @@ export default {
         this.moveNote = false;
       }
     },
-
-
     // iView组件 添加标签点击事件
     handleAdd() {
       this.editTagShow = true;
@@ -660,7 +626,6 @@ export default {
           })
         }
       })
-      // console.log(this.$store.state.noteModule.currentNotes);
     },
     // 监听textarea内容
     content(newTextArea) {
@@ -683,7 +648,40 @@ export default {
       if (newState) {
         this.$store.state.noteModule.currentNotes = [];
       }
-    }
+    },
+    '$store.state.noteModule.currentNoteToShow.title'(newTitle){
+      let noteId = this.$store.state.noteModule.currentNoteToShow.id;
+      // 1.切换路由对象的时候 更新
+      // todo 更新的地方有bug
+      this.$store.state.noteModule.currentNotes.forEach(note => {
+        // 只修改对应数据的值
+        if (note.id == noteId && note.title != newTitle) {
+          note.title = newTitle
+          this.https.updateNote({id: noteId, title: newTitle}).then(({data}) => {
+            console.log("修改数据库成功", data);
+          })
+        }
+      })
+    },
+    // 两次触发
+    // 1.搜索出值的时候
+    // 2.点击搜索结果的时候
+    // 3.修改模式下 值发生变化
+    '$store.state.noteModule.currentNoteToShow.content'(newTextArea){
+      let noteId = this.$store.state.noteModule.noteId;
+      // 1.切换路由对象的时候 更新
+      newTextArea = newTextArea.replace(/<font style="background:yellow" color="red">/gi,"").replace(/<\/font>/gi,"")
+      this.$store.state.noteModule.currentNotes.forEach(note => {
+        // 只修改对应数据的值  由于进行了过滤操作 每次的 currentNoteToShowd都和 currentNotes中的值同步
+        // 所有  note.content != newTextArea  的结果永远为 false
+        if (note.id == noteId && note.content != newTextArea) {
+          note.content = newTextArea
+          this.https.updateNote({id: noteId, content: newTextArea}).then(({data}) => {
+            console.log("修改数据库成功", data);
+          })
+        }
+      })
+    },
   }
 }
 

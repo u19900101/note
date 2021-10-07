@@ -141,7 +141,7 @@ export default {
               noteTemp.id = item._id
               // 有高亮就显示高亮  没高亮就原始值
               for (let keyValue in item._source) {
-                noteTemp.key = item._source[keyValue]
+                noteTemp[keyValue] = item._source[keyValue]
               }
               // 覆盖
               noteTemp.title = item.highlight.title ? item.highlight.title[0] : item._source.title;
@@ -149,6 +149,8 @@ export default {
               searchNotes.push(noteTemp)
             })
 
+            this.$store.state.noteModule.currentNoteToShow = searchNotes[0]
+            this.$store.state.noteModule.noteId = searchNotes[0].id
             this.$store.state.noteModule.title = searchNotes[0].title
             this.$store.state.noteModule.content = searchNotes[0].content
             this.$store.state.noteModule.searchNotes = searchNotes

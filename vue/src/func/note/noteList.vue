@@ -23,7 +23,8 @@
 
         <!-- 笔记条数和选项 -->
         <div class="noteNumbers clearfix">
-          <div class="yinxnum">{{ $store.state.noteModule.currentNotes.length }} 条笔记</div>
+          <div class="yinxnum" v-if="$store.state.noteModule.editMode">{{ $store.state.noteModule.currentNotes.length }} 条笔记</div>
+          <div class="yinxnum" v-if="!$store.state.noteModule.editMode">{{ $store.state.noteModule.searchNotes.length }} 条笔记</div>
           <div class="select" @click.stop="sortClick">
             <span>选项</span>
           </div>
@@ -35,7 +36,7 @@
       <!-- 笔记列表-------------->
       <div class="NodesTwoList">
 <!--        编辑模式下的显示-->
-        <div class="nodescroll" id="nodescroll" ref="homeScroll" v-if="$store.state.noteModule.editMode">
+        <div class="nodescroll" id="nodescroll" ref="homeScroll" v-if="!$store.state.noteModule.isSearchNoteListShow">
 <!--            弃用路由跳转 改为使用点击触发函数跳转-->
           <div class="n-conts"
                v-for="(item,index) in $store.state.noteModule.currentNotes"
@@ -85,7 +86,7 @@
         </div>
 
 <!--        搜索模式下的显示-->
-        <div class="nodescroll" id="nodescroll2" ref="homeScroll" v-if="!$store.state.noteModule.editMode">
+        <div class="nodescroll" id="nodescroll2" ref="homeScroll" v-if="$store.state.noteModule.isSearchNoteListShow">
           <!--            弃用路由跳转 改为使用点击触发函数跳转-->
           <div class="n-conts"
                v-for="(item,index) in $store.state.noteModule.searchNotes"
@@ -185,7 +186,9 @@ export default {
     },
 
     listItemClick(currentNoteId) {
-
+      if(this.$store.state.noteModule.isSearchNoteListShow){
+        this.$store.state.noteModule.isSearchNoteShow = true
+      }
       this.$refs.noteM.initNoteContent(currentNoteId);
     },
 

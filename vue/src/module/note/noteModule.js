@@ -14,7 +14,8 @@ export default {
     content: '', //内容
     pid: '', // noteContent对象的pid
     currentNoteBookName: '',
-    editMode: true, // true为编辑模式，false为搜索模式(展示搜索到的结果)
+    isSearchNoteShow: false, // 展示搜索笔记内容
+    isSearchNoteListShow: false, // 展示搜索列表
     searchNotes: []
   },
   mutations,
