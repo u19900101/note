@@ -161,7 +161,7 @@
         </div>
       </div>
     </div>
-
+    <h1> 笔记内容 {{$route.params.note}}</h1>
     <!--笔记的标题和内容展示  todo 显示的模式 抽取一下？-->
     <div class="editCount" ref="editScroll" @click="closeQuick">
       <div class="root" v-if="!$store.state.noteModule.isSearchNoteShow">

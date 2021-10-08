@@ -3,6 +3,7 @@
   <!-- 笔记列表区域  todo 冒泡------------------------------------------------------->
   <!--  <div class="yinxList" @mousedown.prevent="BlurFn" v-show="$store.state.noteModule.isNotesShow">-->
   <div>
+
     <div class="yinxList" v-show="$store.state.noteModule.isNotesShow">
       <div class="yinxTitle">
         <!--首页显示        如果搜索到笔记就不显示-->
@@ -38,10 +39,11 @@
 <!--        编辑模式下的显示-->
         <div class="nodescroll" id="nodescroll" ref="homeScroll" v-if="!$store.state.noteModule.isSearchNoteListShow">
 <!--            弃用路由跳转 改为使用点击触发函数跳转-->
+
           <div class="n-conts"
-               v-for="(item,index) in $store.state.noteModule.currentNotes"
+               v-for="(item,index) in JSON.parse($route.params.notes)"
                :key="item.id"
-               @click="listItemClick(item.id)"
+               @click="listItemClick(item)"
                :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
                v-show="!$store.state.notelistNumber">
             <h2 class="n-title">{{ item.title }}</h2>
@@ -114,7 +116,8 @@
 
 
     <!--最右侧笔记本内容信息区域-------------------------------->
-    <note ref="noteM"></note>
+<!--    <note ref="noteM"></note>-->
+    <router-view />
 
   </div>
 </template>
@@ -146,50 +149,19 @@ export default {
   },
   created() {
     // 4.开始渲染页面  调用子页面的方法
-    this.getData();
+    // this.getData();
   },
   methods: {
-    // 获取 数据
-    getData() {
-      // 1.获取笔记本数据
-      this.https.getNotebooks().then(({data}) => {
-        this.$store.getters.initNoteBooks(data.data);
-      }).then(() => {
-        // 2.获取笔记数据
-        this.https.getNotes().then(({data}) => {
-          // 2.1 初始化 notes
-          // 2.2 初始化 noteId
-          this.$store.getters.initNotes(data.data);
-        }).then(() => {
-          // 2.1 将state数据写到当前 notes
-          this.$store.state.noteModule.currentNotes = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
 
-          // 3.获取标签数据
-          this.https.getTags().then(({data}) => {
-            this.$store.getters.initTags(data.data);
-          }).then(() => {
-            console.log("标签数据请求完成");
-            //关闭loading动画
-            this.$store.commit('closeLoadding');
-            // 创建页面时初始化
-            // 1.先初始化 列表  在列表排序中初始化 noteId
-            this.initList();
-            // 2.初始化 笔记内容为 排序的第一个
-            this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
 
-          }).catch((err) => {
-            // alert('网络延迟,请刷新重试')
-            console.log(err);
-          })
-        })
-      })
-    },
+    listItemClick(currentNote) {
+      // if(this.$store.state.noteModule.isSearchNoteListShow){
+      //   this.$store.state.noteModule.isSearchNoteShow = true
+      // }
+      // this.$refs.noteM.initNoteContent(currentNoteId);
+      console.log(currentNote.id);
+      this.$router.push({ name: 'note1', params: { note: JSON.stringify(currentNote)}})
 
-    listItemClick(currentNoteId) {
-      if(this.$store.state.noteModule.isSearchNoteListShow){
-        this.$store.state.noteModule.isSearchNoteShow = true
-      }
-      this.$refs.noteM.initNoteContent(currentNoteId);
     },
 
     // 选项列表功能
@@ -233,9 +205,9 @@ export default {
     $route() {
       // this.moveNote = false;
       //每次路由更新就调用这个方法,同步textarea和笔记列表数据
-      console.log("noteList中打印路由发生了变化");
-      this.initList();
-      this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
+      // console.log("noteList中打印路由发生了变化");
+      // this.initList();
+      // this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
 
 
     },

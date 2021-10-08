@@ -54,7 +54,7 @@
         </div>
       </div>
 
-      <router-view></router-view>
+      <router-view/>
     </div>
   </div>
 </template>
@@ -108,39 +108,40 @@ export default {
       }
       // 笔记
       else if (obj.click === 'note') {
-        // this.$store.commit('savefilterNote',{
-        //   obj:[],
-        // });
 
         this.$store.getters.getNoteShow();
+        let currentNotes = this.$store.state.noteModule.notes
+        this.$router.push({ name: 'noteList',params: { notes: JSON.stringify(currentNotes)}})
 
-        //删除vuex中管理的 搜索框隐藏
-        this.$store.commit('searchNone');
-        this.$store.commit('isNot404Yes');
-        this.$store.commit('noteBookList'); //清空第几阶段展示的信息
 
-        //定位到/home/1
-        let n = this.$store.state.noteModule.notes;
-        if (n.length > 0) {
-          this.$router.push({
-            path: '/home/11111111'
-          });
-          this.getDateTimes.getDateTimes.call(this, n)
-        }
-
-        //让显示笔记列表的盒模型显示出来
-        this.$store.commit('noteListTrue');
-        // 让yinList 笔记内容信息展示盒模型的margin-left为300多
-        this.$store.commit('closeQuickbox');
-        this.$store.commit('closeHander'); //显示展开图标
-        // 清空vuex中的标签笔记列表
-        this.$store.commit('clearTagList');
-        // 去除标签组件信息展示
-        this.$store.commit('closeTagShow');
+        // //删除vuex中管理的 搜索框隐藏
+        // this.$store.commit('searchNone');
+        // this.$store.commit('isNot404Yes');
+        // this.$store.commit('noteBookList'); //清空第几阶段展示的信息
+        //
+        // //定位到/home/1
+        // let n = this.$store.state.noteModule.notes;
+        // if (n.length > 0) {
+        //   this.$router.push({
+        //     path: '/home/11111111'
+        //   });
+        //   this.getDateTimes.getDateTimes.call(this, n)
+        // }
+        //
+        // //让显示笔记列表的盒模型显示出来
+        // this.$store.commit('noteListTrue');
+        // // 让yinList 笔记内容信息展示盒模型的margin-left为300多
+        // this.$store.commit('closeQuickbox');
+        // this.$store.commit('closeHander'); //显示展开图标
+        // // 清空vuex中的标签笔记列表
+        // this.$store.commit('clearTagList');
+        // // 去除标签组件信息展示
+        // this.$store.commit('closeTagShow');
       }
       //笔记本
       else if (obj.click === 'noteBook') {
-        this.$store.dispatch('noteBookShow')
+        this.$router.push({ name: 'noteBookList'})
+        // this.$store.dispatch('noteBookShow')
       }
       //标签
       else if (obj.click === 'tag') {

@@ -5,18 +5,61 @@ Vue.use(VueRouter);
 
 import Home from '@/components/Home'
 import noteList from "../func/note/noteList";
+import noteBookList from "../func/note/noteBookList";
+
 import note from "../func/note/note";
 const Edit = () => import('@/components/Edit');
 
 let routes = [
+
   {
-    path:'/home/:id?',
-    component:Home,
+    path: '/home',
+    name: 'home',
+    component: Home,
+    children: [
+      {
+        path: 'noteList/:notes',
+        name: 'noteList',
+        component: noteList,
+        children: [{
+          path: 'note1/:note',
+          name: 'note1',
+          component: note,
+        }]
+      },
+      {
+        path: 'noteBookList',
+        name: 'noteBookList',
+        component: noteBookList,
+        children: [{
+          path: 'noteList/:notes',
+          name: 'noteListInNoteBook',
+          component: noteList,
+          children: [{
+            path: 'note2/:note',
+            name: 'note2',
+            component: note,
+          }]
+        }]
+      }
+    ]
+      // {
+      //   path: 'noteBookList',
+      //   component: noteBookList,
+      //   name: 'noteBookList',
+      //   children: [{
+      //     path: 'noteBookItem/:noteBookItem',
+      //     name: 'noteBookItem',
+      //     component: noteBookItem,
+      //     children: [{
+      //       path: 'note2/:note',
+      //       name: 'note2',
+      //       component: noteOne,
+      //     }]
+      //   }]
+      // },
+   // ]
   },
-  // {
-  //   path:'/noteList/:id?',
-  //   component:noteList,
-  // },
   {
     // 新建笔记
     path:'/createNote',
@@ -24,7 +67,7 @@ let routes = [
   },
   {
     path:'*',
-    redirect:'/home/1'
+    redirect:'/home'
   }
 ];
 
