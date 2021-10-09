@@ -152,7 +152,6 @@ export default {
       }
       // 笔记
       else if (obj.click === 'note') {
-
         this.$store.getters.getNoteShow();
         let currentNotes = this.$store.state.noteModule.notes
         this.$router.push({
@@ -163,7 +162,6 @@ export default {
           }
         })
         this.$router.push({ name: 'note1', params: { note: JSON.stringify(currentNotes[0])}})
-
 
         // //删除vuex中管理的 搜索框隐藏
         // this.$store.commit('searchNone');

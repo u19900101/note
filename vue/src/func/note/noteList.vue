@@ -19,7 +19,7 @@
 
       <!-- 笔记列表-------------->
       <div class="NodesTwoList">
-<!--        编辑模式下的显示-->
+
         <div class="nodescroll" id="nodescroll" ref="homeScroll">
           <div class="n-conts"
                v-for="(item,index) in JSON.parse($route.params.notes)"
@@ -27,12 +27,27 @@
                @click="listItemClick(item)"
                :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
                v-show="!$store.state.notelistNumber">
-            <h2 class="n-title">{{ item.title }}</h2>
-            <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
-            <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
-            <div class="n-wrap" v-show="$store.state.showTextState">
-              {{ item.content }}
+<!--编辑模式的显示-->
+            <div v-if="!$store.state.noteModule.isSearchNoteListShow">
+              <h2 class="n-title">{{ item.title }}</h2>
+              <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
+              <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
+              <div class="n-wrap" v-show="$store.state.showTextState">
+                {{ item.content }}
+              </div>
             </div>
+
+<!--搜索模式的显示-->
+            <div v-if="$store.state.noteModule.isSearchNoteListShow">
+              <h2 class="n-title" v-html="item.title"></h2>
+              <div class="n-times" v-show="item.createTimeAlias" v-html="item.createTimeAlias"></div>
+              <div class="n-times" v-show="!item.createTimeAlias" v-html="item.createTime"></div>
+              <div class="n-wrap" v-show="$store.state.showTextState" v-html="item.content"></div>
+            </div>
+
+
+
+
 
             <!-- 笔记列表 分享 闹钟 收藏 删除 -->
             <!--          <div class="n-fnc">-->
@@ -69,20 +84,20 @@
         </div>
 
 <!--        搜索模式下的显示-->
-        <div class="nodescroll" id="nodescroll2" ref="homeScroll" v-if="$store.state.noteModule.isSearchNoteListShow">
-          <!--            弃用路由跳转 改为使用点击触发函数跳转-->
-          <div class="n-conts"
-               v-for="(item,index) in $store.state.noteModule.searchNotes"
-               :key="item.id"
-               @click="listItemClick(item.id)"
-               :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
-               v-show="!$store.state.notelistNumber">
-            <h2 class="n-title" v-html="item.title"></h2>
-            <div class="n-times" v-show="item.createTimeAlias" v-html="item.createTimeAlias"></div>
-            <div class="n-times" v-show="!item.createTimeAlias" v-html="item.createTime"></div>
-            <div class="n-wrap" v-show="$store.state.showTextState" v-html="item.content"></div>
-            <div class="n-bot"></div>
-          </div>
+<!--        <div class="nodescroll" id="nodescroll2" ref="homeScroll" v-if="$store.state.noteModule.isSearchNoteListShow">-->
+<!--          &lt;!&ndash;            弃用路由跳转 改为使用点击触发函数跳转&ndash;&gt;-->
+<!--          <div class="n-conts"-->
+<!--               v-for="(item,index) in $store.state.noteModule.searchNotes"-->
+<!--               :key="item.id"-->
+<!--               @click="listItemClick(item.id)"-->
+<!--               :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"-->
+<!--               v-show="!$store.state.notelistNumber">-->
+<!--            <h2 class="n-title" v-html="item.title"></h2>-->
+<!--            <div class="n-times" v-show="item.createTimeAlias" v-html="item.createTimeAlias"></div>-->
+<!--            <div class="n-times" v-show="!item.createTimeAlias" v-html="item.createTime"></div>-->
+<!--            <div class="n-wrap" v-show="$store.state.showTextState" v-html="item.content"></div>-->
+<!--            <div class="n-bot"></div>-->
+<!--          </div>-->
 
 
           <!--未找到搜索的笔记  动态计算高度----------------->
@@ -92,18 +107,17 @@
           <notFindtag></notFindtag>
         </div>
       </div>
-    </div>
+    <!--    <note ref="noteM"></note>-->
+    <!--    不使用缓存 -->
+    <keep-alive exclude="note">
+      <router-view name="note1"/>
+    </keep-alive>
+
+    <!--    <router-view name="note1"/>-->
+  </div>
 
     <!--最右侧笔记本内容信息区域-------------------------------->
-<!--    <note ref="noteM"></note>-->
-<!--    不使用缓存 -->
-        <keep-alive exclude="note">
-          <router-view name="note1"/>
-        </keep-alive>
 
-<!--    <router-view name="note1"/>-->
-
-  </div>
 </template>
 
 <script>
@@ -182,11 +196,11 @@ export default {
     $route() {
       // this.moveNote = false;
       //每次路由更新就调用这个方法,同步textarea和笔记列表数据
-      console.log("noteList中打印路由发生了变化");
+
       // this.initList();
       // this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
-
-
+      let k = JSON.parse(this.$route.params.notes)
+      console.log("noteList中打印路由发生了变化");
     },
 
   }

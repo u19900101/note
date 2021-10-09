@@ -176,12 +176,12 @@
 <!--      搜索到的结果  只显示 不编辑-->
       <div class="root" v-show="$store.state.noteModule.isSearchNoteShow">
         <div class="editTitle">
-          <div type="text" id = "searchTitleResult" v-html="$store.state.noteModule.title" class="editValue" @click = "switchToEditMode"></div>
+          <div type="text" id = "searchTitleResult" v-html="title" class="editValue" @click = "switchToEditMode"></div>
         </div>
 <!--        <div-editable v-model="$store.state.noteModule.content" @click = "switchToEditMode"></div-editable>-->
 
         <div @click = "switchToEditMode">
-          <div class="textArea" v-html="$store.state.noteModule.content" ></div>
+          <div class="textArea" v-html="content" ></div>
         </div>
 <!--        <div class="textArea" v-html="$store.state.noteModule.content" ></div>-->
       </div>
@@ -355,7 +355,7 @@ export default {
       //
       this.$store.state.noteModule.isSearchNoteShow = false
       // 直接渲染一个  避免直接赋值产生的修改上一篇笔记的 bug
-      this.initNoteContent(this.$store.state.noteModule.noteId)
+      // this.initNoteContent(this.$store.state.noteModule.noteId)
     },
     // 点击 移动笔记
     clickMove() {

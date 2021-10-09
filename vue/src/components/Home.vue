@@ -8,30 +8,25 @@
 <!--    <successinfo></successinfo>-->
 <!--    &lt;!&ndash;标签组件&ndash;&gt;-->
 <!--    <yxNotetags></yxNotetags>-->
-<!--    &lt;!&ndash;搜索笔记&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&ndash;&gt;-->
-<!--    <div class="searchNote" v-show="$store.state.searchBox">-->
-<!--      <div class="searchChild">-->
-<!--        <input type="text" class="searchValue" placeholder="搜索笔记"-->
-<!--               v-model="searchValue"-->
-<!--               @keydown.enter="searchDown"-->
-<!--               v-focus-->
-<!--        >-->
-<!--        &lt;!&ndash;        清空搜索内容&ndash;&gt;-->
-<!--        <img src="@/assets/images/qingchusousuoneirong.png" alt=""-->
-<!--             class="clearSearch"-->
-<!--             v-if="searchValue.trim().length"-->
-<!--             @click="clearSearchVal"-->
-<!--        >-->
-<!--        <div class="tishixinxi">-->
-<!--          正在搜索 <span>你的笔记本</span>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--    &lt;!&ndash; 笔记列表区域 -&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&ndash;&gt;-->
-<!--    <noteList></noteList>-->
+      <!--搜索笔记-------------------------------------------------------------------->
+      <div class="searchNote" v-show="$store.state.searchBox">
+        <div class="searchChild">
+          <input type="text" class="searchValue" placeholder="搜索笔记"
+                 v-model="searchValue"
+                 @keydown.enter="searchDown"
+                 v-focus>
+          <!--        清空搜索内容-->
+          <img src="@/assets/images/qingchusousuoneirong.png" alt=""
+               class="clearSearch"
+               v-if="searchValue.trim().length"
+               @click="clearSearchVal"
+          >
+          <div class="tishixinxi">
+            正在搜索 <span>你的笔记本</span>
+          </div>
+        </div>
+      </div>
 
-<!--    <router-view name="noteBookInfo"/>-->
-<!--    <router-view name="noteList"/>-->
     <router-view/>
   </div>
 </template>
@@ -132,29 +127,44 @@ export default {
         this.https.searchNoteByWords(queryData).then((data) => {
           console.log("返回的搜索结果", data.data.hits.hits);
           let result = data.data.hits.hits
-          this.$store.state.noteModule.title = '未搜索到相关信息';
-          this.$store.state.noteModule.content = '';
+          // this.$store.state.noteModule.title = '未搜索到相关信息';
+          // this.$store.state.noteModule.content = '';
           if (result.length > 0) {
             // 封装 currentNotes  直接利用查询到的数据进行封装note
             let searchNotes = []
             result.forEach(item => {
-              let noteTemp = []
-              noteTemp.id = item._id
-              // 有高亮就显示高亮  没高亮就原始值
-              for (let keyValue in item._source) {
-                noteTemp[keyValue] = item._source[keyValue]
-              }
-              // 覆盖
-              noteTemp.title = item.highlight.title ? item.highlight.title[0] : item._source.title;
-              noteTemp.content = item.highlight.content ? item.highlight.content[0] : item._source.content;
-              searchNotes.push(noteTemp)
+              // let noteTemp = []
+              // noteTemp.id = item._id
+              // // 有高亮就显示高亮  没高亮就原始值
+              // for (let keyValue in item._source) {
+              //   noteTemp[keyValue] = item._source[keyValue]
+              // }
+              // // 覆盖
+              item._source.title = item.highlight.title ? item.highlight.title[0] : item._source.title;
+              item._source.content = item.highlight.content ? item.highlight.content[0] : item._source.content;
+              item._source.id = item._id
+              searchNotes.push(item._source)
             })
 
-            this.$store.state.noteModule.currentNoteToShow = searchNotes[0]
-            this.$store.state.noteModule.noteId = searchNotes[0].id
-            this.$store.state.noteModule.title = searchNotes[0].title
-            this.$store.state.noteModule.content = searchNotes[0].content
-            this.$store.state.noteModule.searchNotes = searchNotes
+            // this.$store.state.noteModule.currentNoteToShow = searchNotes[0]
+            // this.$store.state.noteModule.noteId = searchNotes[0].id
+            // this.$store.state.noteModule.title = searchNotes[0].title
+            // this.$store.state.noteModule.content = searchNotes[0].content
+            // this.$store.state.noteModule.searchNotes = searchNotes
+            this.$store.state.noteModule.currentNotes = searchNotes
+
+            // 把搜索结果显示
+            this.$router.push({
+              name: 'noteList',
+              params: {
+                notes: JSON.stringify(searchNotes),
+                noteBookTagName: "搜索笔记"
+              }
+            })
+            // 2.初始化 笔记内容为 排序的第一个
+
+            this.$router.push({ name: 'note1', params: { note: JSON.stringify(searchNotes[0])}})
+
 
           }
           // 展示搜素结果
