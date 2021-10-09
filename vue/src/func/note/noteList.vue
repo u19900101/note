@@ -3,29 +3,12 @@
   <!-- 笔记列表区域  todo 冒泡------------------------------------------------------->
   <!--  <div class="yinxList" @mousedown.prevent="BlurFn" v-show="$store.state.noteModule.isNotesShow">-->
   <div>
-
-    <div class="yinxList" v-show="$store.state.noteModule.isNotesShow">
+    <div class="yinxList">
+      <noteBookInfo></noteBookInfo>
       <div class="yinxTitle">
-        <!--首页显示        如果搜索到笔记就不显示-->
-        <div class="cuthide"
-             v-show="!$store.state.searchBox"
-             v-if="!$store.state.noteBookModule.currentNoteBookName">
-          <h2 class="notTitle">所有笔记</h2>
-<!--          <div class="yinxcut">-->
-<!--            <a href="https://www.yinxiang.com/webclipper/" target="_blank">网页剪藏</a>-->
-<!--          </div>-->
-        </div>
-        <div class="tagNames" v-if="$store.state.noteBookModule.currentNoteBookName">
-          当前笔记本(标签):{{ $store.state.noteBookModule.currentNoteBookName }}
-        </div>
-        <!--进入笔记本的时候 显示的笔记本名称 或者 标签名称-->
-        <noteBookInfo></noteBookInfo>
-
-
         <!-- 笔记条数和选项 -->
         <div class="noteNumbers clearfix">
-          <div class="yinxnum" v-if="$store.state.noteModule.editMode">{{ $store.state.noteModule.currentNotes.length }} 条笔记</div>
-          <div class="yinxnum" v-if="!$store.state.noteModule.editMode">{{ $store.state.noteModule.searchNotes.length }} 条笔记</div>
+          <div class="yinxnum">{{ JSON.parse($route.params.notes).length }} 条笔记</div>
           <div class="select" @click.stop="sortClick">
             <span>选项</span>
           </div>
@@ -37,9 +20,7 @@
       <!-- 笔记列表-------------->
       <div class="NodesTwoList">
 <!--        编辑模式下的显示-->
-        <div class="nodescroll" id="nodescroll" ref="homeScroll" v-if="!$store.state.noteModule.isSearchNoteListShow">
-<!--            弃用路由跳转 改为使用点击触发函数跳转-->
-
+        <div class="nodescroll" id="nodescroll" ref="homeScroll">
           <div class="n-conts"
                v-for="(item,index) in JSON.parse($route.params.notes)"
                :key="item.id"
@@ -113,11 +94,14 @@
       </div>
     </div>
 
-
-
     <!--最右侧笔记本内容信息区域-------------------------------->
 <!--    <note ref="noteM"></note>-->
-    <router-view />
+<!--    不使用缓存 -->
+        <keep-alive exclude="note">
+          <router-view name="note1"/>
+        </keep-alive>
+
+<!--    <router-view name="note1"/>-->
 
   </div>
 </template>
@@ -126,7 +110,7 @@
 import noteSearch from '../../func/note/noteSearch'
 import myTip from '../../components/prompt/tip'
 import notFindtag from '../../components/prompt/not-findtag'
-import noteBookInfo from '../../components/prompt/noteBookInfo'
+import noteBookInfo from "./noteBookInfo";
 import yxSelectSort from '@/func/select/yx-SelectSort'
 import note from "./note";
 
@@ -150,18 +134,11 @@ export default {
   created() {
     // 4.开始渲染页面  调用子页面的方法
     // this.getData();
+    console.log("noteList created");
   },
   methods: {
-
-
     listItemClick(currentNote) {
-      // if(this.$store.state.noteModule.isSearchNoteListShow){
-      //   this.$store.state.noteModule.isSearchNoteShow = true
-      // }
-      // this.$refs.noteM.initNoteContent(currentNoteId);
-      console.log(currentNote.id);
       this.$router.push({ name: 'note1', params: { note: JSON.stringify(currentNote)}})
-
     },
 
     // 选项列表功能
@@ -205,7 +182,7 @@ export default {
     $route() {
       // this.moveNote = false;
       //每次路由更新就调用这个方法,同步textarea和笔记列表数据
-      // console.log("noteList中打印路由发生了变化");
+      console.log("noteList中打印路由发生了变化");
       // this.initList();
       // this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
 

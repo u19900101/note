@@ -89,9 +89,9 @@
       </div>
     </div>
 
-    <!--具体操作交互栏-->
+    <!--移动笔记和标签-->
     <div class="stages">
-      <!--移动笔记和标签-->
+
       <div class="liangge" @mousedown.prevent>
         <div class="movenotes">
           <img src="@/assets/images/dijijieduanbiji.png" alt="" title="移动笔记本">
@@ -104,14 +104,14 @@
         </div>
       </div>
 
-      <!--第几阶段笔记-->
+      <!--当前笔记本-->
       <div class="dijijieduanBJ clearfix">
         <div class="yidong clearfix">
           <img src="@/assets/images/dijijieduanbiji.png" alt="" class="tubiao" title="移动笔记" @mousedown.prevent>
 
-<!--          显示当前笔记所在的笔记本-->
+          <!--显示当前笔记所在的笔记本-->
           <div class="notecont" title="移动笔记" @click.stop="clickMove" @mousedown.prevent>
-            {{ $store.state.noteModule.currentNoteBookName }}
+            {{ noteBookName }}
           </div>
           <div class="qianwangBJB" title="前往笔记本" @mousedown.prevent>
             <img src="@/assets/images/qianwangbijiben.png" alt="" @click="qWnoteBooks">
@@ -144,7 +144,7 @@
         <div class="addtag">
           <!--@mousedown.prevent-->
           <div class="tianjiaBQ">
-            <Tag v-for="(item,index) in count" :key="item" :name="item" closable @on-close="handleClose2(item,index)">
+            <Tag v-for="(item,index) in tagList" :key="item" :name="item" closable @on-close="handleClose2(item,index)">
               {{ item }}
             </Tag>
             <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd" v-show="!editTagShow">添加标签
@@ -161,15 +161,15 @@
         </div>
       </div>
     </div>
-    <h1> 笔记内容 {{$route.params.note}}</h1>
-    <!--笔记的标题和内容展示  todo 显示的模式 抽取一下？-->
+
+    <!--笔记的标题和内容展示-->
     <div class="editCount" ref="editScroll" @click="closeQuick">
       <div class="root" v-if="!$store.state.noteModule.isSearchNoteShow">
         <div class="editTitle">
-          <input type="text" v-model="$store.state.noteModule.currentNoteToShow.title" class="editValue" placeholder="请输入标题">
+          <input type="text" v-model="title" class="editValue" placeholder="请输入标题">
         </div>
         <div>
-          <textarea class="textArea" v-model="$store.state.noteModule.currentNoteToShow.content" contenteditable="true" placeholder="请输入内容"></textarea>
+          <textarea class="textArea" v-model="content" contenteditable="true" placeholder="请输入内容"></textarea>
         </div>
       </div>
 
@@ -209,9 +209,15 @@ export default {
   data() {
     return {
       noteContent: {}, // title 和 textarea展示内容的对象  也是Home组件消息弹窗的数据
-      title: this.$store.state.noteModule.title,
-      content: this.$store.state.noteModule.content,  //标题, //内容
+      title: JSON.parse(this.$route.params.note).title,
+      content: JSON.parse(this.$route.params.note).content,
+      noteId: JSON.parse(this.$route.params.note).id,
+      titleIdTemp: JSON.parse(this.$route.params.note).id,
+      contentIdTemp: JSON.parse(this.$route.params.note).id,
+      noteBookName: '',
+      tagList: [], // 当前笔记的 标签
 
+      //--------------------------------------------------
       searchContent: '',
       pid: '', // noteContent对象的pid
 
@@ -247,6 +253,23 @@ export default {
     DivEditable,
   },
   methods: {
+    syncListAndItem(currentNoteList,noteBookTagName,currentNote){
+      this.$router.push({
+        name: 'noteList',
+        params: {
+          notes: JSON.stringify(currentNoteList),
+          noteBookTagName: noteBookTagName
+        }
+      })
+      this.$router.push({ name: 'note1', params: { note: JSON.stringify(currentNote)}})
+    },
+
+
+    getNoteBookNameById(noteBookId){
+      let noteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == noteBookId)[0]
+      return noteBook.title
+    },
+
 // 渲染最右侧页面 展示笔记内容
     initNoteContent(currentNoteId) {
 
@@ -604,43 +627,63 @@ export default {
     },
   },
   created() {
+    console.log("note created");
 
   },
   watch: {
     // 侦听路由对象变化
     $route() {
-      // console.log("note中打印路由发生了变化");
-      // this.initNoteContent();
-      // this.moveNote = false;
+
+      let note = JSON.parse(this.$route.params.note)
+      this.title = note.title
+      this.content = note.content
+      this.noteId =  note.id
+      this.noteBookName = this.getNoteBookNameById(note.pid)
+      this.tagList = note.tagList
     },
     // 监听标题信息  同步修改
-    title(newTitle) {
-      let noteId = this.$store.state.noteModule.currentNoteToShow.id;
-      // 1.切换路由对象的时候 更新
-      this.$store.state.noteModule.currentNotes.forEach(note => {
-        // 只修改对应数据的值
-        if (note.id == noteId && note.title != newTitle) {
-          note.title = newTitle
-          this.https.updateNote({id: noteId, title: newTitle}).then(({data}) => {
-            console.log("修改数据库成功", data);
-          })
-        }
-      })
+    title(newTitle,oldValue) {
+      // 初始化时触发  oldValue.length > 0 是防止在初始化阶段进行操作
+      if(this.titleIdTemp === this.noteId &&  oldValue.length > 0 ){
+        // 1.切换路由对象的时候 列表中的笔记数据同步更新
+        let currentNote = {}
+        this.$store.state.noteModule.currentNotes.forEach(note => {
+          if (note.id == this.noteId) {
+            note.title = newTitle
+            currentNote = note
+          }
+        })
+        // 更新数据库
+        this.https.updateNote({id: this.noteId, title: newTitle}).then(({data}) => {console.log("修改数据库成功", data);})
+      //  强制同步数据
+        let currentNoteList = this.$store.state.noteModule.currentNotes
+        let noteBookTagName = this.noteBookName
+        this.syncListAndItem(currentNoteList,noteBookTagName,currentNote)
+      }else {
+        // 更新当前id
+        this.titleIdTemp = this.noteId
+      }
     },
     // 监听textarea内容
-    content(newTextArea) {
-      let noteId = this.$store.state.noteModule.noteId;
-      // 1.切换路由对象的时候 更新
-      this.$store.state.noteModule.currentNotes.forEach(note => {
-        // 只修改对应数据的值
-        if (note.id == noteId && note.content != newTextArea) {
-          note.content = newTextArea
-          this.https.updateNote({id: noteId, content: newTextArea}).then(({data}) => {
-            console.log("修改数据库成功", data);
-          })
-        }
-      })
+    content(newTextArea,oldValue) {
+      if(this.contentIdTemp === this.noteId && oldValue.length > 0){
+        let currentNote = {}
+        this.$store.state.noteModule.currentNotes.forEach(note => {
+          if (note.id == this.noteId) {
+            note.content = newTextArea
+            currentNote = note
+          }
+        })
+        this.https.updateNote({id: this.noteId, content: newTextArea}).then(({data}) => {console.log("修改数据库成功", data);})
+        let currentNoteList = this.$store.state.noteModule.currentNotes
+        let noteBookTagName = this.noteBookName
+        this.syncListAndItem(currentNoteList,noteBookTagName,currentNote)
+      }else {
+        // 更新当前id
+        this.contentIdTemp = this.noteId
+      }
     },
+
     /*
     * 同步vuex最新的数据到本地存储
     * */

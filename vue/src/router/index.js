@@ -6,8 +6,9 @@ Vue.use(VueRouter);
 import Home from '@/components/Home'
 import noteList from "../func/note/noteList";
 import noteBookList from "../func/note/noteBookList";
-
+import noteBookInfo from "../func/note/noteBookInfo";
 import note from "../func/note/note";
+
 const Edit = () => import('@/components/Edit');
 
 let routes = [
@@ -18,13 +19,15 @@ let routes = [
     component: Home,
     children: [
       {
-        path: 'noteList/:notes',
+        path: 'noteList/:notes/:noteBookTagName',
         name: 'noteList',
         component: noteList,
         children: [{
           path: 'note1/:note',
           name: 'note1',
-          component: note,
+          components: {
+            note1: note
+          },
         }]
       },
       {
@@ -32,48 +35,50 @@ let routes = [
         name: 'noteBookList',
         component: noteBookList,
         children: [{
-          path: 'noteList/:notes',
+          path: 'noteList/:notes/:noteBookTagName',
           name: 'noteListInNoteBook',
           component: noteList,
           children: [{
             path: 'note2/:note',
             name: 'note2',
-            component: note,
+            components: {
+              note1: note
+            }
           }]
         }]
       }
     ]
-      // {
-      //   path: 'noteBookList',
-      //   component: noteBookList,
-      //   name: 'noteBookList',
-      //   children: [{
-      //     path: 'noteBookItem/:noteBookItem',
-      //     name: 'noteBookItem',
-      //     component: noteBookItem,
-      //     children: [{
-      //       path: 'note2/:note',
-      //       name: 'note2',
-      //       component: noteOne,
-      //     }]
-      //   }]
-      // },
-   // ]
+    // {
+    //   path: 'noteBookList',
+    //   component: noteBookList,
+    //   name: 'noteBookList',
+    //   children: [{
+    //     path: 'noteBookItem/:noteBookItem',
+    //     name: 'noteBookItem',
+    //     component: noteBookItem,
+    //     children: [{
+    //       path: 'note2/:note',
+    //       name: 'note2',
+    //       component: noteOne,
+    //     }]
+    //   }]
+    // },
+    // ]
   },
   {
     // 新建笔记
-    path:'/createNote',
-    component:Edit,
+    path: '/createNote',
+    component: Edit,
   },
-  {
-    path:'*',
-    redirect:'/home'
-  }
+  // {
+  //   path: '*',
+  //   redirect: '/home'
+  // }
 ];
 
 let router = new VueRouter({
-   mode:'history',
-   routes,
+  mode: 'history',
+  routes,
 });
 
 export default router;

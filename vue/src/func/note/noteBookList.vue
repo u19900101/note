@@ -1,45 +1,39 @@
 <template>
-  <div>
-<!--    class="bijibenHDC" -->
-    <div >
-
-      <div class="bijibenInfo">
-        <h2>笔记本</h2>
-        <img src="@/assets/images/huachuangbijiben.png" alt="" class="xinjian" title="创建笔记本" @click="createHander">
-        <div class="message">
-          <input type="text" class="messageValue" placeholder="查找笔记本">
-        </div>
+  <div class="yinxList">
+    <!--   class="bijibenHDC"  -->
+    <div class="bijibenInfo">
+      <h2>笔记本</h2>
+      <img src="@/assets/images/huachuangbijiben.png" alt="" class="xinjian" title="创建笔记本" @click="createHander">
+      <div class="message">
+        <input type="text" class="messageValue" placeholder="查找笔记本">
       </div>
-      <!--笔记本列表-->
-      <div class="bijibenList">
-        <div class="notList">
-          暂无笔记本信息...
-        </div>
-        <!--笔记本数据列表-->
-        <div class="liebiao"
-             v-for="(item,index) in $store.state.noteBookModule.noteBooks"
-             :key="item.id" @click="enterNoteBook(item,item.id)"
-             :style="{backgroundColor:$store.state.noteBookBg === item.id ? 'rgb(236,236,236)' : ''}"
-             @mouseover="state=index"
-             @mouseout="state=-1"
-        >
-          <div class="list_main">
-            <div class="bijixinxi">
-              <div class="noteTitle">
-                {{ item.title }}
-              </div>
-              <p class="number">{{ item.noteCount }} 条笔记</p>
-              <div class="delnotes" title="删除笔记本" @click.stop="deleteNoteBook(item)" v-show="state===index"></div>
+    </div>
+    <!--笔记本列表-->
+    <div class="bijibenList">
+      <div class="notList">
+        暂无笔记本信息...
+      </div>
+      <!--笔记本数据列表-->
+      <div class="liebiao"
+           v-for="(item,index) in $store.state.noteBookModule.noteBooks"
+           :key="item.id" @click="enterNoteBook(item,item.id)"
+           :style="{backgroundColor:$store.state.noteBookBg === item.id ? 'rgb(236,236,236)' : ''}"
+           @mouseover="state=index"
+           @mouseout="state=-1"
+      >
+        <div class="list_main">
+          <div class="bijixinxi">
+            <div class="noteTitle">
+              {{ item.title }}
             </div>
+            <p class="number">{{ item.noteCount }} 条笔记</p>
+            <div class="delnotes" title="删除笔记本" @click.stop="deleteNoteBook(item)" v-show="state===index"></div>
           </div>
         </div>
       </div>
     </div>
-
     <router-view/>
   </div>
-
-
 </template>
 
 <script>
@@ -63,7 +57,16 @@ export default {
     enterNoteBook(currentNoteBook, currentNoteBookIndex) {
 
       let currentNotes = this.$store.state.noteModule.notes.filter(item => item.pid == currentNoteBook.id);
-      this.$router.push({ name: 'noteListInNoteBook', params: { notes: JSON.stringify(currentNotes)}})
+      this.$store.state.noteModule.currentNotes = currentNotes
+      this.$router.push({
+        name: 'noteListInNoteBook',
+        params: {
+          notes: JSON.stringify(currentNotes),
+          noteBookTagName: currentNoteBook.title
+        }
+      })
+
+      // this.$router.push({ name: 'note2', params: { note: JSON.stringify(currentNotes[0])}})
 
       // // 如果当前笔记是全屏状态,那么应该让笔记列表显示
       // this.$store.commit('noteListTrue');
@@ -113,19 +116,19 @@ export default {
 </script>
 
 <style scoped>
-/*.bijibenHDC {*/
-/*  left: 0px;*/
-/*}*/
+.bijibenHDC {
+  left: 0px;
+}
 
-/*.liebiao .list_main:hover {*/
-/*  background: rgb(64, 188, 108);*/
-/*}*/
+.liebiao .list_main:hover {
+  background: rgb(64, 188, 108);
+}
 
-/*.liebiao .list_main:hover .noteTitle {*/
-/*  color: #ffffff;*/
-/*}*/
+.liebiao .list_main:hover .noteTitle {
+  color: #ffffff;
+}
 
-/*.liebiao .list_main:hover .number {*/
-/*  color: #c9f2d0;*/
-/*}*/
+.liebiao .list_main:hover .number {
+  color: #c9f2d0;
+}
 </style>

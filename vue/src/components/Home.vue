@@ -30,7 +30,9 @@
 <!--    &lt;!&ndash; 笔记列表区域 -&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&ndash;&gt;-->
 <!--    <noteList></noteList>-->
 
-    <router-view />
+<!--    <router-view name="noteBookInfo"/>-->
+<!--    <router-view name="noteList"/>-->
+    <router-view/>
   </div>
 </template>
 
@@ -73,49 +75,12 @@ export default {
     clearSearchVal() {
       this.searchValue = '';
     },
-    // 获取 数据
-    getData() {
-      // 1.获取笔记本数据
-      this.https.getNotebooks().then(({data}) => {
-        this.$store.getters.initNoteBooks(data.data);
-      }).then(() => {
-        // 2.获取笔记数据
-        this.https.getNotes().then(({data}) => {
-          // 2.1 初始化 notes
-          // 2.2 初始化 noteId
-          this.$store.getters.initNotes(data.data);
-        }).then(() => {
-          // 2.1 将state数据写到当前 notes
-          this.$store.state.noteModule.currentNotes = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
 
-          // 3.获取标签数据
-          this.https.getTags().then(({data}) => {
-            this.$store.getters.initTags(data.data);
-          }).then(() => {
-            console.log("标签数据请求完成");
-            //关闭loading动画
-            this.$store.commit('closeLoadding');
-            // 创建页面时初始化
-            // 1.先初始化 列表  在列表排序中初始化 noteId
-            // this.initList();
-            // 2.初始化 笔记内容为 排序的第一个
-            this.$router.push({ name: 'note1', params: { note: JSON.stringify(this.$store.state.noteModule.currentNotes[0])}})
-            // this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
-
-          }).catch((err) => {
-            // alert('网络延迟,请刷新重试')
-            console.log(err);
-          })
-        })
-      })
-    },
   },
 
   // 计算属性
   computed: {},
-  created() {
-    this.getData()
-  },
+
   watch: {
     $route() {
       // console.log("home中打印路由发生了变化");

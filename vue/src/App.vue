@@ -1,8 +1,8 @@
 <template>
   <div id="app" v-cloak>
     <div class="content clearfix" @click="closeSelect">
-<!--      <yxDeleteNote></yxDeleteNote>-->
-<!--      <yxDeleteNoteBooks></yxDeleteNoteBooks>-->
+      <!--      <yxDeleteNote></yxDeleteNote>-->
+      <!--      <yxDeleteNoteBooks></yxDeleteNoteBooks>-->
       <yx-CreateBook></yx-CreateBook>
       <yxInforMationBook></yxInforMationBook>
       <!--删除标签-->
@@ -17,7 +17,7 @@
           <img src="./assets/images/leftToppic.png" alt="">
         </div>
         <!-- 新建笔记 -->
-        <div class="yinxfcn" >
+        <div class="yinxfcn">
           <div class="newnotes" @mouseover="overxJ" @mouseout="outxJ">
             <img src="./assets/images/xinjian1.png" alt="" v-if="xJ">
             <img src="./assets/images/xinjian.png" alt="" v-if="!xJ" title="新建笔记" @click="insertNote">
@@ -100,6 +100,50 @@ export default {
     showtimes,
   },
   methods: {
+    // 获取 数据
+    getData() {
+      // 1.获取笔记本数据
+      this.https.getNotebooks().then(({data}) => {
+        this.$store.getters.initNoteBooks(data.data);
+      }).then(() => {
+        // 2.获取笔记数据
+        this.https.getNotes().then(({data}) => {
+          // 2.1 初始化 notes
+          // 2.2 初始化 noteId
+          this.$store.getters.initNotes(data.data);
+        }).then(() => {
+          // 2.1 将state数据写到当前 notes
+          this.$store.state.noteModule.currentNotes = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
+
+          // 3.获取标签数据
+          this.https.getTags().then(({data}) => {
+            this.$store.getters.initTags(data.data);
+          }).then(() => {
+            console.log("标签数据请求完成");
+            //关闭loading动画
+            this.$store.commit('closeLoadding');
+            // 创建页面时初始化
+            // 1.先初始化 列表  在列表排序中初始化 noteId
+            let currentNotes = this.$store.state.noteModule.notes
+            this.$router.push({
+              name: 'noteList',
+              params: {
+                notes: JSON.stringify(currentNotes),
+                noteBookTagName: "所有笔记"
+              }
+            })
+
+            // 2.初始化 笔记内容为 排序的第一个
+            this.$router.push({ name: 'note1', params: { note: JSON.stringify(currentNotes[0])}})
+            // this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
+
+          }).catch((err) => {
+            // alert('网络延迟,请刷新重试')
+            console.log(err);
+          })
+        })
+      })
+    },
     navClickHandler(obj, index) {
       //
       // 收藏
@@ -111,7 +155,14 @@ export default {
 
         this.$store.getters.getNoteShow();
         let currentNotes = this.$store.state.noteModule.notes
-        this.$router.push({ name: 'noteList',params: { notes: JSON.stringify(currentNotes)}})
+        this.$router.push({
+          name: 'noteList',
+          params: {
+            notes: JSON.stringify(currentNotes),
+            noteBookTagName: "所有笔记"
+          }
+        })
+        this.$router.push({ name: 'note1', params: { note: JSON.stringify(currentNotes[0])}})
 
 
         // //删除vuex中管理的 搜索框隐藏
@@ -140,7 +191,7 @@ export default {
       }
       //笔记本
       else if (obj.click === 'noteBook') {
-        this.$router.push({ name: 'noteBookList'})
+        this.$router.push({name: 'noteBookList'})
         // this.$store.dispatch('noteBookShow')
       }
       //标签
@@ -165,9 +216,9 @@ export default {
     insertNote() {
       // 1.操作数据库 新建一条空笔记  返回id
 
-      this.https.insertNote({'pid': this.$store.state.noteModule.pid}).then(({data})=>{
+      this.https.insertNote({'pid': this.$store.state.noteModule.pid}).then(({data}) => {
         let newNote = data.data;
-        console.log("note created ",newNote);
+        console.log("note created ", newNote);
         this.$store.state.noteModule.noteId = newNote.id
         // 默认情况下未返回 title 和 content
         // 给当前 note 清空
@@ -186,12 +237,8 @@ export default {
           "tagUid": "",
           "mediaUid": "",
           "star": false,
-          "tagList": [
-
-          ],
-          "mediaList": [
-
-          ]
+          "tagList": [],
+          "mediaList": []
         }
         // 2.修改 currentNotes,将新建置顶
         // 让置顶的笔记处于选中状态
@@ -199,7 +246,7 @@ export default {
 
         // 3.刷新路由 让 note组件显示最新新建的值
         this.$router.push({
-          path: '/home/'+newNote.id
+          path: '/home/' + newNote.id
         });
       })
 
@@ -277,6 +324,9 @@ export default {
       //   this.navShow = true;
       // }
     }
+  },
+  created() {
+    this.getData()
   },
 
 }
