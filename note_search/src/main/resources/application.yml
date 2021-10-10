@@ -1,0 +1,8 @@
+server:
+  port: 9000
+spring:
+  application:
+    name: note-search
+  cloud:
+    nacos:
+      server-addr: 192.168.56.10:8848

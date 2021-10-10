@@ -1,0 +1,73 @@
+<template>
+
+  <!-- 笔记列表区域  -->
+  <div>
+    <noteListBase>
+      <!--搜索模式的显示-->
+      <div class="n-conts"
+           v-for="(item,index) in $store.state.noteModule.currentNotes"
+           :key="item.id"
+           @click="listItemClick(item,index)"
+           :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
+           v-show="!$store.state.notelistNumber">
+        <div>
+          <h2 class="n-title" v-html="item.title"></h2>
+          <div class="n-times" v-show="item.createTimeAlias" v-html="item.createTimeAlias"></div>
+          <div class="n-times" v-show="!item.createTimeAlias" v-html="item.createTime"></div>
+          <div class="n-wrap" v-show="$store.state.showTextState" v-html="item.content"></div>
+        </div>
+      </div>
+    </noteListBase>
+    <!--3.渲染 item 列表-->
+    <router-view name="note3"/>
+  </div>
+</template>
+
+<script>
+
+import noteBookInfo from "../note/noteBookInfo";
+import yxSelectSort from '@/func/select/yx-SelectSort'
+import noteListBase from "../note/noteListBase";
+
+export default {
+  name: "searchResultList",
+  components: {
+    noteBookInfo,
+    yxSelectSort,
+    noteListBase
+  },
+  data() {
+    return {
+      // 笔记选中的状态
+      state: 1,
+    }
+  },
+  created() {
+    // 4.开始渲染页面  调用子页面的方法
+    console.log("searchList created");
+  },
+  methods: {
+    listItemClick(currentNote, index) {
+      this.$router.push({
+        name: 'note3', params: {
+          note: JSON.stringify(currentNote),
+          index: index
+        }
+      })
+    },
+    // 选项列表功能
+    sortClick() {
+      this.$store.commit('isSortShow')
+    },
+  },
+  watch: {
+    $route() {
+      console.log("search list 中打印路由发生了变化");
+    },
+  }
+}
+</script>
+
+<style scoped>
+
+</style>
