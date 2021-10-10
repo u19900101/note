@@ -3,20 +3,23 @@
   <!-- 笔记列表区域  -->
   <div>
     <noteListBase>
-      <!--编辑模式的显示-->
-      <div class="n-conts"
+      <!-- 1.笔记本信息-->
+      <noteBookInfo slot="noteBookInfo"></noteBookInfo>
+
+      <!--2.编辑模式的显示-->
+      <div slot="noteList" class="n-conts"
            v-for="(item,index) in $store.state.noteModule.currentNotes"
            :key="item.id"
            @click="listItemClick(item,index)"
            :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
            v-show="!$store.state.notelistNumber">
 
-          <h2 class="n-title">{{ item.title }}</h2>
-          <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
-          <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
-          <div class="n-wrap" v-show="$store.state.showTextState">
-            {{ item.content }}
-          </div>
+        <h2 class="n-title">{{ item.title }}</h2>
+        <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
+        <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
+        <div class="n-wrap" v-show="$store.state.showTextState">
+          {{ item.content }}
+        </div>
 
       </div>
     </noteListBase>
@@ -28,15 +31,16 @@
 <script>
 
 import noteListBase from "../note/noteListBase";
+import noteBookInfo from "./noteBookInfo";
 
 export default {
   name: "noteList",
   components: {
-    noteListBase
+    noteListBase,
+    noteBookInfo,
   },
   data() {
-    return {
-    }
+    return {}
   },
   created() {
   },

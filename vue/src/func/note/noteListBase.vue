@@ -3,11 +3,12 @@
   <!-- 1.笔记列表区域-->
   <div>
     <div class="yinxList">
-      <noteBookInfo></noteBookInfo>
+
       <div class="yinxTitle">
         <!-- 笔记条数和选项 -->
+        <slot name="noteBookInfo"></slot>
         <div class="noteNumbers clearfix">
-          <div class="yinxnum">{{ JSON.parse($route.params.notes).length }} 条笔记</div>
+          <div class="yinxnum">{{ $store.state.noteModule.currentNotes.length }} 条笔记</div>
           <div class="select" @click.stop="sortClick">
             <span>选项</span>
           </div>
@@ -19,7 +20,7 @@
       <!-- 笔记列表-------------->
       <div class="NodesTwoList">
         <div class="nodescroll" id="nodescroll" ref="homeScroll">
-          <slot></slot>
+          <slot name="noteList"></slot>
         </div>
       </div>
     </div>
@@ -36,7 +37,7 @@ import note from "./note";
 
 
 export default {
-  name: "noteList",
+  name: "noteListBase",
   components: {
     noteBookInfo,
     yxSelectSort,

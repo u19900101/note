@@ -1,15 +1,14 @@
 <template>
-
   <!-- 笔记列表区域  -->
   <div>
-    <noteListBase>
+    <noteListBase v-show="$store.state.noteModule.currentNotes.length > 0">
       <!--搜索模式的显示-->
-      <div class="n-conts"
+      <div slot="noteList" class="n-conts"
            v-for="(item,index) in $store.state.noteModule.currentNotes"
            :key="item.id"
            @click="listItemClick(item,index)"
            :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
-           v-show="!$store.state.notelistNumber">
+          >
         <div>
           <h2 class="n-title" v-html="item.title"></h2>
           <div class="n-times" v-show="item.createTimeAlias" v-html="item.createTimeAlias"></div>
@@ -24,9 +23,6 @@
 </template>
 
 <script>
-
-import noteBookInfo from "../note/noteBookInfo";
-import yxSelectSort from '@/func/select/yx-SelectSort'
 import noteListBase from "../note/noteListBase";
 
 export default {

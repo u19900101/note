@@ -17,9 +17,8 @@
           正在搜索 <span>你的笔记本</span>
         </div>
       </div>
-
-      <router-view/>
     </div>
+    <router-view/>
   </div>
 </template>
 
@@ -126,6 +125,17 @@ export default {
             })
           }
         });
+      }
+      // 字段为空时清空
+      else {
+        this.$store.state.noteModule.currentNotes = []
+        this.$router.push({
+          name: 'searchResultItem',
+          params: {
+            note: '',
+            index: 0
+          }
+        })
       }
     },
   },
