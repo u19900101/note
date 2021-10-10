@@ -107,9 +107,7 @@ export default {
               item._source.id = item._id
               searchNotes.push(item._source)
             })
-
             this.$store.state.noteModule.currentNotes = searchNotes
-
             // 把搜索结果显示
             this.$router.push({
               name: 'searchResultList',
@@ -120,7 +118,7 @@ export default {
             })
             // 2.初始化 笔记内容为 排序的第一个
             this.$router.push({
-              name: 'note3',
+              name: 'searchResultItem',
               params: {
                 note: JSON.stringify(searchNotes[0]),
                 index: 0
@@ -139,10 +137,7 @@ export default {
       }
     }
   }
-
 }
-
-
 </script>
 
 <style>

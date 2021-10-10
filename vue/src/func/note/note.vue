@@ -1,208 +1,25 @@
 <template>
-  <!--最右侧笔记本内容信息区域-------------------------------->
-  <!--左侧区域-->
-  <!--notWidth  添加class -->
-  <div class="yinxDet clearfix" id="yinxdet"
-       v-show="$store.state.Not404"
-       :class="$store.state.yinxdetWidth ? 'notWidth' : ''">
-    <!--透明度遮罩层-->
-    <div class="opationWindow" v-show="$store.state.yinListopation" @click="closeOpationsHander"></div>
-    <!--标题功能栏-->
-    <div class="dethead" @mousedown.prevent>
-      <div class="detfunc">
-        <!--active-->
-        <div class="deftimes main"
-             title="设置提醒"
-             @click.stop="remindHander"
-             :class="noteContent.remind && !noteContent.completeState ? 'active' : ''">
-          <!--提醒已添加 通知我弹窗-->
-          <setremin></setremin>
-
-          <!--修改弹窗提醒-->
-          <changeremin></changeremin>
-
-          <!--撤销 修改提醒 清除日期-->
-          <undoremin></undoremin>
-
-          <!--<setdate :open="open"></setdate>-->
-          <showtimes></showtimes>
-
-        </div>
-        <div class="tixingshijian" :class="noteContent.completeState ? 'wancheng' : ''">
-          {{ noteContent.remindTime }}
-        </div>
-
-        <div class="defshake main" :title="!noteContent.shortcut ? '添加快捷方式' : '移除快捷方式'">
-          <img src="@/assets/images/defshoucang.png" alt=""
-               v-if="!noteContent.shortcut && !tkJshow"
-               @mouseover="tkJoverHander"
-          >
-          <img src="@/assets/images/shanchukuaijiefangshiwujiaoxing.png" alt=""
-               v-if="noteContent.shortcut || tkJshow"
-               @mouseout="tkJoutHander"
-               @click.stop="addkJHander(noteContent)"
-          >
-        </div>
-        <div class="definfo main bj-n" title="笔记信息" @click="infoHander"></div>
-        <div class="defdelete main" title="删除笔记" @click.stop="delNoteHandel(noteContent)"></div>
-        <!--复制笔记链接-->
-        <div class="defmore main" title="更多" @click.stop="moreHander">
-          <div class="copynoteUrl" v-if="$store.state.copyurlNotes">
-            <div class="copytxt" title="复制笔记链接">
-              复制笔记链接
-            </div>
+  <div>
+    <noteBase>
+      <!--笔记的标题和内容展示-->
+      <div class="editCount" ref="editScroll" @click="closeQuick">
+        <div class="root" v-if="!$store.state.noteModule.isSearchNoteShow">
+          <div class="editTitle">
+            <input type="text" v-model="title" class="editValue" placeholder="请输入标题">
+          </div>
+          <div>
+            <textarea class="textArea" v-model="content" contenteditable="true" placeholder="请输入内容"></textarea>
           </div>
         </div>
       </div>
-      <!--升级共享-->
-      <div class="upgrade">
-        <div class="detup mains">
-          升级
-        </div>
-        <div class="defshared clearfix mains" @click="messageHander">
-          <span class="gongx">共享</span>
-          <div class="target"></div>
-          <div class="shakeDown">
-            <div class="s-notes">
-              共享笔记
-            </div>
-            <div class="send-email">
-              发送邮件
-            </div>
-          </div>
-        </div>
-        <!--展开 全屏-->
-        <div class="defscreen mains" title="展开"
-             v-show="!$store.state.unfoldShow"
-             @click="openHander"
-        ></div>
-        <!--写笔记完成-->
-        <div class="writeNotesOk"
-             v-if="$store.state.unfoldShow"
-             @click="closeHander"
-        >
-          完成
-        </div>
-        <!--        <yxGroupMessage :state="messageState" :data="noteContent" @close-hander="closeHanderMessage">-->
-        <!--          <div class="topJiant" slot="tagget"></div>-->
-        <!--        </yxGroupMessage>-->
-      </div>
-    </div>
-
-    <!--移动笔记和标签-->
-    <div class="stages">
-
-      <div class="liangge" @mousedown.prevent>
-        <div class="movenotes">
-          <img src="@/assets/images/dijijieduanbiji.png" alt="" title="移动笔记本">
-          <div class="caonima">
-            <img src="@/assets/images/qianwangbijiben.png" alt="" title="前往笔记本">
-          </div>
-        </div>
-        <div class="biaoqian">
-          <img src="@/assets/images/xinjianbiaoqian.png" alt="" title="标签">
-        </div>
-      </div>
-
-      <!--当前笔记本-->
-      <div class="dijijieduanBJ clearfix">
-        <div class="yidong clearfix">
-          <img src="@/assets/images/dijijieduanbiji.png" alt="" class="tubiao" title="移动笔记" @mousedown.prevent>
-
-          <!--显示当前笔记所在的笔记本-->
-          <div class="notecont" title="移动笔记" @click.stop="clickMove" @mousedown.prevent>
-            {{ noteBookName }}
-          </div>
-          <div class="qianwangBJB" title="前往笔记本" @mousedown.prevent>
-            <img src="@/assets/images/qianwangbijiben.png" alt="" @click="qWnoteBooks">
-          </div>
-
-          <!--移动笔记本 可查找-->
-          <div class="yidongBJB" v-show="moveNote" @click.stop>
-            <div class="findnotes">
-              <input type="text" class="findValue" placeholder="查找笔记本" v-model="findNotes" ref="findval">
-            </div>
-            <div class="chuanjian" @mousedown.prevent @click="createNoteBook">
-              <div class="chuangjianIco"></div>
-              <span @mousedown.prevent>创建新笔记本</span>
-            </div>
-            <div class="mynotesbook"
-                 v-for="(item,index) in $store.state.noteBookModule.noteBooks"
-                 :key="index"
-                 :class="item.id == pid ? 'active' : ''"
-                 @click="moveByNotes(item.id,item.title)"
-                 @mousedown.prevent
-            >
-              {{ item.title }}
-            </div>
-
-          </div>
-
-        </div>
-
-        <!--新建标签-->
-        <div class="addtag">
-          <!--@mousedown.prevent-->
-          <div class="tianjiaBQ">
-            <Tag v-for="(item,index) in tagList" :key="item" :name="item" closable @on-close="handleClose2(item,index)">
-              {{ item }}
-            </Tag>
-            <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd" v-show="!editTagShow">添加标签
-            </Button>
-            <input type="text" class="tagValue"
-                   v-show="editTagShow"
-                   ref="tagValue"
-                   v-model="tagVal"
-                   :style="tagWidth"
-                   @blur="BlurFn"
-                   @keydown.enter="enterFn"
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!--笔记的标题和内容展示-->
-    <div class="editCount" ref="editScroll" @click="closeQuick">
-      <div class="root" v-if="!$store.state.noteModule.isSearchNoteShow">
-        <div class="editTitle">
-          <input type="text" v-model="title" class="editValue" placeholder="请输入标题">
-        </div>
-        <div>
-          <textarea class="textArea" v-model="content" contenteditable="true" placeholder="请输入内容"></textarea>
-        </div>
-      </div>
-
-<!--      搜索到的结果  只显示 不编辑-->
-      <div class="root" v-show="$store.state.noteModule.isSearchNoteShow">
-        <div class="editTitle">
-          <div type="text" id = "searchTitleResult" v-html="title" class="editValue" @click = "switchToEditMode"></div>
-        </div>
-<!--        <div-editable v-model="$store.state.noteModule.content" @click = "switchToEditMode"></div-editable>-->
-
-        <div @click = "switchToEditMode">
-          <div class="textArea" v-html="content" ></div>
-        </div>
-<!--        <div class="textArea" v-html="$store.state.noteModule.content" ></div>-->
-      </div>
-
-    </div>
-
-    <!--遮罩层-->
-    <div class="noteList" v-show="$store.state.notelistNumber"></div>
-
+    </noteBase>
   </div>
+
 </template>
 
 <script>
-import setremin from '@/func/reminders/SetRemin'
-import changeremin from '@/func/reminders/changeremin'
-import undoremin from '@/func/reminders/UndoRemin'
-import showtimes from '@/func/reminders/showTimes'
-import {Tag, Button} from 'iview'
-import DivEditable from "./DivEditable";
-import {clientAuto} from '@/assets/js/client'
-import {updateNote} from "../../server";
+
+import noteBase from "../search/noteBase";
 
 export default {
   name: "note",
@@ -244,13 +61,7 @@ export default {
     }
   },
   components: {
-    Tag,
-    Button,
-    setremin,
-    changeremin,
-    undoremin,
-    showtimes,
-    DivEditable,
+    noteBase
   },
   methods: {
     syncListAndItem(currentNoteList,noteBookTagName,currentNote){
@@ -270,40 +81,7 @@ export default {
       return noteBook.title
     },
 
-// 渲染最右侧页面 展示笔记内容
-    initNoteContent(currentNoteId) {
 
-      // 不能根据路由来进行跳转 有 bug
-      this.$store.state.noteModule.noteId = currentNoteId;
-      let currentNoteToShow = []
-      let note = this.$store.state.noteModule.currentNotes.filter(item => item.id == currentNoteId)[0];
-      this.title = note.title;
-      this.content = note.content;
-
-      // todo 还是要拆开 耦合有点高
-      if(this.$store.state.noteModule.isSearchNoteListShow && this.$store.state.noteModule.isSearchNoteShow){
-        currentNoteToShow = this.$store.state.noteModule.searchNotes.filter(item => item.id == currentNoteId)[0];
-        this.$store.state.noteModule.title = currentNoteToShow.title
-        this.$store.state.noteModule.content = currentNoteToShow.content
-      }else {
-        currentNoteToShow = this.$store.state.noteModule.currentNotes.filter(item => item.id == currentNoteId)[0];
-      }
-
-      // 若 当前id所对应的笔记不存在，那就默认 渲染当前笔记的第一条
-      if (currentNoteToShow == undefined) {
-        currentNoteToShow = this.$store.state.noteModule.currentNotes[0];
-      }
-      this.$store.state.noteModule.currentNoteToShow = this.noteContent = currentNoteToShow;
-      this.$store.state.noteModule.pid = currentNoteToShow.pid;
-      this.pid = currentNoteToShow.pid; //单条笔记的pid
-
-      // 2.2 写入 currentNoteBookName
-      let currentNoteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == currentNoteToShow.pid)[0]
-      this.$store.state.noteModule.currentNoteBookName = currentNoteBook.title
-      window.document.title = this.noteContent.title;
-      // 同步标签 此时this.count和this.noteContent引用的是同一个对象label
-      this.count = this.noteContent.tagList;
-    },
     // 开始移动 移动到哪个阶段笔记本的id----------
     moveByNotes(noteBookId,noteBookName) {
 
@@ -646,19 +424,15 @@ export default {
       // 初始化时触发  oldValue.length > 0 是防止在初始化阶段进行操作
       if(this.titleIdTemp === this.noteId &&  oldValue.length > 0 ){
         // 1.切换路由对象的时候 列表中的笔记数据同步更新
-        let currentNote = {}
-        this.$store.state.noteModule.currentNotes.forEach(note => {
+        this.$store.state.noteModule.currentNotes[this.$route.params.index].title = newTitle
+        // 更新所有的笔记
+        this.$store.state.noteModule.notes.forEach(note => {
           if (note.id == this.noteId) {
             note.title = newTitle
-            currentNote = note
           }
         })
         // 更新数据库
         this.https.updateNote({id: this.noteId, title: newTitle}).then(({data}) => {console.log("修改数据库成功", data);})
-      //  强制同步数据
-        let currentNoteList = this.$store.state.noteModule.currentNotes
-        let noteBookTagName = this.noteBookName
-        this.syncListAndItem(currentNoteList,noteBookTagName,currentNote)
       }else {
         // 更新当前id
         this.titleIdTemp = this.noteId
@@ -667,68 +441,21 @@ export default {
     // 监听textarea内容
     content(newTextArea,oldValue) {
       if(this.contentIdTemp === this.noteId && oldValue.length > 0){
-        let currentNote = {}
-        this.$store.state.noteModule.currentNotes.forEach(note => {
+        this.$store.state.noteModule.currentNotes[this.$route.params.index].content = newTextArea
+        // 更新所有的笔记
+        this.$store.state.noteModule.notes.forEach(note => {
           if (note.id == this.noteId) {
             note.content = newTextArea
-            currentNote = note
           }
         })
         this.https.updateNote({id: this.noteId, content: newTextArea}).then(({data}) => {console.log("修改数据库成功", data);})
-        let currentNoteList = this.$store.state.noteModule.currentNotes
-        let noteBookTagName = this.noteBookName
-        this.syncListAndItem(currentNoteList,noteBookTagName,currentNote)
       }else {
         // 更新当前id
         this.contentIdTemp = this.noteId
       }
     },
-
-    /*
-    * 同步vuex最新的数据到本地存储
-    * */
-    '$store.state.notelistNumber'(newState) {
-      if (newState) {
-        this.$store.state.noteModule.currentNotes = [];
-      }
-    },
-    '$store.state.noteModule.currentNoteToShow.title'(newTitle){
-      let noteId = this.$store.state.noteModule.currentNoteToShow.id;
-      // 1.切换路由对象的时候 更新
-      // todo 更新的地方有bug
-      this.$store.state.noteModule.currentNotes.forEach(note => {
-        // 只修改对应数据的值
-        if (note.id == noteId && note.title != newTitle) {
-          note.title = newTitle
-          this.https.updateNote({id: noteId, title: newTitle}).then(({data}) => {
-            console.log("修改数据库成功", data);
-          })
-        }
-      })
-    },
-    // 两次触发
-    // 1.搜索出值的时候
-    // 2.点击搜索结果的时候
-    // 3.修改模式下 值发生变化
-    '$store.state.noteModule.currentNoteToShow.content'(newTextArea){
-      let noteId = this.$store.state.noteModule.noteId;
-      // 1.切换路由对象的时候 更新
-      newTextArea = newTextArea.replace(/<font style="background:yellow" color="red">/gi,"").replace(/<\/font>/gi,"")
-      this.$store.state.noteModule.currentNotes.forEach(note => {
-        // 只修改对应数据的值  由于进行了过滤操作 每次的 currentNoteToShowd都和 currentNotes中的值同步
-        // 所有  note.content != newTextArea  的结果永远为 false
-        if (note.id == noteId && note.content != newTextArea) {
-          note.content = newTextArea
-          this.https.updateNote({id: noteId, content: newTextArea}).then(({data}) => {
-            console.log("修改数据库成功", data);
-          })
-        }
-      })
-    },
   }
 }
-
-
 </script>
 
 <style>

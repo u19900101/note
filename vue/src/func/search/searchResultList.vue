@@ -19,7 +19,7 @@
       </div>
     </noteListBase>
     <!--3.渲染 item 列表-->
-    <router-view name="note3"/>
+    <router-view name="searchResultItem"/>
   </div>
 </template>
 
@@ -32,8 +32,6 @@ import noteListBase from "../note/noteListBase";
 export default {
   name: "searchResultList",
   components: {
-    noteBookInfo,
-    yxSelectSort,
     noteListBase
   },
   data() {
@@ -49,7 +47,7 @@ export default {
   methods: {
     listItemClick(currentNote, index) {
       this.$router.push({
-        name: 'note3', params: {
+        name: 'searchResultItem', params: {
           note: JSON.stringify(currentNote),
           index: index
         }

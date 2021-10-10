@@ -8,6 +8,9 @@ import noteList from "../func/note/noteList";
 import noteBookList from "../func/note/noteBookList";
 import noteBookInfo from "../func/note/noteBookInfo";
 import note from "../func/note/note";
+import search from "../func/search/search";
+import searchResultList from "../func/search/searchResultList";
+import searchResultItem from "../func/search/searchResultItem";
 
 const Edit = () => import('@/components/Edit');
 
@@ -48,22 +51,25 @@ let routes = [
         }]
       }
     ]
-    // {
-    //   path: 'noteBookList',
-    //   component: noteBookList,
-    //   name: 'noteBookList',
-    //   children: [{
-    //     path: 'noteBookItem/:noteBookItem',
-    //     name: 'noteBookItem',
-    //     component: noteBookItem,
-    //     children: [{
-    //       path: 'note2/:note',
-    //       name: 'note2',
-    //       component: noteOne,
-    //     }]
-    //   }]
-    // },
-    // ]
+  },
+  {
+    path: '/search',
+    name: 'search',
+    component: search,
+    children: [
+      {
+        path: 'searchResultList/:notes/:noteBookTagName',
+        name: 'searchResultList',
+        component: searchResultList,
+        children: [{
+          path: 'note3/:note',
+          name: 'searchResultItem',
+          components: {
+            searchResultItem: searchResultItem
+          },
+        }]
+      }
+    ]
   },
   {
     // 新建笔记

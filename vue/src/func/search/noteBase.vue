@@ -1,34 +1,196 @@
 <template>
   <div>
-    <noteBase>
-      <div v-if="isTitleEditMode" class="editTitle" >
-        <input type="text" v-model="title" class="editValue" placeholder="请输入标题" v-focus>
-      </div>
-      <div v-else class="editTitle" @click = "isTitleEditMode = true">
-        <div type="text" id = "searchTitleResult" v-html="searchTitle" class="editValue"></div>
+
+    <div class="yinxDet clearfix" id="yinxdet" :class="$store.state.yinxdetWidth ? 'notWidth' : ''">
+
+      <!--透明度遮罩层-->
+      <div class="opationWindow" v-show="$store.state.yinListopation" @click="closeOpationsHander"></div>
+      <!--标题功能栏-->
+      <div class="dethead" @mousedown.prevent>
+        <div class="detfunc">
+          <!--active-->
+          <div class="deftimes main"
+               title="设置提醒"
+               @click.stop="remindHander"
+               :class="noteContent.remind && !noteContent.completeState ? 'active' : ''">
+            <!--提醒已添加 通知我弹窗-->
+            <setremin></setremin>
+
+            <!--修改弹窗提醒-->
+            <changeremin></changeremin>
+
+            <!--撤销 修改提醒 清除日期-->
+            <undoremin></undoremin>
+
+            <!--<setdate :open="open"></setdate>-->
+            <showtimes></showtimes>
+
+          </div>
+          <div class="tixingshijian" :class="noteContent.completeState ? 'wancheng' : ''">
+            {{ noteContent.remindTime }}
+          </div>
+
+          <div class="defshake main" :title="!noteContent.shortcut ? '添加快捷方式' : '移除快捷方式'">
+            <img src="@/assets/images/defshoucang.png" alt=""
+                 v-if="!noteContent.shortcut && !tkJshow"
+                 @mouseover="tkJoverHander"
+            >
+            <img src="@/assets/images/shanchukuaijiefangshiwujiaoxing.png" alt=""
+                 v-if="noteContent.shortcut || tkJshow"
+                 @mouseout="tkJoutHander"
+                 @click.stop="addkJHander(noteContent)"
+            >
+          </div>
+          <div class="definfo main bj-n" title="笔记信息" @click="infoHander"></div>
+          <div class="defdelete main" title="删除笔记" @click.stop="delNoteHandel(noteContent)"></div>
+          <!--复制笔记链接-->
+          <div class="defmore main" title="更多" @click.stop="moreHander">
+            <div class="copynoteUrl" v-if="$store.state.copyurlNotes">
+              <div class="copytxt" title="复制笔记链接">
+                复制笔记链接
+              </div>
+            </div>
+          </div>
+        </div>
+        <!--升级共享-->
+        <div class="upgrade">
+          <div class="detup mains">
+            升级
+          </div>
+          <div class="defshared clearfix mains" @click="messageHander">
+            <span class="gongx">共享</span>
+            <div class="target"></div>
+            <div class="shakeDown">
+              <div class="s-notes">
+                共享笔记
+              </div>
+              <div class="send-email">
+                发送邮件
+              </div>
+            </div>
+          </div>
+          <!--展开 全屏-->
+          <div class="defscreen mains" title="展开"
+               v-show="!$store.state.unfoldShow"
+               @click="openHander"
+          ></div>
+          <!--写笔记完成-->
+          <div class="writeNotesOk"
+               v-if="$store.state.unfoldShow"
+               @click="closeHander"
+          >
+            完成
+          </div>
+          <!--        <yxGroupMessage :state="messageState" :data="noteContent" @close-hander="closeHanderMessage">-->
+          <!--          <div class="topJiant" slot="tagget"></div>-->
+          <!--        </yxGroupMessage>-->
+        </div>
       </div>
 
-      <div v-if="isContentEditMode">
-        <textarea class="textArea" v-model="content" contenteditable="true" placeholder="请输入内容" v-focus></textarea>
+      <!--移动笔记和标签-->
+      <div class="stages">
+
+        <div class="liangge" @mousedown.prevent>
+          <div class="movenotes">
+            <img src="@/assets/images/dijijieduanbiji.png" alt="" title="移动笔记本">
+            <div class="caonima">
+              <img src="@/assets/images/qianwangbijiben.png" alt="" title="前往笔记本">
+            </div>
+          </div>
+          <div class="biaoqian">
+            <img src="@/assets/images/xinjianbiaoqian.png" alt="" title="标签">
+          </div>
+        </div>
+
+        <!--当前笔记本-->
+        <div class="dijijieduanBJ clearfix">
+          <div class="yidong clearfix">
+            <img src="@/assets/images/dijijieduanbiji.png" alt="" class="tubiao" title="移动笔记" @mousedown.prevent>
+
+            <!--显示当前笔记所在的笔记本-->
+            <div class="notecont" title="移动笔记" @click.stop="clickMove" @mousedown.prevent>
+              {{ noteBookName }}
+            </div>
+            <div class="qianwangBJB" title="前往笔记本" @mousedown.prevent>
+              <img src="@/assets/images/qianwangbijiben.png" alt="" @click="qWnoteBooks">
+            </div>
+
+            <!--移动笔记本 可查找-->
+            <div class="yidongBJB" v-show="moveNote" @click.stop>
+              <div class="findnotes">
+                <input type="text" class="findValue" placeholder="查找笔记本" v-model="findNotes" ref="findval">
+              </div>
+              <div class="chuanjian" @mousedown.prevent @click="createNoteBook">
+                <div class="chuangjianIco"></div>
+                <span @mousedown.prevent>创建新笔记本</span>
+              </div>
+              <div class="mynotesbook"
+                   v-for="(item,index) in $store.state.noteBookModule.noteBooks"
+                   :key="index"
+                   :class="item.id == pid ? 'active' : ''"
+                   @click="moveByNotes(item.id,item.title)"
+                   @mousedown.prevent
+              >
+                {{ item.title }}
+              </div>
+
+            </div>
+
+          </div>
+
+          <!--新建标签-->
+          <div class="addtag">
+            <!--@mousedown.prevent-->
+            <div class="tianjiaBQ">
+              <Tag v-for="(item,index) in tagList" :key="item" :name="item" closable
+                   @on-close="handleClose2(item,index)">
+                {{ item }}
+              </Tag>
+              <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd" v-show="!editTagShow">添加标签
+              </Button>
+              <input type="text" class="tagValue"
+                     v-show="editTagShow"
+                     ref="tagValue"
+                     v-model="tagVal"
+                     :style="tagWidth"
+                     @blur="BlurFn"
+                     @keydown.enter="enterFn"
+              >
+            </div>
+          </div>
+        </div>
       </div>
-      <div v-else>
-        <div class="textArea" v-html="searchContent" @click = "isContentEditMode = true"></div>
+
+
+      <!--笔记的标题和内容展示-->
+      <div class="editCount" ref="editScroll">
+        <div class="root">
+          <slot></slot>
+        </div>
       </div>
-    </noteBase>
+      <!--遮罩层-->
+      <div class="noteList" v-show="$store.state.notelistNumber"></div>
+
+    </div>
   </div>
+
 </template>
 
 <script>
+import setremin from '@/func/reminders/SetRemin'
+import changeremin from '@/func/reminders/changeremin'
+import undoremin from '@/func/reminders/UndoRemin'
+import showtimes from '@/func/reminders/showTimes'
+import {Tag, Button} from 'iview'
 
-import noteBase from "./noteBase";
 
 export default {
-  name: "searchResultItem",
+  name: "noteBase",
   data() {
     return {
       noteContent: {}, // title 和 textarea展示内容的对象  也是Home组件消息弹窗的数据
-      title: JSON.parse(this.$route.params.note).title.replace(/<font style="background:yellow" color="red">/gi,"").replace(/<\/font>/gi,""),
-      content: JSON.parse(this.$route.params.note).content.replace(/<font style="background:yellow" color="red">/gi,"").replace(/<\/font>/gi,""),
+      title: JSON.parse(this.$route.params.note).title.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, ""),
+      content: JSON.parse(this.$route.params.note).content.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, ""),
       searchTitle: JSON.parse(this.$route.params.note).title,
       searchContent: JSON.parse(this.$route.params.note).content,
       noteId: JSON.parse(this.$route.params.note).id,
@@ -38,7 +200,6 @@ export default {
       tagList: [], // 当前笔记的 标签
       isTitleEditMode: false,  // 当前的笔记的标题是否处于编辑状态
       isContentEditMode: false,  // 当前的笔记的内容是否处于编辑状态
-
 
 
       //--------------------------------------------------
@@ -68,10 +229,18 @@ export default {
     }
   },
   components: {
-   noteBase
+    Tag,
+    Button,
+    setremin,
+    changeremin,
+    undoremin,
+    showtimes,
   },
   methods: {
-    syncListAndItem(currentNoteList,noteBookTagName,currentNote){
+    kk() {
+      console.log("kkkk");
+    },
+    syncListAndItem(currentNoteList, noteBookTagName, currentNote) {
       this.$router.push({
         name: 'searchResultList',
         params: {
@@ -79,11 +248,11 @@ export default {
           noteBookTagName: noteBookTagName
         }
       })
-      this.$router.push({ name: 'note3', params: { note: JSON.stringify(currentNote)}})
+      this.$router.push({name: 'note3', params: {note: JSON.stringify(currentNote)}})
     },
 
 
-    getNoteBookNameById(noteBookId){
+    getNoteBookNameById(noteBookId) {
       let noteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == noteBookId)[0]
       return noteBook.title
     },
@@ -99,11 +268,11 @@ export default {
       this.content = note.content;
 
       // todo 还是要拆开 耦合有点高
-      if(this.$store.state.noteModule.isSearchNoteListShow && this.$store.state.noteModule.isSearchNoteShow){
+      if (this.$store.state.noteModule.isSearchNoteListShow && this.$store.state.noteModule.isSearchNoteShow) {
         currentNoteToShow = this.$store.state.noteModule.searchNotes.filter(item => item.id == currentNoteId)[0];
         this.$store.state.noteModule.title = currentNoteToShow.title
         this.$store.state.noteModule.content = currentNoteToShow.content
-      }else {
+      } else {
         currentNoteToShow = this.$store.state.noteModule.currentNotes.filter(item => item.id == currentNoteId)[0];
       }
 
@@ -123,11 +292,11 @@ export default {
       this.count = this.noteContent.tagList;
     },
     // 开始移动 移动到哪个阶段笔记本的id----------
-    moveByNotes(noteBookId,noteBookName) {
+    moveByNotes(noteBookId, noteBookName) {
 
       // 判断目标笔记本是否为当前笔记本
       // 不为原笔记本时 进行更新笔记本操作
-      if(noteBookId != this.$store.state.noteModule.pid){
+      if (noteBookId != this.$store.state.noteModule.pid) {
         // 1.修改本笔记的pid
         // 2.修改 tag相关的笔记数量
         // 刷新数据 重新请求
@@ -153,7 +322,7 @@ export default {
           this.$store.state.noteModule.pid = noteBookId
           //  1.2.修改 currentNoteBookName
           this.$store.state.noteModule.currentNoteBookName = noteBookName
-          console.log("移动笔记成功",data);
+          console.log("移动笔记成功", data);
           // 1.3 修改 notes 中受影响的笔记 pid 所有的笔记列表
           let noteId = this.$store.state.noteModule.noteId
           this.$store.state.noteModule.notes.filter((item) => item.id == noteId)[0].pid = noteBookId
@@ -169,7 +338,7 @@ export default {
     },
 
     // 点击搜索结果，笔记展示内容 切换到编辑模式，list保持原状
-    switchToEditMode(){
+    switchToEditMode() {
       //
       // this.$store.state.noteModule.isSearchNoteShow = false
       // 进入编辑模式的页面显示
@@ -448,70 +617,15 @@ export default {
   },
   created() {
     console.log("note created");
-
   },
   watch: {
     // 侦听路由对象变化
     $route() {
-      console.log('searchResultItem  route changed');
-      let note = JSON.parse(this.$route.params.note)
-      this.title = note.title.replace(/<font style="background:yellow" color="red">/gi,"").replace(/<\/font>/gi,"")
-      this.content = note.content.replace(/<font style="background:yellow" color="red">/gi,"").replace(/<\/font>/gi,"")
 
-      this.searchTitle = JSON.parse(this.$route.params.note).title
-      this.searchContent = JSON.parse(this.$route.params.note).content
-      this.noteId =  note.id
-      this.noteBookName = this.getNoteBookNameById(note.pid)
-      this.tagList = note.tagList
-
-      // 初始化显示结果为search，带高亮的状态
-      this.isTitleEditMode = false
-      this.isContentEditMode = false
-    },
-    // // 监听标题信息  同步修改
-    title(newTitle,oldValue) {
-      // 初始化时触发  oldValue.length > 0 是防止在初始化阶段进行操作
-      if(this.titleIdTemp === this.noteId &&  oldValue.length > 0 ){
-        // 1.切换路由对象的时候 列表中的笔记数据同步更新  使用index 替换 foreach遍历
-        this.$store.state.noteModule.currentNotes[this.$route.params.index].title = newTitle
-        // 更新所有的笔记
-        this.$store.state.noteModule.notes.forEach(note => {
-          if (note.id == this.noteId) {
-            note.title = newTitle
-          }
-        })
-        // 更新数据库
-        this.https.updateNote({id: this.noteId, title: newTitle}).then(({data}) => {console.log("修改数据库成功", data);})
-      }else {
-        // 更新当前id
-        this.titleIdTemp = this.noteId
-      }
-    },
-    // 监听textarea内容
-    content(newTextArea,oldValue) {
-      if(this.contentIdTemp === this.noteId && oldValue.length > 0){
-        this.$store.state.noteModule.currentNotes[this.$route.params.index].content = newTextArea
-        // 更新所有的笔记
-        this.$store.state.noteModule.notes.forEach(note => {
-          if (note.id == this.noteId) {
-            note.content = newTextArea
-          }
-        })
-        this.https.updateNote({id: this.noteId, content: newTextArea}).then(({data}) => {console.log("修改数据库成功", data);})
-      }else {
-        // 更新当前id
-        this.contentIdTemp = this.noteId
-      }
     },
 
   },
-  directives: {
-    focus: {
-      inserted: function (el) {
-        el.focus();
-      }
-    }
-  }
+
 }
 
 

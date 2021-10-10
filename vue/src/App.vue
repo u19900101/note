@@ -134,8 +134,12 @@ export default {
             })
 
             // 2.初始化 笔记内容为 排序的第一个
-            this.$router.push({ name: 'note1', params: { note: JSON.stringify(currentNotes[0])}})
-            // this.$refs.noteM.initNoteContent(this.$store.state.noteModule.noteId);
+            this.$router.push({
+              name: 'note1', params: {
+                note: JSON.stringify(currentNotes[0])
+                , index: 0
+              }
+            })
 
           }).catch((err) => {
             // alert('网络延迟,请刷新重试')
@@ -161,7 +165,7 @@ export default {
             noteBookTagName: "所有笔记"
           }
         })
-        this.$router.push({ name: 'note1', params: { note: JSON.stringify(currentNotes[0])}})
+        this.$router.push({name: 'note1', params: {note: JSON.stringify(currentNotes[0])}})
 
         // //删除vuex中管理的 搜索框隐藏
         // this.$store.commit('searchNone');
@@ -267,10 +271,8 @@ export default {
 
     // 让搜索框通过vuex中的状态让它显示出来,并且网页剪辑隐藏
     searchState() {
-      this.$store.state.noteModule.isSearchNoteShow = true
-      this.$store.state.noteModule.isSearchNoteListShow = true
-      this.$store.commit('searchShow');
-      this.$store.commit('noteListTrue');
+
+      this.$router.push({name: 'search'})
 
     },
     // 选项下拉菜单收起 通知提醒弹框显示
