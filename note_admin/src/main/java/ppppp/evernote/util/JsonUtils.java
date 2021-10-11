@@ -9,6 +9,8 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ppppp.evernote.entity.Note;
+import ppppp.evernote.util.json.StringAdapter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,6 +28,7 @@ import java.util.Map;
  * @author 陌溪
  * 2018年5月7日 下午5:21:23
  */
+
 public class JsonUtils {
 
     // 定义jackson对象
@@ -39,7 +42,12 @@ public class JsonUtils {
      * @return 2018年5月7日  下午5:27:16
      */
     public static String objectToJson(Object obj) {
-        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+        // 将 null 字段 转化为 ""
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setDateFormat("yyyy-MM-dd HH:mm:ss");//设置时间格式
+        //注册自定义String的适配器
+        gsonBuilder.registerTypeAdapter(String.class, new StringAdapter());
+        Gson gson = gsonBuilder.create();
         try {
             String json = gson.toJson(obj);
             return json;

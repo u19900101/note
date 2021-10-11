@@ -87,9 +87,8 @@
         </div>
       </div>
 
-      <!--移动笔记和标签-->
       <div class="stages">
-
+        <!--移动笔记和标签-->
         <div class="liangge" @mousedown.prevent>
           <div class="movenotes">
             <img src="@/assets/images/dijijieduanbiji.png" alt="" title="移动笔记本">
@@ -102,12 +101,13 @@
           </div>
         </div>
 
-        <!--当前笔记本-->
+
         <div class="dijijieduanBJ clearfix">
+          <!--1当前笔记本-->
           <div class="yidong clearfix">
             <img src="@/assets/images/dijijieduanbiji.png" alt="" class="tubiao" title="移动笔记" @mousedown.prevent>
 
-            <!--显示当前笔记所在的笔记本-->
+            <!--1.1显示当前笔记所在的笔记本-->
             <div class="notecont" title="移动笔记" @click.stop="clickMove" @mousedown.prevent>
               {{ noteBookName }}
             </div>
@@ -115,7 +115,7 @@
               <img src="@/assets/images/qianwangbijiben.png" alt="" @click="qWnoteBooks">
             </div>
 
-            <!--移动笔记本 可查找-->
+            <!--1.2.移动笔记本 可查找-->
             <div class="yidongBJB" v-show="moveNote" @click.stop>
               <div class="findnotes">
                 <input type="text" class="findValue" placeholder="查找笔记本" v-model="findNotes" ref="findval">
@@ -135,10 +135,9 @@
               </div>
 
             </div>
-
           </div>
 
-          <!--新建标签-->
+          <!--2.标签-->
           <div class="addtag">
             <!--@mousedown.prevent-->
             <div class="tianjiaBQ">
@@ -237,60 +236,12 @@ export default {
     showtimes,
   },
   methods: {
-    kk() {
-      console.log("kkkk");
-    },
-    syncListAndItem(currentNoteList, noteBookTagName, currentNote) {
-      this.$router.push({
-        name: 'searchResultList',
-        params: {
-          notes: JSON.stringify(currentNoteList),
-          noteBookTagName: noteBookTagName
-        }
-      })
-      this.$router.push({name: 'note3', params: {note: JSON.stringify(currentNote)}})
-    },
-
 
     getNoteBookNameById(noteBookId) {
       let noteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == noteBookId)[0]
       return noteBook.title
     },
 
-// 渲染最右侧页面 展示笔记内容
-    initNoteContent(currentNoteId) {
-
-      // 不能根据路由来进行跳转 有 bug
-      this.$store.state.noteModule.noteId = currentNoteId;
-      let currentNoteToShow = []
-      let note = this.$store.state.noteModule.currentNotes.filter(item => item.id == currentNoteId)[0];
-      this.title = note.title;
-      this.content = note.content;
-
-      // todo 还是要拆开 耦合有点高
-      if (this.$store.state.noteModule.isSearchNoteListShow && this.$store.state.noteModule.isSearchNoteShow) {
-        currentNoteToShow = this.$store.state.noteModule.searchNotes.filter(item => item.id == currentNoteId)[0];
-        this.$store.state.noteModule.title = currentNoteToShow.title
-        this.$store.state.noteModule.content = currentNoteToShow.content
-      } else {
-        currentNoteToShow = this.$store.state.noteModule.currentNotes.filter(item => item.id == currentNoteId)[0];
-      }
-
-      // 若 当前id所对应的笔记不存在，那就默认 渲染当前笔记的第一条
-      if (currentNoteToShow == undefined) {
-        currentNoteToShow = this.$store.state.noteModule.currentNotes[0];
-      }
-      this.$store.state.noteModule.currentNoteToShow = this.noteContent = currentNoteToShow;
-      this.$store.state.noteModule.pid = currentNoteToShow.pid;
-      this.pid = currentNoteToShow.pid; //单条笔记的pid
-
-      // 2.2 写入 currentNoteBookName
-      let currentNoteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == currentNoteToShow.pid)[0]
-      this.$store.state.noteModule.currentNoteBookName = currentNoteBook.title
-      window.document.title = this.noteContent.title;
-      // 同步标签 此时this.count和this.noteContent引用的是同一个对象label
-      this.count = this.noteContent.tagList;
-    },
     // 开始移动 移动到哪个阶段笔记本的id----------
     moveByNotes(noteBookId, noteBookName) {
 
@@ -621,7 +572,12 @@ export default {
   watch: {
     // 侦听路由对象变化
     $route() {
-
+      let note = JSON.parse(this.$route.params.note)
+      this.title = note.title
+      this.content = note.content
+      this.noteId =  note.id
+      this.noteBookName = this.getNoteBookNameById(note.pid)
+      this.tagList = note.tagList
     },
 
   },

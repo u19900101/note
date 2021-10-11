@@ -7,7 +7,7 @@
            v-for="(item,index) in $store.state.noteModule.currentNotes"
            :key="item.id"
            @click="listItemClick(item,index)"
-           :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
+           :class="currentNoteId == index ? 'sel' : ''"
           >
         <div>
           <h2 class="n-title" v-html="item.title"></h2>
@@ -33,7 +33,7 @@ export default {
   data() {
     return {
       // 笔记选中的状态
-      state: 1,
+      currentNoteId: 0,
     }
   },
   created() {
@@ -41,7 +41,9 @@ export default {
     console.log("searchList created");
   },
   methods: {
+
     listItemClick(currentNote, index) {
+      this.currentNoteId = index
       this.$router.push({
         name: 'searchResultItem', params: {
           note: JSON.stringify(currentNote),

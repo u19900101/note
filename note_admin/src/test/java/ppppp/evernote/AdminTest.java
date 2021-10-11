@@ -67,6 +67,12 @@ public class AdminTest {
     }
 
     @Test
+    public void T_orderBy(){
+        List<Note> noteList = noteService.lambdaQuery().orderByDesc(Note::getId).list();
+        System.out.println(noteList);
+    }
+
+    @Test
     public void T_note_updateTime(){
         Note note = new Note();
         note.setUpdateTime(new Date());

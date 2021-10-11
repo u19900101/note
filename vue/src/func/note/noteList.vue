@@ -7,12 +7,12 @@
       <noteBookInfo slot="noteBookInfo"></noteBookInfo>
 
       <!--2.编辑模式的显示-->
+<!--    $store.state.noteModule.noteId == item.id ? 'sel' : ''    -->
       <div slot="noteList" class="n-conts"
            v-for="(item,index) in $store.state.noteModule.currentNotes"
            :key="item.id"
            @click="listItemClick(item,index)"
-           :class="$store.state.noteModule.noteId == item.id ? 'sel' : ''"
-           v-show="!$store.state.notelistNumber">
+           :class="currentNoteId == index ? 'sel' : ''">
 
         <h2 class="n-title">{{ item.title }}</h2>
         <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
@@ -40,12 +40,15 @@ export default {
     noteBookInfo,
   },
   data() {
-    return {}
+    return {
+      currentNoteId:0,  // 当前被选择的id，用于标记当前选中
+    }
   },
   created() {
   },
   methods: {
     listItemClick(currentNote, index) {
+      this.currentNoteId = index
       this.$router.push({
         name: 'note1', params: {
           note: JSON.stringify(currentNote),

@@ -34,7 +34,7 @@ public class NoteController {
 
     @RequestMapping("/allNotes")
     public String getAllNotes() {
-        List<Note> noteList = noteService.lambdaQuery().list();
+        List<Note> noteList = noteService.lambdaQuery().orderByDesc(Note::getId).list();
         for (Note note : noteList) {
 
             if(note.getTagUid() != null){
@@ -81,10 +81,13 @@ public class NoteController {
 
     }
 
+    // 新建笔记
     @PostMapping("/insert")
     public String insertNote(@RequestBody Note note) {
         // 设置修改时间为当前时间
         note.setCreateTime(new Date());
+        note.setTitle("");
+        note.setContent("");
         noteService.save(note);
         Note byId = noteService.getById(note.getId());
         return ResultUtil.successWithData(byId);

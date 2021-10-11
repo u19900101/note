@@ -40,6 +40,8 @@ export default {
 
   created() {
     console.log("note created");
+    let m = JSON.parse(this.$route.params.note)
+    m = JSON.parse(this.$route.params.note).title
   },
   watch: {
     // 侦听路由对象变化

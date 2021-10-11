@@ -133,6 +133,7 @@ export default {
               }
             })
 
+            let m = JSON.stringify(currentNotes[0])
             // 2.初始化 笔记内容为 排序的第一个
             this.$router.push({
               name: 'note1', params: {
@@ -165,7 +166,7 @@ export default {
             noteBookTagName: "所有笔记"
           }
         })
-        this.$router.push({name: 'note1', params: {note: JSON.stringify(currentNotes[0])}})
+        this.$router.push({name: 'note1', params: {note: JSON.stringify(currentNotes[0]),index:0}})
 
         // //删除vuex中管理的 搜索框隐藏
         // this.$store.commit('searchNone');
@@ -213,12 +214,11 @@ export default {
       }
 
     },
-
     // 新建笔记
     insertNote() {
-      // 1.操作数据库 新建一条空笔记  返回id
-
-      this.https.insertNote({'pid': this.$store.state.noteModule.pid}).then(({data}) => {
+      // 1.操作数据库 新建一条空笔记  返回id  添加到默认笔记本中  默认笔记本可设置
+      let defaultNoteBookId = 1
+      this.https.insertNote({'pid': defaultNoteBookId}).then(({data}) => {
         let newNote = data.data;
         console.log("note created ", newNote);
         this.$store.state.noteModule.noteId = newNote.id
@@ -228,7 +228,7 @@ export default {
         this.$store.state.noteModule.content = ''
         newNote = {
           "id": newNote.id,
-          "pid": this.$store.state.noteModule.pid,
+          "pid": defaultNoteBookId,
           "title": "",
           "status": false,
           "summary": "",
@@ -247,9 +247,8 @@ export default {
         this.$store.state.noteModule.currentNotes.unshift(newNote)
 
         // 3.刷新路由 让 note组件显示最新新建的值
-        this.$router.push({
-          path: '/home/' + newNote.id
-        });
+        this.$router.push({name: 'note1', params: {note: JSON.stringify(newNote),index:0}})
+
       })
 
 
