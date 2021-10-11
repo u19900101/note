@@ -33,6 +33,9 @@ export function updateNote(data){
   return vm.post('/api/admin/note/update',data)
 }
 
+export function deleteNote(data){
+  return vm.post('/api/admin/note/delete',data)
+}
 // 使用es 搜索笔记
 export function searchNoteByWords(data){
   return vm.post('/es/search',data)
@@ -47,7 +50,8 @@ export default {
        getTags,
        updateNote,
        insertNote,
-       searchNoteByWords
+       searchNoteByWords,
+       deleteNote
      }
   }
 }

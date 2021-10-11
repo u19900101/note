@@ -113,8 +113,9 @@ export default {
           this.$store.getters.initNotes(data.data);
         }).then(() => {
           // 2.1 将state数据写到当前 notes
-          this.$store.state.noteModule.currentNotes = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
-
+          this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
+          // 给笔记添加时间别名
+          this.getDateTimes.getDateTimes.call(this, this.$store.state.noteModule.currentNoteList);
           // 3.获取标签数据
           this.https.getTags().then(({data}) => {
             this.$store.getters.initTags(data.data);
@@ -133,7 +134,6 @@ export default {
               }
             })
 
-            let m = JSON.stringify(currentNotes[0])
             // 2.初始化 笔记内容为 排序的第一个
             this.$router.push({
               name: 'note1', params: {
@@ -244,8 +244,14 @@ export default {
         }
         // 2.修改 currentNotes,将新建置顶
         // 让置顶的笔记处于选中状态
-        this.$store.state.noteModule.currentNotes.unshift(newNote)
-
+        this.$store.state.noteModule.currentNoteList.unshift(newNote)
+        this.$router.push({
+          name: 'noteList',
+          params: {
+            notes: JSON.stringify(this.$store.state.noteModule.currentNoteList),
+            noteBookTagName: "所有笔记"
+          }
+        })
         // 3.刷新路由 让 note组件显示最新新建的值
         this.$router.push({name: 'note1', params: {note: JSON.stringify(newNote),index:0}})
 

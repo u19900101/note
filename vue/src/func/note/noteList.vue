@@ -6,13 +6,13 @@
       <!-- 1.笔记本信息-->
       <noteBookInfo slot="noteBookInfo"></noteBookInfo>
 
+      <span slot="noteCount">{{$store.state.noteModule.currentNoteList.length}}</span>
       <!--2.编辑模式的显示-->
-<!--    $store.state.noteModule.noteId == item.id ? 'sel' : ''    -->
       <div slot="noteList" class="n-conts"
-           v-for="(item,index) in $store.state.noteModule.currentNotes"
+           v-for="(item,itemIndex) in $store.state.noteModule.currentNoteList"
            :key="item.id"
-           @click="listItemClick(item,index)"
-           :class="currentNoteId == index ? 'sel' : ''">
+           @click="listItemClick(item,itemIndex)"
+           :class="index == itemIndex ? 'sel' : ''">
 
         <h2 class="n-title">{{ item.title }}</h2>
         <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
@@ -41,14 +41,14 @@ export default {
   },
   data() {
     return {
-      currentNoteId:0,  // 当前被选择的id，用于标记当前选中
+      index:0,  // 当前被选择的id，用于标记当前选中
     }
   },
   created() {
   },
   methods: {
     listItemClick(currentNote, index) {
-      this.currentNoteId = index
+      this.index = index
       this.$router.push({
         name: 'note1', params: {
           note: JSON.stringify(currentNote),

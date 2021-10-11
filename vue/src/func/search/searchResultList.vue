@@ -1,10 +1,11 @@
 <template>
   <!-- 笔记列表区域  -->
   <div>
-    <noteListBase v-show="$store.state.noteModule.currentNotes.length > 0">
+    <noteListBase v-show="$store.state.noteModule.searchNotesList.length > 0">
+      <span slot="noteCount">{{ $store.state.noteModule.searchNotesList.length }}</span>
       <!--搜索模式的显示-->
       <div slot="noteList" class="n-conts"
-           v-for="(item,index) in $store.state.noteModule.currentNotes"
+           v-for="(item,index) in $store.state.noteModule.searchNotesList"
            :key="item.id"
            @click="listItemClick(item,index)"
            :class="currentNoteId == index ? 'sel' : ''"

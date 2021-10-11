@@ -8,7 +8,7 @@
         <!-- 笔记条数和选项 -->
         <slot name="noteBookInfo"></slot>
         <div class="noteNumbers clearfix">
-          <div class="yinxnum">{{ $store.state.noteModule.currentNotes.length }} 条笔记</div>
+          <div class="yinxnum"><slot name="noteCount"></slot> 条笔记</div>
           <div class="select" @click.stop="sortClick">
             <span>选项</span>
           </div>

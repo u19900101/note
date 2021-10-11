@@ -59,6 +59,11 @@ export default {
       let queryData = {
         "query": {
           "bool": {
+            "must": [ //排除逻辑删除的笔记
+              {"match": {
+                  "status": false
+                }}
+            ],
             "should": [
               {
                 "match": {
@@ -101,12 +106,14 @@ export default {
             let searchNotes = []
             result.forEach(item => {
               // 覆盖
-              item._source.title = item.highlight.title ? item.highlight.title[0] : item._source.title;
-              item._source.content = item.highlight.content ? item.highlight.content[0] : item._source.content;
-              item._source.id = item._id
-              searchNotes.push(item._source)
+              if( item.highlight){
+                item._source.title = item.highlight.title ? item.highlight.title[0] : item._source.title;
+                item._source.content = item.highlight.content ? item.highlight.content[0] : item._source.content;
+                item._source.id = item._id
+                searchNotes.push(item._source)
+              }
             })
-            this.$store.state.noteModule.currentNotes = searchNotes
+            this.$store.state.noteModule.searchNotesList = searchNotes
             // 把搜索结果显示
             this.$router.push({
               name: 'searchResultList',
@@ -128,7 +135,7 @@ export default {
       }
       // 字段为空时清空
       else {
-        this.$store.state.noteModule.currentNotes = []
+        this.$store.state.noteModule.searchNotesList = []
         this.$router.push({
           name: 'searchResultItem',
           params: {

@@ -5,10 +5,10 @@
 
       <!--透明度遮罩层-->
       <div class="opationWindow" v-show="$store.state.yinListopation" @click="closeOpationsHander"></div>
-      <!--标题功能栏-->
+      <!--删除 收藏-->
       <div class="dethead" @mousedown.prevent>
         <div class="detfunc">
-          <!--active-->
+          <!--设置提醒-->
           <div class="deftimes main"
                title="设置提醒"
                @click.stop="remindHander"
@@ -41,54 +41,16 @@
                  @click.stop="addkJHander(noteContent)"
             >
           </div>
+
           <div class="definfo main bj-n" title="笔记信息" @click="infoHander"></div>
-          <div class="defdelete main" title="删除笔记" @click.stop="delNoteHandel(noteContent)"></div>
-          <!--复制笔记链接-->
-          <div class="defmore main" title="更多" @click.stop="moreHander">
-            <div class="copynoteUrl" v-if="$store.state.copyurlNotes">
-              <div class="copytxt" title="复制笔记链接">
-                复制笔记链接
-              </div>
-            </div>
-          </div>
-        </div>
-        <!--升级共享-->
-        <div class="upgrade">
-          <div class="detup mains">
-            升级
-          </div>
-          <div class="defshared clearfix mains" @click="messageHander">
-            <span class="gongx">共享</span>
-            <div class="target"></div>
-            <div class="shakeDown">
-              <div class="s-notes">
-                共享笔记
-              </div>
-              <div class="send-email">
-                发送邮件
-              </div>
-            </div>
-          </div>
-          <!--展开 全屏-->
-          <div class="defscreen mains" title="展开"
-               v-show="!$store.state.unfoldShow"
-               @click="openHander"
-          ></div>
-          <!--写笔记完成-->
-          <div class="writeNotesOk"
-               v-if="$store.state.unfoldShow"
-               @click="closeHander"
-          >
-            完成
-          </div>
-          <!--        <yxGroupMessage :state="messageState" :data="noteContent" @close-hander="closeHanderMessage">-->
-          <!--          <div class="topJiant" slot="tagget"></div>-->
-          <!--        </yxGroupMessage>-->
+<!--          存放 deleteNote 搜素和编辑各自展示  便于删除后列表的更新-->
+          <slot name="deleteNote"></slot>
+
         </div>
       </div>
 
+      <!--移动笔记和标签-->
       <div class="stages">
-        <!--移动笔记和标签-->
         <div class="liangge" @mousedown.prevent>
           <div class="movenotes">
             <img src="@/assets/images/dijijieduanbiji.png" alt="" title="移动笔记本">
@@ -100,8 +62,6 @@
             <img src="@/assets/images/xinjianbiaoqian.png" alt="" title="标签">
           </div>
         </div>
-
-
         <div class="dijijieduanBJ clearfix">
           <!--1当前笔记本-->
           <div class="yidong clearfix">
@@ -160,11 +120,10 @@
         </div>
       </div>
 
-
       <!--笔记的标题和内容展示-->
       <div class="editCount" ref="editScroll">
         <div class="root">
-          <slot></slot>
+          <slot name="titleAndContent"></slot>
         </div>
       </div>
       <!--遮罩层-->
@@ -181,7 +140,7 @@ import changeremin from '@/func/reminders/changeremin'
 import undoremin from '@/func/reminders/UndoRemin'
 import showtimes from '@/func/reminders/showTimes'
 import {Tag, Button} from 'iview'
-
+import deleteNote from "../note/deleteNote";
 
 export default {
   name: "noteBase",
@@ -197,8 +156,6 @@ export default {
       contentIdTemp: JSON.parse(this.$route.params.note).id,
       noteBookName: '',
       tagList: [], // 当前笔记的 标签
-      isTitleEditMode: false,  // 当前的笔记的标题是否处于编辑状态
-      isContentEditMode: false,  // 当前的笔记的内容是否处于编辑状态
 
 
       //--------------------------------------------------
@@ -234,6 +191,7 @@ export default {
     changeremin,
     undoremin,
     showtimes,
+
   },
   methods: {
 
@@ -371,40 +329,7 @@ export default {
       })
     },
 
-    // 删除笔记点击事件
-    delNoteHandel(obj) {
-      if (obj.id === 123456) return;
-      //保存当前删除对象的下一个兄弟对象id
-      // 问题: 删除完笔记列表,新建一个笔记再次删除会报错id问题
-      this.$store.state.noteModule.currentNotes.forEach((item, i) => {
-        if (item === obj && this.$store.state.noteModule.currentNotes.length > 1) {
-          if (this.$store.state.noteModule.currentNotes[i + 1]) {
-            // 如果下个兄弟存在
-            this.delNextId = this.$store.state.noteModule.currentNotes[i + 1].id;
-          } else if (this.$store.state.noteModule.currentNotes[i - 1]) {
-            this.delNextId = this.$store.state.noteModule.currentNotes[i - 1].id;
-          }
-          // 新建笔记 待添加 标签 收藏 以及及时删除------------------------
-        } else if (this.$store.state.noteModule.currentNotes.length === 1) {
-          this.delNextId = '';
-        }
-      });
-      /*----------------------------------------------------*/
-      // 在Home组件中的删除功能,点击删除传入当前显示的对象,应该判断它pid的chilren的长度来决定第几阶段的笔记删除完了
-      // 不能只考虑笔记列表中的删除功能
-      this.noteBooks.forEach(el => {
-        if (el.id == obj.pid) {
-          if (el.children.length < 1) {
-            this.$store.commit('deleteAll')
-          }
-        }
-      });
 
-      this.$store.commit('delClickHander', {
-        obj: obj,
-        id: this.delNextId,
-      });
-    },
 
     // searchDown  搜索笔记本列表
     // 从vuex中的笔记列表中过滤,同步到当前组件
@@ -572,12 +497,15 @@ export default {
   watch: {
     // 侦听路由对象变化
     $route() {
-      let note = JSON.parse(this.$route.params.note)
-      this.title = note.title
-      this.content = note.content
-      this.noteId =  note.id
-      this.noteBookName = this.getNoteBookNameById(note.pid)
-      this.tagList = note.tagList
+
+      if(this.$route.params.note.length > 0 ){
+        let note = JSON.parse(this.$route.params.note)
+        this.title = note.title
+        this.content = note.content
+        this.noteId =  note.id
+        this.noteBookName = this.getNoteBookNameById(note.pid)
+        this.tagList = note.tagList
+      }
     },
 
   },

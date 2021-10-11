@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -44,6 +45,7 @@ public class Note implements Serializable {
     /**
      * 逻辑删除状态
      */
+    @TableLogic // 逻辑删除字段 ，1-删除，0-未删除
     private Boolean status;
 
     /**
