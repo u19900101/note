@@ -51,50 +51,13 @@
 
       <!--移动笔记和标签-->
       <div class="stages">
-        <div class="liangge" @mousedown.prevent>
-          <div class="movenotes">
-            <img src="@/assets/images/dijijieduanbiji.png" alt="" title="移动笔记本">
-            <div class="caonima">
-              <img src="@/assets/images/qianwangbijiben.png" alt="" title="前往笔记本">
-            </div>
-          </div>
-          <div class="biaoqian">
-            <img src="@/assets/images/xinjianbiaoqian.png" alt="" title="标签">
-          </div>
-        </div>
         <div class="dijijieduanBJ clearfix">
           <!--1当前笔记本-->
           <div class="yidong clearfix">
             <img src="@/assets/images/dijijieduanbiji.png" alt="" class="tubiao" title="移动笔记" @mousedown.prevent>
 
-            <!--1.1显示当前笔记所在的笔记本-->
-            <div class="notecont" title="移动笔记" @click.stop="clickMove" @mousedown.prevent>
-              {{ noteBookName }}
-            </div>
-            <div class="qianwangBJB" title="前往笔记本" @mousedown.prevent>
-              <img src="@/assets/images/qianwangbijiben.png" alt="" @click="qWnoteBooks">
-            </div>
-
-            <!--1.2.移动笔记本 可查找-->
-            <div class="yidongBJB" v-show="moveNote" @click.stop>
-              <div class="findnotes">
-                <input type="text" class="findValue" placeholder="查找笔记本" v-model="findNotes" ref="findval">
-              </div>
-              <div class="chuanjian" @mousedown.prevent @click="createNoteBook">
-                <div class="chuangjianIco"></div>
-                <span @mousedown.prevent>创建新笔记本</span>
-              </div>
-              <div class="mynotesbook"
-                   v-for="(item,index) in $store.state.noteBookModule.noteBooks"
-                   :key="index"
-                   :class="item.id == pid ? 'active' : ''"
-                   @click="moveByNotes(item.id,item.title)"
-                   @mousedown.prevent
-              >
-                {{ item.title }}
-              </div>
-
-            </div>
+            <!--1.1显示笔记本和移动笔记-->
+            <slot name="notebook"/>
           </div>
 
           <!--2.标签-->
@@ -154,13 +117,13 @@ export default {
       noteId: JSON.parse(this.$route.params.note).id,
       titleIdTemp: JSON.parse(this.$route.params.note).id,
       contentIdTemp: JSON.parse(this.$route.params.note).id,
-      noteBookName: '',
+      noteBookName: this.getNoteBookNameById(JSON.parse(this.$route.params.note).pid),
       tagList: [], // 当前笔记的 标签
-
+      pid: JSON.parse(this.$route.params.note).pid, // noteContent对象的pid
 
       //--------------------------------------------------
 
-      pid: '', // noteContent对象的pid
+
 
       moveNote: false, //移动笔记本显隐
 
@@ -194,76 +157,12 @@ export default {
 
   },
   methods: {
-
     getNoteBookNameById(noteBookId) {
       let noteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == noteBookId)[0]
       return noteBook.title
     },
 
-    // 开始移动 移动到哪个阶段笔记本的id----------
-    moveByNotes(noteBookId, noteBookName) {
 
-      // 判断目标笔记本是否为当前笔记本
-      // 不为原笔记本时 进行更新笔记本操作
-      if (noteBookId != this.$store.state.noteModule.pid) {
-        // 1.修改本笔记的pid
-        // 2.修改 tag相关的笔记数量
-        // 刷新数据 重新请求
-        let noteToUpdate = {
-          id: this.$store.state.noteModule.noteId,
-          pid: noteBookId
-        }
-        this.https.updateNote(noteToUpdate).then(({data}) => {
-
-          this.moveNote = false; //关闭移动下拉框
-          // @ 移动提醒
-          // this.message.message.call(this);
-          //  2.修改笔记本
-          //  2.1 新的笔记本 数量 +1
-          this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == noteBookId)[0].noteCount += 1
-          this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == this.$store.state.noteModule.pid)[0].noteCount -= 1
-          // .push(currentNote)
-          //  2.2 旧的笔记本 数量 -1
-          // this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == this.$store.state.noteModule.pid)[0].pop(currentNote)
-
-          // 1.修改当前的笔记
-          //  1.1修改 pid
-          this.$store.state.noteModule.pid = noteBookId
-          //  1.2.修改 currentNoteBookName
-          this.$store.state.noteModule.currentNoteBookName = noteBookName
-          console.log("移动笔记成功", data);
-          // 1.3 修改 notes 中受影响的笔记 pid 所有的笔记列表
-          let noteId = this.$store.state.noteModule.noteId
-          this.$store.state.noteModule.notes.filter((item) => item.id == noteId)[0].pid = noteBookId
-
-          // 1.4 修改 currentNotes  将当前笔记移除
-          this.$store.state.noteModule.currentNotes = this.$store.state.noteModule.currentNotes.filter((item) => item.id != noteId)
-          let currentNote = this.$store.state.noteModule.currentNotes[0]
-          this.$store.state.noteModule.currentNoteToShow = currentNote
-          this.title = currentNote.title
-          this.content = currentNote.content
-        })
-      }
-    },
-
-    // 点击搜索结果，笔记展示内容 切换到编辑模式，list保持原状
-    switchToEditMode() {
-      //
-      // this.$store.state.noteModule.isSearchNoteShow = false
-      // 进入编辑模式的页面显示
-      this.isEditMode = true
-      // 直接渲染一个  避免直接赋值产生的修改上一篇笔记的 bug
-      // this.initNoteContent(this.$store.state.noteModule.noteId)
-    },
-    // 点击 移动笔记
-    clickMove() {
-      this.moveNote = !this.moveNote;
-      let bl = this.$refs.findval;
-      this.$nextTick(function () {
-        bl.focus()
-      })
-
-    },
     //关闭某些弹窗
     closeTag() {
       //当第几阶段笔记弹窗为true的时候再执行
@@ -386,31 +285,8 @@ export default {
       this.$store.commit('closeQuickbox')
     },
 
-    //前往笔记本
-    qWnoteBooks() {
-      this.$store.commit('noteListTrue');
-      this.$store.commit('closeHander');
-      this.$store.commit('QWNOTEBOOK', {
-        obj: this.noteBookName
-      });
-      // 前往笔记本,同步笔记列表的时间
-      this.getDateTimes.getDateTimes.call(this, this.$store.state.noteModule.currentNotes);
 
 
-      // home组件前往笔记本,需要刷新路由,同步笔记本数据
-      if (this.$store.state.joinNoteList.length >= 1) {
-        this.$router.push({
-          path: '/home/' + Math.random()
-        })
-      }
-
-    },
-
-    // 新建笔记
-    createNoteBook() {
-      this.$store.commit('createHanderShow');
-      this.moveNote = false;
-    },
 
     //infoMation组件显示的笔记信息对象
     infoHander() {
@@ -493,6 +369,7 @@ export default {
   },
   created() {
     console.log("note created");
+
   },
   watch: {
     // 侦听路由对象变化
@@ -505,6 +382,7 @@ export default {
         this.noteId =  note.id
         this.noteBookName = this.getNoteBookNameById(note.pid)
         this.tagList = note.tagList
+        this.pid = note.pid
       }
     },
 

@@ -4,10 +4,14 @@
   <div>
     <noteListBase>
       <!-- 1.笔记本信息-->
-      <noteBookInfo slot="noteBookInfo"></noteBookInfo>
+      <noteBookInfo slot="noteBookInfo">
+        <span slot="noteBookTagName">
+          {{ currentNoteBookName }}
+        </span>
+      </noteBookInfo>
 
       <span slot="noteCount">{{$store.state.noteModule.currentNoteList.length}}</span>
-      <!--2.编辑模式的显示-->
+      <!--2.笔记列表-->
       <div slot="noteList" class="n-conts"
            v-for="(item,itemIndex) in $store.state.noteModule.currentNoteList"
            :key="item.id"
@@ -42,6 +46,7 @@ export default {
   data() {
     return {
       index:0,  // 当前被选择的id，用于标记当前选中
+      currentNoteBookName: '所有笔记',
     }
   },
   created() {

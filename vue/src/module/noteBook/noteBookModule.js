@@ -5,6 +5,9 @@ import getters from './getters'
 export default {
   state: {
     noteBooks: [],  //所有笔记本列表
+    currentNoteBookNoteList:[],
+
+
     isNoteBooksShow: false, //笔记本组件显示和隐藏 Notebook 组件
     currentNoteBook: {},
     currentNoteBookName: '', // 当前笔记本的名称，也有可能是当前 tag的名称

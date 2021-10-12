@@ -11,7 +11,7 @@ import note from "../func/note/note";
 import search from "../func/search/search";
 import searchResultList from "../func/search/searchResultList";
 import searchResultItem from "../func/search/searchResultItem";
-
+import noteBookItem from "../func/note/noteBookItem";
 const Edit = () => import('@/components/Edit');
 
 let routes = [
@@ -38,16 +38,11 @@ let routes = [
         name: 'noteBookList',
         component: noteBookList,
         children: [{
-          path: 'noteList/:notes/:noteBookTagName',
-          name: 'noteListInNoteBook',
-          component: noteList,
-          children: [{
-            path: 'note2/:note',
-            name: 'note2',
-            components: {
-              note1: note
-            }
-          }]
+          path: 'noteBookItem/:note',
+          name: 'noteBookItem',
+          components: {
+            noteBookItem: noteBookItem
+          }
         }]
       }
     ]

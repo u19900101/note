@@ -10,12 +10,12 @@
                :key="index"
                :class="item.title == noteBookName ? 'active' : ''"
                @click="moveByNotes(item.id,item.title)"
-               @mousedown.prevent>
+               @mousedown.prevent
+                >
             {{ item.title }}
           </div>
         </noteBook>
       </div>
-
       <div slot="deleteNote">
         <deleteNote>
           <div slot="deleteTitle">{{ title }}</div>
@@ -24,7 +24,7 @@
       </div>
 
       <!--笔记的标题和内容展示-->
-      <div slot="titleAndContent">
+      <div slot="titleAndContent" >
         <div class="editTitle">
           <input type="text" v-model="title" class="editValue" placeholder="请输入标题">
         </div>
@@ -42,8 +42,9 @@
 import noteBase from "../search/noteBase";
 import deleteNote from "./deleteNote";
 import noteBook from "./noteBook";
+
 export default {
-  name: "note",
+  name: "noteBookItem",
   data() {
     return {
       title: JSON.parse(this.$route.params.note).title,
@@ -53,49 +54,18 @@ export default {
       contentIdTemp: JSON.parse(this.$route.params.note).id,
       noteBookName: this.$store.state.noteBookModule.noteBooks[0].title,
       index: this.$route.params.index,
-      pid:JSON.parse(this.$route.params.note).pid
+      pid: JSON.parse(this.$route.params.note).pid
     }
   },
   components: {
     noteBase,
     deleteNote,
-    noteBook,
+    noteBook
   },
   methods: {
     getNoteBookNameById(noteBookId) {
       let noteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == noteBookId)[0]
       return noteBook.title
-    },
-
-    //确定删除
-    exeDelete() {
-      // 2.1 数据库
-      // # 	    2.1.1 将 数据库中该note的 status 字段改为 1 表示逻辑删除
-      // # 	    2.1.2 修改该笔记所包含的所有tag数量都 -1
-      //        2.1.3 修改该笔记所在笔记本数量 -1
-      // #  	2.2 页面变化
-      // #		2.2.1 设置成功后 将该 note从currentNotes列表和note列表中移除
-      // #		2.2.2 noteBook中也删除相应的笔记
-      //      2.2.3 当前的note页面显示 栈顶笔记
-
-      this.https.deleteNote({id: this.$store.state.noteModule.currentNoteList[this.index].id}).then(({data}) => {
-        this.isDeleteShow = false
-        console.log("逻辑删除成功  ", data);
-      })
-
-      // 1.更新笔记本列表
-      this.$store.state.noteModule.currentNoteList.splice(this.index,this.index+1)
-      // 2.更新当前笔记
-      this.$router.push({
-        name: 'note1', params: {
-          note: JSON.stringify(this.$store.state.noteModule.currentNoteList[0])
-          , index: 0
-        }
-      })
-
-      // 通过call()来调用vue插件方法
-      // this.message.message.call(this);
-
     },
     // 开始移动 移动到哪个阶段笔记本的id----------
     moveByNotes(noteBookId, noteBookName) {
@@ -118,19 +88,49 @@ export default {
           // 渲染列表
           // 1.3 修改 notes 中受影响的笔记 pid 所有的笔记列表
           this.$store.state.noteModule.notes.filter((item) => item.id == this.noteId)[0].pid = noteBookId
-          // 无需移除笔记
-          // 渲染页面
-          this.noteBookName = noteBookName
+          // 1.4 修改 currentNotes  将当前笔从笔记本列表中移除
+          this.$store.state.noteBookModule.currentNoteBookNoteList.splice(this.index,this.index+1)
+          // 渲染 当前笔记内容
+          let currentNote = ''
+          if(this.$store.state.noteBookModule.currentNoteBookNoteList.length > 0){
+            currentNote = JSON.stringify(this.$store.state.noteBookModule.currentNoteBookNoteList[0])
+          }
+          this.$router.push({
+            name: 'noteBookItem', params: {
+              note: currentNote,
+              index: 0
+            }
+          })
           console.log("移动笔记成功", data);
         })
       }
     },
+
+
+    //确定删除
+    exeDelete() {
+
+      this.https.deleteNote({id: this.$store.state.noteModule.currentNoteBookNoteList[this.index].id}).then(({data}) => {
+        this.isDeleteShow = false
+        console.log("逻辑删除成功  ", data);
+      })
+
+      // 1.更新笔记本列表
+      this.$store.state.noteModule.currentNoteBookNoteList.splice(this.index,this.index+1)
+      // 2.更新当前笔记
+      this.$router.push({
+        name: 'note1', params: {
+          note: JSON.stringify(this.$store.state.noteModule.currentNoteBookNoteList[0])
+          , index: 0
+        }
+      })
+      // 通过call()来调用vue插件方法
+      // this.message.message.call(this);
+    }
   },
 
   created() {
-    console.log("note created");
-    let m = JSON.parse(this.$route.params.note)
-    m = JSON.parse(this.$route.params.note).title
+    console.log("noteBookItem created");
   },
   watch: {
     // 侦听路由对象变化
@@ -150,7 +150,7 @@ export default {
       // 初始化时触发  oldValue.length > 0 是防止在初始化阶段进行操作
       if (this.titleIdTemp === this.noteId && oldValue.length > 0) {
         // 1.切换路由对象的时候 列表中的笔记数据同步更新
-        this.$store.state.noteModule.currentNoteList[this.$route.params.index].title = newTitle
+        this.$store.state.noteModule.currentNoteBookNoteList[this.$route.params.index].title = newTitle
         // 更新所有的笔记
         this.$store.state.noteModule.notes.forEach(note => {
           if (note.id == this.noteId) {
@@ -169,7 +169,7 @@ export default {
     // 监听textarea内容
     content(newTextArea, oldValue) {
       if (this.contentIdTemp === this.noteId && oldValue.length > 0) {
-        this.$store.state.noteModule.currentNoteList[this.$route.params.index].content = newTextArea
+        this.$store.state.noteModule.currentNoteBookNoteList[this.$route.params.index].content = newTextArea
         // 更新所有的笔记
         this.$store.state.noteModule.notes.forEach(note => {
           if (note.id == this.noteId) {

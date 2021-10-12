@@ -3,7 +3,7 @@
   <div class="noteNames" ref="noteInfoNamesScroll">
     <img src="@/assets/images/dijijieduanbijibenxinxi.png" alt="" class="noteinfoPic">
     <div class="title">
-      {{ $route.params.noteBookTagName }}
+      <slot name="noteBookTagName"></slot>
     </div>
   </div>
 

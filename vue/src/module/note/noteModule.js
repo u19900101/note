@@ -17,6 +17,7 @@ export default {
     isSearchNoteListShow: false, // 展示搜索列表
     searchNotesList: [],  //为搜索的结果单独开启空间保存
     searchNote: {}        // 展示的当前搜素结果
+
   },
   mutations,
   actions,

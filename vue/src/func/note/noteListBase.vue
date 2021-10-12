@@ -3,7 +3,6 @@
   <!-- 1.笔记列表区域-->
   <div>
     <div class="yinxList">
-
       <div class="yinxTitle">
         <!-- 笔记条数和选项 -->
         <slot name="noteBookInfo"></slot>
@@ -50,14 +49,6 @@ export default {
     // console.log("noteListBase created");
   },
   methods: {
-    listItemClick(currentNote, index) {
-      this.$router.push({
-        name: 'note1', params: {
-          note: JSON.stringify(currentNote),
-          index: index
-        }
-      })
-    },
 
     // 选项列表功能
     sortClick() {
@@ -75,32 +66,13 @@ export default {
     //     })
     //   }
     // },
-    // 初始化 笔记/笔记本/标签 列表
-    initList() {
-      if (this.$store.state.noteModule.currentNotes.length > 0) {
-        this.$store.commit('showNoteList')
-      }
-      // 根据排序方式进行当前笔记的排序
-      this.sortWay.sortWay.call(this, this.$store.state.noteModule.currentNotes);
 
-      // 初始化 笔记内容id,便于下一步显示
-      this.$store.state.noteModule.noteId = this.$store.state.noteModule.currentNotes[0].id
-
-      // this.noteBooks = this.$store.state.noteBookModule.noteBooks; // 全部的第几阶段笔记
-      //
-      // // 根据Pid过滤不同阶段的笔记
-      // // 在笔记本列表中过滤出与Pid一样的数据,就是当前显示数据的父亲
-      // let dJ = this.noteBooks.filter(item => item.id == this.Pid)[0];
-      // this.noteBookTitle = dJ.title;
-
-    },
 
   },
   watch: {
     $route() {
       // console.log("noteListBase 中打印路由发生了变化");
     },
-
   }
 }
 </script>

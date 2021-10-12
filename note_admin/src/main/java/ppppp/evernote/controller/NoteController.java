@@ -100,7 +100,7 @@ public class NoteController {
         boolean updateNoteBook = notebookService.updateById(notebook);
         return ResultUtil.successWithData(byId);
 
-    } 
+    }
 
     // todo delete 请求？？
     @PostMapping("/delete")
