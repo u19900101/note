@@ -1,109 +1,132 @@
 .content {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    overflow: hidden;
-    min-width:1000px;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  overflow: hidden;
+  min-width: 1000px;
+  width: 100%;
+  height: 100%;
+  display: flex;
 }
+
 .yinxleft {
-    width: 72px;
-    border-right: solid 1px #ececec;
-    height: 100%;
-    background: #f8f8f8;
-    position: relative;
-    float: left;
+  width: 72px;
+  border-right: solid 1px #ececec;
+  height: 100%;
+  background: #f8f8f8;
+  position: relative;
+  float: left;
 }
+
 .yinxt {
-    padding: 15px 0 0 20px;
-    box-sizing: border-box;
+  padding: 15px 0 0 20px;
+  box-sizing: border-box;
 }
+
 .yinxfcn {
-    padding: 39px 0 0 17px;
-    box-sizing: border-box;
-    cursor: pointer;
+  padding: 39px 0 0 17px;
+  box-sizing: border-box;
+  cursor: pointer;
 }
+
 .newSearch {
-    padding-top: 12px;
+  padding-top: 12px;
 }
+
 .newshare {
-    padding-top: 12px;
+  padding-top: 12px;
 }
+
 .newshare.active {
   background: url("../images/fenxianghovera.png") no-repeat 0 12px;
 }
 
-.yinxlb{
-    padding: 68px 0 0 15px;
-    box-sizing: border-box;
-    cursor: pointer;
+.yinxlb {
+  padding: 68px 0 0 15px;
+  box-sizing: border-box;
+  cursor: pointer;
 }
-.stars{
-    width: 36px;
-    height: 36px;
-    background: url("../images/shoucang1.png") no-repeat;
+
+.stars {
+  width: 36px;
+  height: 36px;
+  background: url("../images/shoucang1.png") no-repeat;
 }
-.stars:hover{
+
+.stars:hover {
   background: url("../images/shoucang2png.png") no-repeat;
 }
+
 .stars.active {
   background: url("../images/kuaijiefangshiclick.png") no-repeat;
 }
+
 .notesbook {
-    width: 36px;
-    height: 36px;
-    margin-top:14px;
-    background: url("../images/biji3.png") no-repeat;
+  width: 36px;
+  height: 36px;
+  margin-top: 14px;
+  background: url("../images/biji3.png") no-repeat;
 }
-.notesbook:hover{
+
+.notesbook:hover {
   background: url("../images/biji2.png") no-repeat;
 }
-.notesbook.active{
+
+.notesbook.active {
   background: url("../images/biji1.png") no-repeat;
 }
+
 .notethis {
-    width: 36px;
-    height: 36px;
-    margin-top: 14px;
-    background: url("../images/bijiben1.png") no-repeat;
+  width: 36px;
+  height: 36px;
+  margin-top: 14px;
+  background: url("../images/bijiben1.png") no-repeat;
 }
-.notethis:hover{
+
+.notethis:hover {
   background: url("../images/bijiben2.png") no-repeat;
 }
+
 .notethis.active {
   background: url("../images/notebookclickhander.png") no-repeat;
 }
+
 .yinxltag {
-    width: 36px;
-    height: 36px;
-    margin-top: 14px;
-    background: url("../images/biaoqian1.png") no-repeat;
+  width: 36px;
+  height: 36px;
+  margin-top: 14px;
+  background: url("../images/biaoqian1.png") no-repeat;
 }
-.yinxltag:hover{
+
+.yinxltag:hover {
   background: url("../images/biaoqian2.png") no-repeat;
 }
+
 .yinxltag.active {
   background: url("../images/biaoqianclick.png") no-repeat;
 }
+
 .yinxbotpic {
-    height: 72px;
-    border-top: solid 1px #e1e1e1;
-    position: absolute;
-    width: 100%;
-    left: 0;
-    bottom: 0;
+  height: 72px;
+  border-top: solid 1px #e1e1e1;
+  position: absolute;
+  width: 100%;
+  left: 0;
+  bottom: 0;
 }
-.botpic img{
-    width: 40px;
-    position: absolute;
-    left: 0px;
-    top: 14px;
-    bottom: 0px;
-    right: 0px;
-    margin: 0 auto;
-    border-radius: 50%;
-    overflow: hidden;
-    padding-top: 0px;
+
+.botpic img {
+  width: 40px;
+  position: absolute;
+  left: 0px;
+  top: 14px;
+  bottom: 0px;
+  right: 0px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  padding-top: 0px;
 }
 

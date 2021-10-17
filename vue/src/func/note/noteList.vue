@@ -5,30 +5,34 @@
     <noteListBase>
       <!-- 1.笔记本信息-->
       <noteBookInfo slot="noteBookInfo">
-        <span slot="noteBookTagName">
-          {{ currentNoteBookName }}
-        </span>
+              <span slot="noteBookTagName">
+                {{ currentNoteBookName }}
+              </span>
       </noteBookInfo>
 
-      <span slot="noteCount">{{$store.state.noteModule.currentNoteList.length}}</span>
-      <!--2.笔记列表-->
-      <div slot="noteList" class="n-conts"
-           v-for="(item,itemIndex) in $store.state.noteModule.currentNoteList"
-           :key="item.id"
-           @click="listItemClick(item,itemIndex)"
-           :class="index == itemIndex ? 'sel' : ''">
+      <span slot="noteCount">{{ $store.state.noteModule.currentNoteList.length }}</span>
 
-        <h2 class="n-title">{{ item.title }}</h2>
-        <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
-        <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
-        <div class="n-wrap" v-show="$store.state.showTextState">
-          {{ item.content }}
+
+      <!--2.笔记列表-->
+      <div slot="noteList">
+            <div class="n-conts"
+                 v-for="(item,itemIndex) in $store.state.noteModule.currentNoteList"
+                 :key="item.id"
+                 @click="listItemClick(item,itemIndex)"
+                 :class="index == itemIndex ? 'sel' : ''">
+              <h2 class="n-title">{{ item.title }}</h2>
+              <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
+              <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
+              <div class="n-wrap" v-show="$store.state.showTextState">
+                {{ item.content }}
+              </div>
+            </div>
         </div>
 
-      </div>
     </noteListBase>
     <!--3.渲染 item 列表-->
-    <router-view name="note1"/>
+
+        <router-view name="note1"/>
   </div>
 </template>
 
@@ -45,7 +49,7 @@ export default {
   },
   data() {
     return {
-      index:0,  // 当前被选择的id，用于标记当前选中
+      index: 0,  // 当前被选择的id，用于标记当前选中
       currentNoteBookName: '所有笔记',
     }
   },
@@ -75,5 +79,12 @@ export default {
 </script>
 
 <style scoped>
-
+div.item {
+  width: 100px;
+  height: 100px;
+  border: 1px solid #bfa;
+  line-height: 100px;
+  text-align: center;
+  font-size: 50px;
+}
 </style>

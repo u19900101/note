@@ -1,5 +1,6 @@
 <template>
   <div id="app" v-cloak>
+
     <div class="content clearfix" @click="closeSelect">
       <!--      <yxDeleteNote></yxDeleteNote>-->
       <!--      <yxDeleteNoteBooks></yxDeleteNoteBooks>-->
@@ -40,8 +41,7 @@
           <div v-for="(item,index) in navList"
                :class="[item.class,navState === index ? 'active' : '']"
                :title="item.title"
-               :key="item.id" @click="navClickHandler(item,index)"
-          ></div>
+               :key="item.id" @click="navClickHandler(item,index)"></div>
         </div>
 
         <!-- 左侧底部图标 -->
@@ -53,9 +53,9 @@
           </div>
         </div>
       </div>
-
       <router-view/>
     </div>
+
   </div>
 </template>
 
@@ -317,14 +317,15 @@ export default {
 
 </script>
 <style>
+
 [v-cloak] {
   display: none;
 }
 
-.content {
-  width: 100%;
-  height: 100%;
-}
+/*.content {*/
+/*  width: 100%;*/
+/*  height: 100%;*/
+/*}*/
 
 .loading {
   position: relative;

@@ -37,8 +37,7 @@
       <noteListBase>
         <!-- 1.笔记本信息-->
         <noteBookInfo slot="noteBookInfo"><span slot="noteBookTagName">
-          {{ currentNoteBookName }}
-        </span></noteBookInfo>
+          {{ currentNoteBookName }}</span></noteBookInfo>
         <!-- 当前笔记的数量-->
         <span slot="noteCount">{{ $store.state.noteBookModule.currentNoteBookNoteList.length }}</span>
         <!--2.编辑模式的显示-->
@@ -60,6 +59,9 @@
 
     <!-- 3.渲染 item 列表-->
     <router-view name="noteBookItem"/>
+
+
+
   </div>
 
 </template>
@@ -144,6 +146,8 @@ export default {
 </script>
 
 <style scoped>
+
+
 .bijibenHDC {
   left: 0px;
 }

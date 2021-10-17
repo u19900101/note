@@ -1,24 +1,30 @@
 <template>
 
-  <!-- 1.笔记列表区域-->
+
+  <!--    -->
   <div>
+    <!-- 1.笔记列表区域 todo bug 还必须要这个。。。-->
     <div class="yinxList">
-      <div class="yinxTitle">
+    </div>
+    <div class="content clearfix">
+      <div class="nodescroll">
+        <!-- 笔记列表-------------->
         <!-- 笔记条数和选项 -->
         <slot name="noteBookInfo"></slot>
         <div class="noteNumbers clearfix">
-          <div class="yinxnum"><slot name="noteCount"></slot> 条笔记</div>
+          <div class="yinxnum">
+            <slot name="noteCount"></slot>
+            条笔记
+          </div>
           <div class="select" @click.stop="sortClick">
             <span>选项</span>
           </div>
           <!--选项列表-->
           <yxSelectSort></yxSelectSort>
         </div>
-      </div>
 
-      <!-- 笔记列表-------------->
-      <div class="NodesTwoList">
-        <div class="nodescroll" id="nodescroll" ref="homeScroll">
+        <!-- 插槽的style要连续使用 不然bug太多-->
+        <div class="scroll-area">
           <slot name="noteList"></slot>
         </div>
       </div>
@@ -42,8 +48,7 @@ export default {
     yxSelectSort,
   },
   data() {
-    return {
-    }
+    return {}
   },
   created() {
     // console.log("noteListBase created");
@@ -78,5 +83,6 @@ export default {
 </script>
 
 <style scoped>
+
 
 </style>
