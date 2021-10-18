@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 1.笔记本列表区  -->
-    <div class="yinxList">
+    <div v-if="$store.state.noteBookModule.isNoteBooksShow" >
       <div class="bijibenInfo">
         <img src="@/assets/images/huachuangbijiben.png" alt="" class="xinjian" title="创建笔记本" @click="createHander">
         <div class="message">
@@ -32,21 +32,20 @@
       </div>
     </div>
 
-    <!-- 2.笔记列表 todo 页面的布局-->
-    <div style=" width: 100px;">
-      <noteListBase>
-        <!-- 1.笔记本信息-->
+    <div v-else>
+      <!-- 2.笔记列表 todo 页面的布局-->
+      <noteListBase >
+        <!--       1.笔记本信息-->
         <noteBookInfo slot="noteBookInfo"><span slot="noteBookTagName">
           {{ currentNoteBookName }}</span></noteBookInfo>
-        <!-- 当前笔记的数量-->
+        <!--       当前笔记的数量-->
         <span slot="noteCount">{{ $store.state.noteBookModule.currentNoteBookNoteList.length }}</span>
-        <!--2.编辑模式的显示-->
+        <!--      2.编辑模式的显示-->
         <div slot="noteList" class="n-conts"
              v-for="(item,itemIndex) in $store.state.noteBookModule.currentNoteBookNoteList"
              :key="item.id"
              @click="listItemClick(item,itemIndex)"
              :class="index == itemIndex ? 'sel' : ''">
-
           <h2 class="n-title">{{ item.title }}</h2>
           <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
           <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
@@ -55,12 +54,9 @@
           </div>
         </div>
       </noteListBase>
+      <!--     3.渲染 item 列表-->
+      <router-view name="noteBookItem"/>
     </div>
-
-    <!-- 3.渲染 item 列表-->
-    <router-view name="noteBookItem"/>
-
-
 
   </div>
 
@@ -97,6 +93,7 @@ export default {
     },
     // 进入详细的笔记本信息
     enterNoteBook(currentNoteBook, currentNoteBookName) {
+      this.$store.state.noteBookModule.isNoteBooksShow = false
       let currentNoteBookNoteList = this.$store.state.noteModule.notes.filter(item => item.pid == currentNoteBook.id);
       this.currentNoteBookName = currentNoteBookName
       this.$store.state.noteBookModule.currentNoteBookNoteList = currentNoteBookNoteList
@@ -140,17 +137,19 @@ export default {
         index: 0
       }
     })
+  },
+  watch:{
+    $route() {
+      console.log("jjj");
+    },
   }
+
 
 }
 </script>
 
 <style scoped>
 
-
-.bijibenHDC {
-  left: 0px;
-}
 
 .liebiao .list_main:hover {
   background: rgb(64, 188, 108);

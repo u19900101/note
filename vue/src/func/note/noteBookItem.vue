@@ -32,7 +32,6 @@
           <textarea class="textArea" v-model="content" contenteditable="true" placeholder="请输入内容"></textarea>
         </div>
       </div>
-
     </noteBase>
   </div>
 </template>

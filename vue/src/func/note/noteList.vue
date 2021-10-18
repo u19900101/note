@@ -11,8 +11,6 @@
       </noteBookInfo>
 
       <span slot="noteCount">{{ $store.state.noteModule.currentNoteList.length }}</span>
-
-
       <!--2.笔记列表-->
       <div slot="noteList">
             <div class="n-conts"
@@ -28,11 +26,10 @@
               </div>
             </div>
         </div>
-
     </noteListBase>
     <!--3.渲染 item 列表-->
 
-        <router-view name="note1"/>
+    <router-view name="note1"/>
   </div>
 </template>
 

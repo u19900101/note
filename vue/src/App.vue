@@ -173,6 +173,7 @@ export default {
         let defaultNoteBookId = this.$store.state.noteBookModule.noteBooks[0].id
         let currentNoteBookNoteList = this.$store.state.noteModule.notes.filter(item => item.pid ==defaultNoteBookId);
         this.$store.state.noteBookModule.currentNoteBookNoteList = currentNoteBookNoteList
+        this.$store.state.noteBookModule.isNoteBooksShow = true
         this.$router.push({name: 'noteBookList'})
       }
       //标签

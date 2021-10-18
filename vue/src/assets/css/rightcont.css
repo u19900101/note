@@ -4,7 +4,9 @@
     height: 100%;
     /*overflow: hidden;  这个不能设置overflow hidden  会隐藏掉设置提醒弹窗 */
     cursor: pointer;
-    margin-left: 356px;
+    margin-left: 250px;
+    /*todo 勉强的打个补丁 手动布局*/
+    margin-top: -100px;
 }
 /*左侧滑窗出现,遮罩层也出现*/
 .yinxDet .opationWindow {
@@ -827,9 +829,11 @@
     cursor: pointer;
 }
 .youbian .bijibenHDC .bijibenInfo,
-.youbian .yx-nt-tag .bijibenInfo
+.youbian .yx-nt-tag .bijibenInfo,
+.bijibenInfo
 {
     height: 122px;
+    width: 250px;
     border-bottom: solid 1px #ececec;
     padding: 22px 24px 12px 24px;
     box-sizing: border-box;
