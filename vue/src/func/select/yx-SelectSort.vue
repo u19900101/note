@@ -1,5 +1,5 @@
 <template>
-  <div class="selList" v-if="$store.state.noteBookModule.isSortShow" @mousedown.prevent>
+  <div class="selList">
     <legend class="sortingWay">排序方式</legend>
 
     <ul class="sortlist">
@@ -46,7 +46,7 @@ export default {
   data() {
     return {
       sortdata: sortData,
-      sortway: "createLatest", //默认排序方式
+      sortwaykk: "createLatest", //默认排序方式
       state: 1,
       lookDate,
     }
@@ -77,11 +77,17 @@ export default {
       if (index !== this.state) {
         this.state = index;
         // 使用 getters 更改排序方式
-        this.$store.getters.getNoteListSortWay(item.way);
-        this.$router.push({
-          // 加随机时间 强制进行 initContent的执行
-          path: '/home/' + Math.random()
-        });
+        // this.$store.getters.getNoteListSortWay(item.way);
+        // 根据排序方式 更新笔记的顺序
+        // 笔记本列表选项排序
+        this.sortWay(this.$store.state.noteModule.currentNoteList,item.way);
+
+        // 更新成功后 将事件传入父组件 关闭显示框
+        // this.hideSelectSort()
+        this.$emit('hideSelectSort')
+        // this.$store.state.noteModule.notes =
+        // this.$store.state.noteModule.currentNoteList
+
       }
     }
   }

@@ -1,5 +1,4 @@
 <template>
-
   <!-- 笔记列表区域  -->
   <div>
     <noteListBase>

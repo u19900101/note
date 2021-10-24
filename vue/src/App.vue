@@ -112,7 +112,7 @@ export default {
           // 2.2 初始化 noteId
           this.$store.getters.initNotes(data.data);
         }).then(() => {
-          // 2.1 将state数据写到当前 notes
+          // 2.1 将state数据写到当前 currentNoteList
           this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
           // 给笔记添加时间别名
           this.getDateTimes.getDateTimes.call(this, this.$store.state.noteModule.currentNoteList);
@@ -126,6 +126,7 @@ export default {
             // 创建页面时初始化
             // 1.先初始化 列表  在列表排序中初始化 noteId
             let currentNotes = this.$store.state.noteModule.notes
+
             this.$router.push({
               name: 'noteList',
               params: {
