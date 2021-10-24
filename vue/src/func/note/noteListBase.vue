@@ -20,8 +20,9 @@
             <span>选项</span>
           </div>
           <!--选项列表-->
-<!--          <yxSelectSort :hideSelectSort="sortClick" v-show="isSortShow"></yxSelectSort>-->
-          <yxSelectSort @hideSelectSort="sortClick" v-show="isSortShow"></yxSelectSort>
+          <yxSelectSort @hideSelectSort="sortClick"
+                        v-show="isSortShow"
+                        @mouseleave.native="mouseleave"></yxSelectSort>
         </div>
 
         <!-- 插槽的style要连续使用 不然bug太多-->
@@ -62,21 +63,11 @@ export default {
     sortClick() {
       this.isSortShow = !this.isSortShow
     },
-    // 失去焦点
-    BlurFn() {
-      console.log('失去焦点')
-      //保存数据 提交mutations 修改当前对象的标签
-      // let isHsh = this.count.some(el => el === this.tagVal);  //判断标签有没有重复的
-      //
-      // if (this.tagVal.length && !isHsh) {
-      //   this.$store.commit('saveLabel', {
-      //     obj: this.noteContent,
-      //     label: this.tagVal
-      //   })
-      // }
+    // 鼠标移出时 显示消失
+    mouseleave() {
+      console.log("mouseleave");
+      this.isSortShow = false
     },
-
-
   },
   watch: {
     $route() {
