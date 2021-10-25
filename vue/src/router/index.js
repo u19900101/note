@@ -22,11 +22,11 @@ let routes = [
     component: Home,
     children: [
       {
-        path: 'noteList/:notes/:noteBookTagName',
+        path: 'noteList/:noteBookTagName',
         name: 'noteList',
         component: noteList,
         children: [{
-          path: 'note1/:note',
+          path: 'note1',
           name: 'note1',
           components: {
             note1: note

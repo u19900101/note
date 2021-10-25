@@ -9,6 +9,7 @@
               </span>
       </noteBookInfo>
 
+
       <span slot="noteCount">{{ $store.state.noteModule.currentNoteList.length }}</span>
       <!--2.笔记列表-->
       <div slot="noteList">
@@ -53,13 +54,16 @@ export default {
   },
   methods: {
     listItemClick(currentNote, index) {
-      this.index = index
-      this.$router.push({
-        name: 'note1', params: {
-          note: JSON.stringify(currentNote),
-          index: index
-        }
-      })
+      // 若修改 currentNote 则会自动更新到 currentNoteList上
+      this.$store.state.noteModule.currentNote = currentNote
+      this.$store.state.noteModule.currentIndex = index
+
+      // this.$router.push({
+      //   name: 'note1', params: {
+      //     // note: JSON.stringify(currentNote),
+      //     index: index
+      //   }
+      // })
     },
     // 选项列表功能
     sortClick() {

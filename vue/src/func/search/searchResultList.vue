@@ -1,6 +1,6 @@
 <template>
   <!-- 笔记列表区域  -->
-  <div>
+  <div style="margin-top: 100px">
     <noteListBase v-show="$store.state.noteModule.searchNotesList.length > 0">
       <span slot="noteCount">{{ $store.state.noteModule.searchNotesList.length }}</span>
       <!--搜索模式的显示-->

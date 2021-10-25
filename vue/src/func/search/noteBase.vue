@@ -12,7 +12,8 @@
           <div class="deftimes main"
                title="设置提醒"
                @click.stop="remindHander"
-               :class="noteContent.remind && !noteContent.completeState ? 'active' : ''">
+              >
+<!--             :class="noteContent.remind && !noteContent.completeState ? 'active' : ''"-->
             <!--提醒已添加 通知我弹窗-->
             <setremin></setremin>
 
@@ -26,20 +27,15 @@
             <showtimes></showtimes>
 
           </div>
-          <div class="tixingshijian" :class="noteContent.completeState ? 'wancheng' : ''">
-            {{ noteContent.remindTime }}
-          </div>
+<!--          <div class="tixingshijian" :class="noteContent.completeState ? 'wancheng' : ''">-->
+<!--            {{ noteContent.remindTime }}-->
+<!--          </div>-->
 
-          <div class="defshake main" :title="!noteContent.shortcut ? '添加快捷方式' : '移除快捷方式'">
-            <img src="@/assets/images/defshoucang.png" alt=""
-                 v-if="!noteContent.shortcut && !tkJshow"
-                 @mouseover="tkJoverHander"
-            >
-            <img src="@/assets/images/shanchukuaijiefangshiwujiaoxing.png" alt=""
-                 v-if="noteContent.shortcut || tkJshow"
-                 @mouseout="tkJoutHander"
-                 @click.stop="addkJHander(noteContent)"
-            >
+          <!--收藏笔记-->
+          <div  @click = "starNote" class="defshake main" :title="!star ? '收藏' : '取消收藏'">
+            <img v-if="!star" src="@/assets/images/defshoucang.png" alt="">
+            <!--取消收藏笔记-->
+            <img v-else src="@/assets/images/shanchukuaijiefangshiwujiaoxing.png" alt="">
           </div>
 
           <div class="definfo main bj-n" title="笔记信息" @click="infoHander"></div>
@@ -104,22 +100,19 @@ import undoremin from '@/func/reminders/UndoRemin'
 import showtimes from '@/func/reminders/showTimes'
 import {Tag, Button} from 'iview'
 import deleteNote from "../note/deleteNote";
+import {updateNote} from "../../server";
+import {mapState} from "vuex";
 
 export default {
   name: "noteBase",
   data() {
     return {
-      noteContent: {}, // title 和 textarea展示内容的对象  也是Home组件消息弹窗的数据
-      title: JSON.parse(this.$route.params.note).title.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, ""),
-      content: JSON.parse(this.$route.params.note).content.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, ""),
-      searchTitle: JSON.parse(this.$route.params.note).title,
-      searchContent: JSON.parse(this.$route.params.note).content,
-      noteId: JSON.parse(this.$route.params.note).id,
-      titleIdTemp: JSON.parse(this.$route.params.note).id,
-      contentIdTemp: JSON.parse(this.$route.params.note).id,
-      noteBookName: this.getNoteBookNameById(JSON.parse(this.$route.params.note).pid),
-      tagList: [], // 当前笔记的 标签
-      pid: JSON.parse(this.$route.params.note).pid, // noteContent对象的pid
+      // todo 搜索功能完善
+      // title: JSON.parse(this.$route.params.note).title.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, ""),
+      // content: JSON.parse(this.$route.params.note).content.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, ""),
+      // searchTitle: JSON.parse(this.$route.params.note).title,
+      // searchContent: JSON.parse(this.$route.params.note).content,
+
 
       //--------------------------------------------------
 
@@ -157,6 +150,25 @@ export default {
 
   },
   methods: {
+    // 收藏/取消收藏笔记
+    starNote(){
+      console.log("收藏/取消收藏笔记")
+      // 1.操作数据库 更新笔记的收藏信息
+      this.https.updateNote({id: this.noteId,star:!this.star}).then(({data}) => {
+        // 2.更新页面
+        this.star = !this.star
+        console.log("收藏/取消收藏笔记成功  ", data);
+      })
+
+      // 3.更新笔记本列表
+      this.$store.state.noteModule.currentNoteList.forEach((note) =>{
+        if(note.id == this.noteId){
+          note.star = !note.star
+        }
+      })
+
+
+    },
     getNoteBookNameById(noteBookId) {
       let noteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == noteBookId)[0]
       return noteBook.title
@@ -300,21 +312,21 @@ export default {
     remindHander() {
       this.$store.commit('closeSelectHander'); //设置提醒和选项菜单都阻止了冒泡,应该手动关闭
       // 如果当前对象没有设置提醒,就设置
-      if (!this.noteContent.remind) {
-        this.$store.commit('setRemin', {
-          obj: this.noteContent,
-        })
-      } else {
-        // 如果已经设置了提醒,判断有没有已经设置时间
-        //并且未标记完成状态状态下进行展示
-        if (!this.noteContent.completeState) {
-          this.$store.commit('changeReminComputed'); //
-        } else {
-          // 已标记完成,标记完成功能组件
-          this.$store.commit('UndoReminHander');
-        }
-
-      }
+      // if (!this.noteContent.remind) {
+      //   this.$store.commit('setRemin', {
+      //     obj: this.noteContent,
+      //   })
+      // } else {
+      //   // 如果已经设置了提醒,判断有没有已经设置时间
+      //   //并且未标记完成状态状态下进行展示
+      //   if (!this.noteContent.completeState) {
+      //     this.$store.commit('changeReminComputed'); //
+      //   } else {
+      //     // 已标记完成,标记完成功能组件
+      //     this.$store.commit('UndoReminHander');
+      //   }
+      //
+      // }
     },
 
     // 更多 复制笔记链接
@@ -349,6 +361,16 @@ export default {
     }
   },
   computed: {
+
+    //借助mapState生成计算属性，从state中读取数据。（数组写法）
+    ...mapState('noteModule', {
+      // currentNote: state => state.currentNote,
+      noteId: state => state.currentNote.id,
+      // title: state => state.currentNote.title,
+      // content: state => state.currentNote.content,
+      star: state => state.currentNote.star,
+      tagList: state => state.currentNote.tagList,
+    }),
     //搜索笔记
     filterNoteBooks() {
       if (this.findNotes == "" || this.findNotes.length == 0) {
@@ -368,22 +390,12 @@ export default {
     },
   },
   created() {
-    console.log("note created");
 
   },
   watch: {
     // 侦听路由对象变化
     $route() {
 
-      if(this.$route.params.note.length > 0 ){
-        let note = JSON.parse(this.$route.params.note)
-        this.title = note.title
-        this.content = note.content
-        this.noteId =  note.id
-        this.noteBookName = this.getNoteBookNameById(note.pid)
-        this.tagList = note.tagList
-        this.pid = note.pid
-      }
     },
 
   },

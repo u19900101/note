@@ -104,17 +104,18 @@ export default {
     getData() {
       // 1.获取笔记本数据
       this.https.getNotebooks().then(({data}) => {
-        this.$store.getters.initNoteBooks(data.data);
+        this.$store.getters['noteBookModule/initNoteBooks'](data.data);
       }).then(() => {
         // 2.获取笔记数据
         this.https.getNotes().then(({data}) => {
           // 2.1 初始化 notes
           // 2.2 初始化 noteId
-          this.$store.getters.initNotes(data.data);
+          this.$store.getters['noteModule/initNotes'](data.data);
         }).then(() => {
-          // 2.1 将state数据写到当前 currentNoteList
+          // 2.1 将state数据写到当前 currentNoteList, currentNote
           this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
-          // 给笔记添加时间别名
+          this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]; // 进入的笔记本列表数据
+          // 给笔记添加时间别名//
           this.getDateTimes.getDateTimes.call(this, this.$store.state.noteModule.currentNoteList);
           // 3.获取标签数据
           this.https.getTags().then(({data}) => {
@@ -130,7 +131,6 @@ export default {
             this.$router.push({
               name: 'noteList',
               params: {
-                notes: JSON.stringify(currentNotes),
                 noteBookTagName: "所有笔记"
               }
             })
@@ -138,8 +138,7 @@ export default {
             // 2.初始化 笔记内容为 排序的第一个
             this.$router.push({
               name: 'note1', params: {
-                note: JSON.stringify(currentNotes[0])
-                , index: 0
+                index: 0
               }
             })
 
@@ -150,6 +149,10 @@ export default {
         })
       })
     },
+    // 让搜索框通过vuex中的状态让它显示出来,并且网页剪辑隐藏
+    searchState() {
+      this.$router.push({name: 'search'})
+    },
     navClickHandler(obj, index) {
       // 收藏
       if (obj.click === 'start') {
@@ -157,7 +160,7 @@ export default {
       }
       // 笔记
       else if (obj.click === 'note') {
-        this.$store.getters.getNoteShow();
+        // this.$store.getters.getNoteShow();
         let currentNotes = this.$store.state.noteModule.notes
         this.$router.push({
           name: 'noteList',
@@ -166,7 +169,7 @@ export default {
             noteBookTagName: "所有笔记"
           }
         })
-        this.$router.push({name: 'note1', params: {note: JSON.stringify(currentNotes[0]),index:0}})
+        this.$router.push({name: 'note1', params: {index:0}})
       }
       //笔记本
       else if (obj.click === 'noteBook') {
@@ -254,12 +257,7 @@ export default {
       this.searchshow = false;
     },
 
-    // 让搜索框通过vuex中的状态让它显示出来,并且网页剪辑隐藏
-    searchState() {
 
-      this.$router.push({name: 'search'})
-
-    },
     // 选项下拉菜单收起 通知提醒弹框显示
     closeSelect(state) {
       if (this.$store.state.selectDown) {
@@ -312,6 +310,7 @@ export default {
   },
   created() {
     this.getData()
+    // console.log(this)
   },
 
 }

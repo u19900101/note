@@ -10,6 +10,11 @@ import iView from 'iView';
 import 'iview/dist/styles/iview.css';
 Vue.use(iView);
 
+// 完整引入 element-ui
+import ElementUI from 'element-ui'
+Vue.use(ElementUI)
+// 引入element-ui样式
+import 'element-ui/lib/theme-chalk/index.css'
 // 组件用过call()执行的同步笔记列表时间
 import dayjs from '@/assets/js/getDateTimes'
 Vue.use(dayjs);

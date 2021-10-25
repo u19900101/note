@@ -18,7 +18,7 @@
 
       <div slot="deleteNote">
         <deleteNote>
-          <div slot="deleteTitle">{{ title }}</div>
+          <div slot="deleteTitle">{{ $store.state.noteModule.currentNote.title }}</div>
           <span  slot="exeDelete" class="isdel GJDCG5COCC" @click="exeDelete">删除</span>
         </deleteNote>
       </div>
@@ -26,10 +26,10 @@
       <!--笔记的标题和内容展示-->
       <div slot="titleAndContent">
         <div class="editTitle">
-          <input type="text" v-model="title" class="editValue" placeholder="请输入标题">
+          <input type="text" v-model="$store.state.noteModule.currentNote.title" class="editValue" placeholder="请输入标题">
         </div>
         <div>
-          <textarea class="textArea" v-model="content" contenteditable="true" placeholder="请输入内容"></textarea>
+          <textarea class="textArea" v-model="$store.state.noteModule.currentNote.content" contenteditable="true" placeholder="请输入内容"></textarea>
         </div>
       </div>
 
@@ -38,6 +38,7 @@
 </template>
 
 <script>
+import {mapState} from 'vuex'
 
 import noteBase from "../search/noteBase";
 import deleteNote from "./deleteNote";
@@ -46,14 +47,7 @@ export default {
   name: "note",
   data() {
     return {
-      title: JSON.parse(this.$route.params.note).title,
-      content: JSON.parse(this.$route.params.note).content,
-      noteId: JSON.parse(this.$route.params.note).id,
-      titleIdTemp: JSON.parse(this.$route.params.note).id,
-      contentIdTemp: JSON.parse(this.$route.params.note).id,
-      noteBookName: this.$store.state.noteBookModule.noteBooks[0].title,
       index: this.$route.params.index,
-      pid:JSON.parse(this.$route.params.note).pid
     }
   },
   components: {
@@ -85,13 +79,14 @@ export default {
 
       // 1.更新笔记本列表
       this.$store.state.noteModule.currentNoteList.splice(this.index,this.index+1)
+      this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
+
       // 2.更新当前笔记
-      this.$router.push({
-        name: 'note1', params: {
-          note: JSON.stringify(this.$store.state.noteModule.currentNoteList[0])
-          , index: 0
-        }
-      })
+      // this.$router.push({
+      //   name: 'note1', params: {
+      //     index: 0
+      //   }
+      // })
 
       // 通过call()来调用vue插件方法
       // this.message.message.call(this);
@@ -126,37 +121,31 @@ export default {
       }
     },
   },
+  computed:{
+    ...mapState('noteModule', {
+      // 对于不修改的数据 使用这种方式能简写 比较方便
+      noteId: state => state.currentNote.id,
+      pid: state => state.currentNote.pid,
+    }),
 
+    noteBookName(){
+      return this.getNoteBookNameById(this.$store.state.noteModule.currentNote.pid) || this.$store.state.noteBookModule.noteBooks[0].title
+    }
+  },
   created() {
-    console.log("note created");
-    let m = JSON.parse(this.$route.params.note)
-    m = JSON.parse(this.$route.params.note).title
+    this.titleIdTemp = this.contentIdTemp = this.noteId
   },
   watch: {
     // 侦听路由对象变化
     $route() {
 
-      let note = JSON.parse(this.$route.params.note)
-      this.title = note.title
-      this.content = note.content
-      this.noteId = note.id
-      this.noteBookName = this.getNoteBookNameById(note.pid)
-      this.tagList = note.tagList
-      this.index = this.$route.params.index
-      this.pid = note.pid
     },
     // 监听标题信息  同步修改
-    title(newTitle, oldValue) {
+    '$store.state.noteModule.currentNote.title'(newTitle, oldValue) {
+      console.log('输入值变化时，直接修改了绑定值',this.$store.state.noteModule.currentNote.title == newTitle)
       // 初始化时触发  oldValue.length > 0 是防止在初始化阶段进行操作
       if (this.titleIdTemp === this.noteId && oldValue.length > 0) {
-        // 1.切换路由对象的时候 列表中的笔记数据同步更新
-        this.$store.state.noteModule.currentNoteList[this.$route.params.index].title = newTitle
-        // 更新所有的笔记
-        this.$store.state.noteModule.notes.forEach(note => {
-          if (note.id == this.noteId) {
-            note.title = newTitle
-          }
-        })
+        // 1.列表中的笔记数据同步更新 无需更新，都是指向的同一引用
         // 更新数据库
         this.https.updateNote({id: this.noteId, title: newTitle}).then(({data}) => {
           console.log("修改数据库成功", data);
@@ -167,15 +156,8 @@ export default {
       }
     },
     // 监听textarea内容
-    content(newTextArea, oldValue) {
+    '$store.state.noteModule.currentNote.content'(newTextArea, oldValue) {
       if (this.contentIdTemp === this.noteId && oldValue.length > 0) {
-        this.$store.state.noteModule.currentNoteList[this.$route.params.index].content = newTextArea
-        // 更新所有的笔记
-        this.$store.state.noteModule.notes.forEach(note => {
-          if (note.id == this.noteId) {
-            note.content = newTextArea
-          }
-        })
         this.https.updateNote({id: this.noteId, content: newTextArea}).then(({data}) => {
           console.log("修改数据库成功", data);
         })

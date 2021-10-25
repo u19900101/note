@@ -3,6 +3,7 @@ import actions from './actions'
 import getters from './getters'
 
 export default {
+  namespaced:true,  //开启命名空间
   state: {
     noteBooks: [],  //所有笔记本列表
     currentNoteBookNoteList:[],

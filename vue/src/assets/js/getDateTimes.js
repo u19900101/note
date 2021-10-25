@@ -21,33 +21,33 @@ export function getDateTimes(data){
       })
     }
     // 一周前
-    else if(day > 7 && day < 14){
-      this.$store.commit('sevendays',{
-        time:"上周",
-        obj:item,
-      })
-    }
-    // 2周前
-    else if(day >= 14 && day < 21){
-      this.$store.commit('sevendays',{
-        time:"2 周前",
-        obj:item,
-      })
-    }
-    // 3周前
-    else if(day >= 21 && day < 28){
-      this.$store.commit('sevendays',{
-        time:"3 周前",
-        obj:item
-      })
-    }
-    //4 周前
-    else if(day >= 28 && day <= 31){
-      this.$store.commit('sevendays',{
-        time:"4 周前",
-        obj:item,
-      })
-    }
+    // else if(day > 7 && day < 14){
+    //   this.$store.commit('sevendays',{
+    //     time:"上周",
+    //     obj:item,
+    //   })
+    // }
+    // // 2周前
+    // else if(day >= 14 && day < 21){
+    //   this.$store.commit('sevendays',{
+    //     time:"2 周前",
+    //     obj:item,
+    //   })
+    // }
+    // // 3周前
+    // else if(day >= 21 && day < 28){
+    //   this.$store.commit('sevendays',{
+    //     time:"3 周前",
+    //     obj:item
+    //   })
+    // }
+    // //4 周前
+    // else if(day >= 28 && day <= 31){
+    //   this.$store.commit('sevendays',{
+    //     time:"4 周前",
+    //     obj:item,
+    //   })
+    // }
     // 通过 对象的时间戳 转换为 18/xx/xx
     //  大于1个月的不需要设置别名
     // else if(day > 31){
