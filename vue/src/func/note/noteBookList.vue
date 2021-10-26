@@ -14,7 +14,7 @@
           暂无笔记本信息...
         </div>
         <div class="liebiao"
-             v-for="(item,noteBooksIndex) in $store.state.noteBookModule.noteBooks"
+             v-for="(item,noteBooksIndex) in $store.state.noteBookModule.noteBooks.slice(1)"
              :key="item.id" @click="enterNoteBook(item,item.title)"
              :style="{backgroundColor:$store.state.noteBookBg === item.id ? 'rgb(236,236,236)' : ''}"
              @mouseover="state=noteBooksIndex"
@@ -94,23 +94,15 @@ export default {
     // 进入详细的笔记本信息
     enterNoteBook(currentNoteBook, currentNoteBookName) {
       this.$store.state.noteBookModule.isNoteBooksShow = false
-      let currentNoteBookNoteList = this.$store.state.noteModule.notes.filter(item => item.pid == currentNoteBook.id);
-      this.currentNoteBookName = currentNoteBookName
-      this.$store.state.noteBookModule.currentNoteBookNoteList = currentNoteBookNoteList
-      // 切换笔记本时 渲染右侧显示
-      this.$router.push({
-        name: 'noteBookItem', params: {
-          note: JSON.stringify(this.$store.state.noteBookModule.currentNoteBookNoteList[0]),
-          index: 0
-        }
-      })
-      /*this.$router.push({
-        name: 'noteListInNoteBook',
-        params: {
-          notes: JSON.stringify(currentNoteBookNoteList),
-          noteBookTagName: currentNoteBook.title
-        }
-      })*/
+      let currentNoteList = this.$store.state.noteModule.notes.filter(item => item.pid == currentNoteBook.id);
+
+      this.$store.state.noteBookModule.currentNoteBookNoteList = currentNoteList
+      this.$store.state.noteModule.currentNoteList = currentNoteList; // 进入的笔记本列表数据
+      this.$store.state.noteModule.currentNote = currentNoteList[0]; // 进入的笔记本列表数据
+      this.$store.state.noteBookModule.currentNoteBook = currentNoteBook
+      this.$router.push({name: 'noteList'})
+      this.$router.push({name: 'note1'})
+
     },
     listItemClick(currentNote, index) {
       this.index = index

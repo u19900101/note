@@ -5,7 +5,7 @@
       <!-- 1.笔记本信息-->
       <noteBookInfo slot="noteBookInfo">
               <span slot="noteBookTagName">
-                {{ currentNoteBookName }}
+                {{ $store.state.noteBookModule.currentNoteBook.title }}
               </span>
       </noteBookInfo>
 

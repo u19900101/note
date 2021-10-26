@@ -101,6 +101,8 @@ export default {
       // 1.获取笔记本数据
       this.https.getNotebooks().then(({data}) => {
         this.$store.getters['noteBookModule/initNoteBooks'](data.data);
+
+        this.$store.state.noteBookModule.currentNoteBook = data.data[0]
       }).then(() => {
         // 2.获取笔记数据
         this.https.getNotes().then(({data}) => {
@@ -108,9 +110,12 @@ export default {
           // 2.2 初始化 noteId
           this.$store.getters['noteModule/initNotes'](data.data);
         }).then(() => {
-          // 2.1 将state数据写到当前 currentNoteList, currentNote
+          // 2.1 将state数据写到当前 currentNoteList, currentNote currentNoteBookNoteList(当前笔记本中所有的笔记)
           this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
+          this.$store.state.noteBookModule.currentNoteBookNoteList = this.$store.state.noteModule.notes;
           this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]; // 进入的笔记本列表数据
+
+
           // 给笔记添加时间别名//
           this.getDateTimes.getDateTimes.call(this, this.$store.state.noteModule.currentNoteList);
           // 3.获取标签数据
@@ -122,21 +127,9 @@ export default {
             this.$store.commit('closeLoadding');
             // 创建页面时初始化
             // 1.先初始化 列表  在列表排序中初始化 noteId
-            let currentNotes = this.$store.state.noteModule.notes
-
-            this.$router.push({
-              name: 'noteList',
-              params: {
-                noteBookTagName: "所有笔记"
-              }
-            })
-
+            this.$router.push({name: 'noteList'})
             // 2.初始化 笔记内容为 排序的第一个
-            this.$router.push({
-              name: 'note1', params: {
-                index: 0
-              }
-            })
+            this.$router.push({name: 'note1'})
 
           }).catch((err) => {
             // alert('网络延迟,请刷新重试')
@@ -156,16 +149,11 @@ export default {
       }
       // 笔记
       else if (obj.click === 'note') {
-        // this.$store.getters.getNoteShow();
-        let currentNotes = this.$store.state.noteModule.notes
-        this.$router.push({
-          name: 'noteList',
-          params: {
-            notes: JSON.stringify(currentNotes),
-            noteBookTagName: "所有笔记"
-          }
-        })
-        this.$router.push({name: 'note1', params: {index:0}})
+        this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
+        this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]; // 进入的笔记本列表数据
+        this.$store.state.noteBookModule.currentNoteBook =  this.$store.state.noteBookModule.noteBooks[0]
+        this.$router.push({name: 'noteList'})
+        this.$router.push({name: 'note1'})
       }
       //笔记本
       else if (obj.click === 'noteBook') {

@@ -22,7 +22,7 @@ let routes = [
     component: Home,
     children: [
       {
-        path: 'noteList/:noteBookTagName',
+        path: 'noteList',
         name: 'noteList',
         component: noteList,
         children: [{

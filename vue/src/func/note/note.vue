@@ -8,7 +8,7 @@
           <span slot="noteBookName"> {{ noteBookName }}</span>
           <div slot="moveNoteBook"
                class="mynotesbook"
-               v-for="(item,index) in $store.state.noteBookModule.noteBooks"
+               v-for="(item,index) in $store.state.noteBookModule.noteBooks.slice(1)"
                :key="index"
                :class="item.title == noteBookName ? 'active' : ''"
                @click="moveByNotes(item.id,item.title)"
@@ -154,6 +154,18 @@ export default {
           // 渲染列表
           // 1.3 修改 notes 中受影响的笔记 pid 所有的笔记列表
           this.$store.state.noteModule.notes.filter((item) => item.id == this.noteId)[0].pid = noteBookId
+
+          // 在笔记本模式下移动笔记到笔记本时需要更新
+          if(this.$store.state.noteBookModule.currentNoteBook.id != 0){
+            let currentIndex = this.$store.state.noteModule.currentIndex
+            this.$store.state.noteBookModule.currentNoteBookNoteList.splice(currentIndex,1)
+            // this.$store.state.noteBookModule.currentNoteBookNoteList = currentNoteList
+            // this.$store.state.noteModule.currentNoteList = currentNoteList; // 进入的笔记本列表数据
+            this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]; // 进入的笔记本列表数据
+          }
+
+
+
           // 搜索模式下要手动修改 currentNote
           if (this.$store.state.noteModule.isSearchNoteListShow){
             this.$store.state.noteModule.currentNote.pid = noteBookId

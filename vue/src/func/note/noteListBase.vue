@@ -82,7 +82,7 @@ export default {
     searchValue(searchValue) {
       //  1.根据内容进行全局搜索,并高亮返回  2.点击列表可进行预览 3.点击笔记 进行修改
       console.log("搜索字段 ", searchValue);
-      let queryData = {
+      let  queryData = {
         "query": {
           "bool": {
             "must": [ //排除逻辑删除的笔记
@@ -122,7 +122,57 @@ export default {
             "content": {}
           }
         }
+      }//搜索所有笔记
+       // 指定笔记本进行搜索
+      if(this.$store.state.noteBookModule.currentNoteBook.id != 0){
+        queryData = {
+          "query": {
+            "bool": {
+              "must": [ //排除逻辑删除的笔记
+                {"match": {
+                    "status": false
+                  }},
+                {
+                  "match": {
+                    "pid": this.$store.state.noteBookModule.currentNoteBook.id
+                  }
+                }
+              ],
+              "should": [
+                {
+                  "match": {
+                    "title": searchValue
+                  }
+                },
+                {
+                  "match": {
+                    "content": searchValue
+                  }
+                },
+                {
+                  "wildcard": {
+                    "title": "*" + searchValue + "*"
+                  }
+                },
+                {
+                  "wildcard": {
+                    "content": "*" + searchValue + "*"
+                  }
+                }
+              ]
+            }
+          },
+          "highlight": {
+            "pre_tags": ["<font style=\"background:yellow\" color=\"red\">"],
+            "post_tags": ["</font>"],
+            "fields": {
+              "title": {},
+              "content": {}
+            }
+          }
+        }
       }
+
       if (searchValue.length > 0) {
         this.https.searchNoteByWords(queryData).then((data) => {
           let result = data.data.hits.hits
@@ -155,8 +205,9 @@ export default {
       // 字段为空时展示所有笔记
       else {
         this.$store.state.noteModule.isSearchNoteListShow = false
-        this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
-        this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
+        // 显示当前笔记本中的所有笔记
+        this.$store.state.noteModule.currentNoteList = this.$store.state.noteBookModule.currentNoteBookNoteList
+        this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]
       }
     },
   },
