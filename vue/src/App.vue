@@ -24,10 +24,6 @@
             <img src="./assets/images/xinjian.png" alt="" v-if="!xJ" title="新建笔记" @click="insertNote">
           </div>
 
-          <!--<div class="newSearch" @mouseover="sSoverHander" @mouseout="sSoutHander">-->
-          <!--  <img src="./assets/images/sousuo1.png" alt="" v-show="!searchshow ">-->
-          <!--  <img src="./assets/images/sousuo2.png" alt="" v-show="searchshow" title="搜索" @click="searchState">-->
-          <!--</div>-->
           <div class="newshare active"
                @mouseover="shareOverHander"
                @mouseout="shareOutHander"
@@ -236,7 +232,7 @@ export default {
           }
         })
         // 3.刷新路由 让 note组件显示最新新建的值
-        this.$router.push({name: 'note1', params: {note: JSON.stringify(newNote),index:0}})
+        this.$router.push({name: 'note1'})
 
       })
 

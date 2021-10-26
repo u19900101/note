@@ -29,13 +29,12 @@
 export default {
   data() {
     return {
-      index: this.$route.params.index, // 当前笔记在 currentNotes中的index  用于删除笔记时删除 currentNotes 中的该笔记
       isDeleteShow: false
     }
   },
   methods: {
     delNoteHandel() {
-      console.log('delNoteId index is ',this.index);
+      console.log('delNoteId index is ',this.$store.state.noteModule.currentIndex);
       this.isDeleteShow = true
     },
 

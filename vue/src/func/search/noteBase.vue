@@ -364,12 +364,9 @@ export default {
 
     //借助mapState生成计算属性，从state中读取数据。（数组写法）
     ...mapState('noteModule', {
-      // currentNote: state => state.currentNote,
       noteId: state => state.currentNote.id,
-      // title: state => state.currentNote.title,
-      // content: state => state.currentNote.content,
       star: state => state.currentNote.star,
-      tagList: state => state.currentNote.tagList,
+      tagList: state => state.currentNote.tagList
     }),
     //搜索笔记
     filterNoteBooks() {

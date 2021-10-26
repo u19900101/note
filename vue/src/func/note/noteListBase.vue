@@ -142,34 +142,19 @@ export default {
             console.log("搜索结果数组长度", searchNotes.length);
             // 封装搜索结果
             this.$store.state.noteModule.isSearchNoteListShow = true
-            this.$store.state.noteModule.isTitleEditMode = false
-            this.$store.state.noteModule.isContentEditMode = false
-
             this.$store.state.noteModule.currentNoteList = searchNotes
-            this.$store.state.noteModule.currentNote = searchNotes[0]
 
-            // 把搜索结果显示
-            // this.$router.push({
-            //   name: 'searchResultList',
-            //   params: {
-            //     notes: JSON.stringify(searchNotes),
-            //     noteBookTagName: "搜索笔记"
-            //   }
-            // })
-            // 2.初始化 笔记内容为 排序的第一个
-            // this.$router.push({
-            //   name: 'searchResultItem',
-            //   params: {
-            //     note: JSON.stringify(searchNotes[0]),
-            //     index: 0
-            //   }
-            // })
+            if(searchNotes.length > 0){
+              this.$store.state.noteModule.currentNote = searchNotes[0]
+              this.$store.state.noteModule.isTitleEditMode = false
+              this.$store.state.noteModule.isContentEditMode = false
+            }
           }
         });
       }
       // 字段为空时展示所有笔记
       else {
-        this.$store.state.noteModule.isSearchMode = false
+        this.$store.state.noteModule.isSearchNoteListShow = false
         this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
         this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
       }

@@ -17,7 +17,7 @@
                  v-for="(item,itemIndex) in $store.state.noteModule.currentNoteList"
                  :key="item.id"
                  @click="listItemClick(item,itemIndex)"
-                 :class="index == itemIndex ? 'sel' : ''">
+                 :class="$store.state.noteModule.currentIndex == itemIndex ? 'sel' : ''">
               <div v-if="$store.state.noteModule.isSearchNoteListShow">
                   <h2 class="n-title" v-html="item.title"></h2>
                   <div class="n-times" v-show="item.createTimeAlias" v-html="item.createTimeAlias"></div>

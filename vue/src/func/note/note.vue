@@ -20,14 +20,13 @@
 
       <div slot="deleteNote">
         <deleteNote>
-          <div slot="deleteTitle">{{ $store.state.noteModule.currentNote.title }}</div>
+          <div slot="deleteTitle">{{ deleteMsg }}</div>
           <span slot="exeDelete" class="isdel GJDCG5COCC" @click="exeDelete">删除</span>
         </deleteNote>
       </div>
 
       <!--笔记的标题和内容展示-->
       <div slot="titleAndContent">
-        <!--<div v-if="!$store.state.noteModule.isSearchNoteShow">-->
 
         <div v-if="$store.state.noteModule.isTitleEditMode" class="editTitle">
           <input type="text" v-model="$store.state.noteModule.currentNote.title" class="editValue"
@@ -60,10 +59,7 @@ import noteBook from "./noteBook";
 export default {
   name: "note",
   data() {
-    return {
-      isTitleEditMode: false,  // 当前的笔记的标题是否处于编辑状态
-      isContentEditMode: false,  // 当前的笔记的内容是否处于编辑状态
-    }
+    return {}
   },
   components: {
     noteBase,
@@ -71,21 +67,26 @@ export default {
     noteBook,
   },
   methods: {
+    isContainHeightLight(...params){
+      for (let v of params) {
+        if(v.includes('<font style="background:yellow" color="red">')) return true;
+      }
+      return false
+    },
+    replaceHeightLight(str){
+      return str.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, "")
+    },
     titleClick() {
-      this.$store.state.noteModule.currentNote.title = this.$store.state.noteModule.currentNote.title.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, "")
+      this.$store.state.noteModule.currentNote.title = this.replaceHeightLight(this.$store.state.noteModule.currentNote.title)
       this.$store.state.noteModule.isTitleEditMode = true
     },
-
     contentClick() {
-      this.$store.state.noteModule.currentNote.content = this.$store.state.noteModule.currentNote.content.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, "")
+      this.$store.state.noteModule.currentNote.content = this.replaceHeightLight(this.$store.state.noteModule.currentNote.content)
       this.$store.state.noteModule.isContentEditMode = true
     },
 
-    // 点击搜索结果时 切换到编辑模式，将搜索结果替换掉
-    toEditMode() {
-      this.$store.state.noteModule.isSearchNoteShow = false
-    },
     getNoteBookNameById(noteBookId) {
+      if (!noteBookId) return
       let noteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == noteBookId)[0]
       return noteBook.title
     },
@@ -100,26 +101,37 @@ export default {
       // #		2.2.1 设置成功后 将该 note从currentNotes列表和note列表中移除
       // #		2.2.2 noteBook中也删除相应的笔记
       //      2.2.3 当前的note页面显示 栈顶笔记
-
-      this.https.deleteNote({id: this.$store.state.noteModule.currentNoteList[this.index].id}).then(({data}) => {
+      let currentIndex = this.$store.state.noteModule.currentIndex
+      this.https.deleteNote({id: this.$store.state.noteModule.currentNoteList[currentIndex].id}).then(({data}) => {
         this.isDeleteShow = false
         console.log("逻辑删除成功  ", data);
       })
 
       // 1.更新笔记本列表
-      this.$store.state.noteModule.currentNoteList.splice(this.index, this.index + 1)
-      this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
-
-      // 2.更新当前笔记
-      // this.$router.push({
-      //   name: 'note1', params: {
-      //     index: 0
-      //   }
-      // })
-
-      // 通过call()来调用vue插件方法
-      // this.message.message.call(this);
-
+      // 即将删除最后一篇笔记
+      if (this.$store.state.noteModule.currentNoteList.length == 1) {
+        console.log('删除最后一篇笔记')
+        this.$store.state.noteModule.currentNoteList = []
+        if (this.$store.state.noteModule.isSearchNoteListShow) {
+          this.updateNotes()
+          if (this.$store.state.noteModule.notes.length > 0) {
+            this.$store.state.noteModule.isSearchNoteListShow = false
+            this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
+            this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
+          } else {
+            this.insertNote()
+          }
+        } else {  //  跳转到新建笔记
+          this.insertNote()
+        }
+      } else {
+        // 当删除的是搜索列表时  对this.$store.state.noteModule.note进行修改
+        if (this.$store.state.noteModule.isSearchNoteListShow) {
+          this.updateNotes()
+        }
+        this.$store.state.noteModule.currentNoteList.splice(currentIndex, 1)
+        this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
+      }
     },
     // 开始移动 移动到哪个阶段笔记本的id----------
     moveByNotes(noteBookId, noteBookName) {
@@ -142,19 +154,57 @@ export default {
           // 渲染列表
           // 1.3 修改 notes 中受影响的笔记 pid 所有的笔记列表
           this.$store.state.noteModule.notes.filter((item) => item.id == this.noteId)[0].pid = noteBookId
-          // 无需移除笔记
-          // 渲染页面
-          this.noteBookName = noteBookName
+          // 搜索模式下要手动修改 currentNote
+          if (this.$store.state.noteModule.isSearchNoteListShow){
+            this.$store.state.noteModule.currentNote.pid = noteBookId
+          }
           console.log("移动笔记成功", data);
         })
       }
     },
+    insertNote() {
+      // 1.操作数据库 新建一条空笔记  返回id  添加到默认笔记本中  默认笔记本可设置
+
+      let defaultNoteBookId = 1
+      this.https.insertNote({'pid': defaultNoteBookId}).then(({data}) => {
+        let newNote = data.data;
+        console.log("note created ", newNote);
+        newNote = {
+          "id": newNote.id,
+          "pid": defaultNoteBookId,
+          "title": "",
+          "status": false,
+          "summary": "",
+          "createTime": newNote.createTime,
+          "updateTime": "",
+          "remindTime": "",
+          "content": "",
+          "tagUid": "",
+          "mediaUid": "",
+          "star": false,
+          "tagList": [],
+          "mediaList": []
+        }
+        this.$store.state.noteModule.currentNote = newNote
+        // 2.修改 currentNotes,将新建置顶  // 让置顶的笔记处于选中状态
+        this.$store.state.noteModule.currentNoteList.unshift(newNote)
+        this.$store.state.noteModule.isSearchNoteListShow = false
+        this.$store.state.noteModule.isTitleEditMode = true
+        this.$store.state.noteModule.isContentEditMode = true
+      })
+    },
+    updateNotes() {
+      let len = this.$store.state.noteModule.notes.length
+      this.$store.state.noteModule.notes = this.$store.state.noteModule.notes.filter((note) => note.id != this.noteId)
+      let len2 = this.$store.state.noteModule.notes.length
+      console.log(len, len2)
+    }
   },
   computed: {
     ...mapState('noteModule', {
       // 对于不修改的数据 使用这种方式能简写 比较方便
       noteId: state => state.currentNote.id,
-      pid: state => state.currentNote.pid,
+      pid: state => state.currentNote.pid
     }),
     noteBookName: {
       get: function () {
@@ -164,21 +214,26 @@ export default {
       },
       // 可以啥也不写  要是直接写在data中 页面就不是响应式
       set: function (newValue) {
-        console.log(newValue);
+        // console.log(newValue);
       }
     },
+    deleteMsg(){
+      let msg = this.$store.state.noteModule.currentNote.title
+      return this.$store.state.noteModule.isSearchNoteListShow ? this.replaceHeightLight(msg):msg
+    },
+
   },
   created() {
+    // 初始化id 便于更新标题和内容
     this.titleIdTemp = this.contentIdTemp = this.noteId
-  }
-  ,
+  },
   watch: {
     // 监听标题信息  同步修改
     '$store.state.noteModule.currentNote.title'(newTitle, oldValue) {
       // console.log('输入值变化时，直接修改了绑定值', this.$store.state.noteModule.currentNote.title == newTitle)
       // 初始化时触发  oldValue.length > 0 是防止在初始化阶段进行操作
       // 搜索模式转换引起的变化
-      if (oldValue.includes('<font style="background:yellow" color="red">')) {
+      if (this.isContainHeightLight(newTitle)) {
         return
       }
       if (this.titleIdTemp === this.noteId && oldValue.length > 0) {
@@ -195,17 +250,17 @@ export default {
             }
           })
         }
-      } else {
+      }
+      else {
         // 更新当前id
         this.titleIdTemp = this.noteId
       }
-
     }
     ,
     // 监听textarea内容
     '$store.state.noteModule.currentNote.content'(newTextArea, oldValue) {
       // 搜索模式转换引起的变化 则不反应
-      if (oldValue.includes('<font style="background:yellow" color="red">')) {
+      if (this.isContainHeightLight(newTextArea)) {
         return
       }
       if (this.contentIdTemp === this.noteId && oldValue.length > 0) {
@@ -221,7 +276,8 @@ export default {
           })
         }
 
-      } else {
+      }
+      else {
         // 更新当前id
         this.contentIdTemp = this.noteId
       }
