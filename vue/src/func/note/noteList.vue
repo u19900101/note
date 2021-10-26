@@ -18,12 +18,21 @@
                  :key="item.id"
                  @click="listItemClick(item,itemIndex)"
                  :class="index == itemIndex ? 'sel' : ''">
-              <h2 class="n-title">{{ item.title }}</h2>
-              <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
-              <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
-              <div class="n-wrap" v-show="$store.state.showTextState">
-                {{ item.content }}
+              <div v-if="$store.state.noteModule.isSearchNoteListShow">
+                  <h2 class="n-title" v-html="item.title"></h2>
+                  <div class="n-times" v-show="item.createTimeAlias" v-html="item.createTimeAlias"></div>
+                  <div class="n-times" v-show="!item.createTimeAlias" v-html="item.createTime"></div>
+                  <div class="n-wrap" v-html="item.content"></div>
               </div>
+              <div v-else>
+                <h2 class="n-title">{{ item.title }}</h2>
+                <div class="n-times" v-show="item.createTimeAlias">{{ item.createTimeAlias }}</div>
+                <div class="n-times" v-show="!item.createTimeAlias">{{ item.createTime }}</div>
+                <div class="n-wrap" v-show="$store.state.showTextState">
+                  {{ item.content }}
+                </div>
+              </div>
+
             </div>
         </div>
     </noteListBase>
@@ -58,12 +67,12 @@ export default {
       this.$store.state.noteModule.currentNote = currentNote
       this.$store.state.noteModule.currentIndex = index
 
-      // this.$router.push({
-      //   name: 'note1', params: {
-      //     // note: JSON.stringify(currentNote),
-      //     index: index
-      //   }
-      // })
+      // 在搜索列表下，跳转之前 对显示进行重置,展示搜索结果
+      if(this.$store.state.noteModule.isSearchNoteListShow){
+        this.$store.state.noteModule.isTitleEditMode = false
+        this.$store.state.noteModule.isContentEditMode = false
+      }
+
     },
     // 选项列表功能
     sortClick() {

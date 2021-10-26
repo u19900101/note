@@ -1,9 +1,11 @@
 <template>
   <div>
+
     <noteBase>
+      <!--显示和变更笔记本-->
       <div slot="notebook">
         <noteBook>
-          <span slot="noteBookName">{{noteBookName}}</span>
+          <span slot="noteBookName"> {{ noteBookName }}</span>
           <div slot="moveNoteBook"
                class="mynotesbook"
                v-for="(item,index) in $store.state.noteBookModule.noteBooks"
@@ -19,20 +21,31 @@
       <div slot="deleteNote">
         <deleteNote>
           <div slot="deleteTitle">{{ $store.state.noteModule.currentNote.title }}</div>
-          <span  slot="exeDelete" class="isdel GJDCG5COCC" @click="exeDelete">删除</span>
+          <span slot="exeDelete" class="isdel GJDCG5COCC" @click="exeDelete">删除</span>
         </deleteNote>
       </div>
 
       <!--笔记的标题和内容展示-->
       <div slot="titleAndContent">
-        <div class="editTitle">
-          <input type="text" v-model="$store.state.noteModule.currentNote.title" class="editValue" placeholder="请输入标题">
-        </div>
-        <div>
-          <textarea class="textArea" v-model="$store.state.noteModule.currentNote.content" contenteditable="true" placeholder="请输入内容"></textarea>
-        </div>
-      </div>
+        <!--<div v-if="!$store.state.noteModule.isSearchNoteShow">-->
 
+        <div v-if="$store.state.noteModule.isTitleEditMode" class="editTitle">
+          <input type="text" v-model="$store.state.noteModule.currentNote.title" class="editValue"
+                 placeholder="请输入标题" v-focus>
+        </div>
+        <div v-else>
+          <div @click="titleClick" v-html="$store.state.noteModule.currentNote.title" class="editValue"></div>
+        </div>
+
+        <div v-if="$store.state.noteModule.isContentEditMode">
+          <textarea class="textArea" v-model="$store.state.noteModule.currentNote.content" contenteditable="true"
+                    placeholder="请输入内容" v-focus></textarea>
+        </div>
+        <div v-else>
+          <div @click="contentClick" class="textArea" v-html="$store.state.noteModule.currentNote.content"></div>
+        </div>
+
+      </div>
     </noteBase>
   </div>
 </template>
@@ -43,11 +56,13 @@ import {mapState} from 'vuex'
 import noteBase from "../search/noteBase";
 import deleteNote from "./deleteNote";
 import noteBook from "./noteBook";
+
 export default {
   name: "note",
   data() {
     return {
-      index: this.$route.params.index,
+      isTitleEditMode: false,  // 当前的笔记的标题是否处于编辑状态
+      isContentEditMode: false,  // 当前的笔记的内容是否处于编辑状态
     }
   },
   components: {
@@ -56,6 +71,20 @@ export default {
     noteBook,
   },
   methods: {
+    titleClick() {
+      this.$store.state.noteModule.currentNote.title = this.$store.state.noteModule.currentNote.title.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, "")
+      this.$store.state.noteModule.isTitleEditMode = true
+    },
+
+    contentClick() {
+      this.$store.state.noteModule.currentNote.content = this.$store.state.noteModule.currentNote.content.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, "")
+      this.$store.state.noteModule.isContentEditMode = true
+    },
+
+    // 点击搜索结果时 切换到编辑模式，将搜索结果替换掉
+    toEditMode() {
+      this.$store.state.noteModule.isSearchNoteShow = false
+    },
     getNoteBookNameById(noteBookId) {
       let noteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == noteBookId)[0]
       return noteBook.title
@@ -78,7 +107,7 @@ export default {
       })
 
       // 1.更新笔记本列表
-      this.$store.state.noteModule.currentNoteList.splice(this.index,this.index+1)
+      this.$store.state.noteModule.currentNoteList.splice(this.index, this.index + 1)
       this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
 
       // 2.更新当前笔记
@@ -121,51 +150,92 @@ export default {
       }
     },
   },
-  computed:{
+  computed: {
     ...mapState('noteModule', {
       // 对于不修改的数据 使用这种方式能简写 比较方便
       noteId: state => state.currentNote.id,
       pid: state => state.currentNote.pid,
     }),
-
-    noteBookName(){
-      return this.getNoteBookNameById(this.$store.state.noteModule.currentNote.pid) || this.$store.state.noteBookModule.noteBooks[0].title
-    }
+    noteBookName: {
+      get: function () {
+        let name = this.getNoteBookNameById(this.$store.state.noteModule.currentNote.pid)
+          || this.$store.state.noteBookModule.noteBooks[0].title
+        return name
+      },
+      // 可以啥也不写  要是直接写在data中 页面就不是响应式
+      set: function (newValue) {
+        console.log(newValue);
+      }
+    },
   },
   created() {
     this.titleIdTemp = this.contentIdTemp = this.noteId
-  },
+  }
+  ,
   watch: {
-    // 侦听路由对象变化
-    $route() {
-
-    },
     // 监听标题信息  同步修改
     '$store.state.noteModule.currentNote.title'(newTitle, oldValue) {
-      console.log('输入值变化时，直接修改了绑定值',this.$store.state.noteModule.currentNote.title == newTitle)
+      // console.log('输入值变化时，直接修改了绑定值', this.$store.state.noteModule.currentNote.title == newTitle)
       // 初始化时触发  oldValue.length > 0 是防止在初始化阶段进行操作
+      // 搜索模式转换引起的变化
+      if (oldValue.includes('<font style="background:yellow" color="red">')) {
+        return
+      }
       if (this.titleIdTemp === this.noteId && oldValue.length > 0) {
-        // 1.列表中的笔记数据同步更新 无需更新，都是指向的同一引用
-        // 更新数据库
+        // 1.更新数据库
         this.https.updateNote({id: this.noteId, title: newTitle}).then(({data}) => {
           console.log("修改数据库成功", data);
         })
+        // 2.搜索状态时 更新列表中的笔记数据同步更新
+        if (this.$store.state.noteModule.isSearchNoteListShow) {
+          // 更新所有的笔记
+          this.$store.state.noteModule.notes.forEach(note => {
+            if (note.id == this.noteId) {
+              note.title = newTitle
+            }
+          })
+        }
       } else {
         // 更新当前id
         this.titleIdTemp = this.noteId
       }
-    },
+
+    }
+    ,
     // 监听textarea内容
     '$store.state.noteModule.currentNote.content'(newTextArea, oldValue) {
+      // 搜索模式转换引起的变化 则不反应
+      if (oldValue.includes('<font style="background:yellow" color="red">')) {
+        return
+      }
       if (this.contentIdTemp === this.noteId && oldValue.length > 0) {
         this.https.updateNote({id: this.noteId, content: newTextArea}).then(({data}) => {
           console.log("修改数据库成功", data);
         })
+
+        if (this.$store.state.noteModule.isSearchNoteListShow) {
+          this.$store.state.noteModule.notes.forEach(note => {
+            if (note.id == this.noteId) {
+              note.content = newTextArea
+            }
+          })
+        }
+
       } else {
         // 更新当前id
         this.contentIdTemp = this.noteId
       }
+
     },
+
+  },
+  // 鼠标自动聚焦
+  directives: {
+    focus: {
+      inserted: function (el) {
+        el.focus();
+      }
+    }
   }
 }
 </script>
