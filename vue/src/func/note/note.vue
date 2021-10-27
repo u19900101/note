@@ -36,7 +36,7 @@
 
         <div v-if="$store.state.noteModule.isContentEditMode">
           <textarea class="textArea" v-model="$store.state.noteModule.currentNote.content" contenteditable="true"
-                    placeholder="请输入内容"></textarea>
+                    placeholder="请输入内容" v-focus></textarea>
         </div>
         <div v-else>
           <div @click="contentClick" class="textArea" v-html="$store.state.noteModule.currentNote.content"></div>
@@ -158,19 +158,14 @@ export default {
 
           // 在笔记本模式下移动笔记到笔记本时需要更新
           if(this.$store.state.noteBookModule.currentNoteBook.id != 0){
-
             let currentIndex = this.$store.state.noteModule.currentIndex
-            this.$store.state.noteBookModule.currentNoteBookNoteList.splice(currentIndex,1)
+            this.$store.state.noteModule.currentNoteList.splice(currentIndex,1)
             // 当移动最后一篇笔记时，跳转到 笔记本页面
-            if(this.$store.state.noteBookModule.currentNoteBookNoteList.length == 0){
+            if(this.$store.state.noteModule.currentNoteList.length == 0){
               this.$router.push({name: 'noteBookList'})
             }else {
               this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]; // 进入的笔记本列表数据
             }
-          }
-          // 搜索模式下要手动修改 currentNote
-          if (this.$store.state.noteModule.isSearchNoteListShow){
-            this.$store.state.noteModule.currentNote.pid = noteBookId
           }
           console.log("移动笔记成功", data);
         })
@@ -179,10 +174,8 @@ export default {
 
     updateNotes() {
       // 从 notes 中移除笔记
-      // let l1 =  this.$store.state.noteModule.notes.length
       this.$store.state.noteModule.notes = this.$store.state.noteModule.notes.filter((note) => note.id != this.noteId)
-      // let l2 =  this.$store.state.noteModule.notes.length
-      // console.log('删除笔记数量',l1-l2)
+
     }
   },
   computed: {
@@ -219,7 +212,7 @@ export default {
       // console.log('输入值变化时，直接修改了绑定值', this.$store.state.noteModule.currentNote.title == newTitle)
       // 初始化时触发  oldValue.length > 0 是防止在初始化阶段进行操作
       // 搜索模式转换引起的变化
-      if (this.isContainHeightLight(newTitle)) {
+      if (this.isContainHeightLight(newTitle,oldValue)) {
         return
       }
       if (this.titleIdTemp === this.noteId && oldValue.length > 0) {
@@ -241,12 +234,11 @@ export default {
         // 更新当前id
         this.titleIdTemp = this.noteId
       }
-    }
-    ,
+    },
     // 监听textarea内容
     '$store.state.noteModule.currentNote.content'(newTextArea, oldValue) {
       // 搜索模式转换引起的变化 则不反应
-      if (this.isContainHeightLight(newTextArea)) {
+      if (this.isContainHeightLight(newTextArea,oldValue)) {
         return
       }
       if (this.contentIdTemp === this.noteId && oldValue.length > 0) {

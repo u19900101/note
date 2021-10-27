@@ -172,7 +172,6 @@ export default {
           }
         }
       }
-
       if (searchValue.length > 0) {
         this.https.searchNoteByWords(queryData).then((data) => {
           let result = data.data.hits.hits
@@ -206,8 +205,15 @@ export default {
       else {
         this.$store.state.noteModule.isSearchNoteListShow = false
         // 显示当前笔记本中的所有笔记
-        this.$store.state.noteModule.currentNoteList = this.$store.state.noteBookModule.currentNoteBookNoteList
-        this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]
+        this.$store.state.noteModule.currentIndex = 0
+        if(this.$store.state.noteBookModule.currentNoteBook.id == 0){
+          this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
+          this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
+        }else {
+          this.$store.state.noteModule.currentNoteList = this.$store.state.noteBookModule.currentNoteBookNoteList
+          this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]
+        }
+
       }
     },
   },
