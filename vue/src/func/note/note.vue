@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <noteBase>
       <!--显示和变更笔记本-->
       <div slot="notebook">
@@ -27,7 +26,6 @@
 
       <!--笔记的标题和内容展示-->
       <div slot="titleAndContent">
-
         <div v-if="$store.state.noteModule.isTitleEditMode" class="editTitle">
           <input type="text" v-model="$store.state.noteModule.currentNote.title" class="editValue"
                  placeholder="请输入标题" v-focus>
@@ -38,7 +36,7 @@
 
         <div v-if="$store.state.noteModule.isContentEditMode">
           <textarea class="textArea" v-model="$store.state.noteModule.currentNote.content" contenteditable="true"
-                    placeholder="请输入内容" v-focus></textarea>
+                    placeholder="请输入内容"></textarea>
         </div>
         <div v-else>
           <div @click="contentClick" class="textArea" v-html="$store.state.noteModule.currentNote.content"></div>
@@ -106,32 +104,35 @@ export default {
         this.isDeleteShow = false
         console.log("逻辑删除成功  ", data);
       })
+      //  更新笔记本中笔记的数量
+      this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == this.pid)[0].noteCount -= 1
+      if(this.$store.state.noteBookModule.currentNoteBook.id != 0){
+        this.updateNotes()
+      }
 
       // 1.更新笔记本列表
       // 即将删除最后一篇笔记
       if (this.$store.state.noteModule.currentNoteList.length == 1) {
         console.log('删除最后一篇笔记')
         this.$store.state.noteModule.currentNoteList = []
+
         if (this.$store.state.noteModule.isSearchNoteListShow) {
-          this.updateNotes()
           if (this.$store.state.noteModule.notes.length > 0) {
             this.$store.state.noteModule.isSearchNoteListShow = false
             this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
             this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
-          } else {
-            this.insertNote()
           }
-        } else {  //  跳转到新建笔记
-          this.insertNote()
+          // 笔记本模式下删除最后一条笔记时跳转到笔记本列表
+        } else if (this.$store.state.noteBookModule.currentNoteBook.id != 0){
+          this.$router.push({name: 'noteBookList'})
         }
-      } else {
-        // 当删除的是搜索列表时  对this.$store.state.noteModule.note进行修改
-        if (this.$store.state.noteModule.isSearchNoteListShow) {
-          this.updateNotes()
-        }
+        this.$router.push({name: 'noteList'})
+      }
+      else {
         this.$store.state.noteModule.currentNoteList.splice(currentIndex, 1)
         this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
       }
+
     },
     // 开始移动 移动到哪个阶段笔记本的id----------
     moveByNotes(noteBookId, noteBookName) {
@@ -157,15 +158,16 @@ export default {
 
           // 在笔记本模式下移动笔记到笔记本时需要更新
           if(this.$store.state.noteBookModule.currentNoteBook.id != 0){
+
             let currentIndex = this.$store.state.noteModule.currentIndex
             this.$store.state.noteBookModule.currentNoteBookNoteList.splice(currentIndex,1)
-            // this.$store.state.noteBookModule.currentNoteBookNoteList = currentNoteList
-            // this.$store.state.noteModule.currentNoteList = currentNoteList; // 进入的笔记本列表数据
-            this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]; // 进入的笔记本列表数据
+            // 当移动最后一篇笔记时，跳转到 笔记本页面
+            if(this.$store.state.noteBookModule.currentNoteBookNoteList.length == 0){
+              this.$router.push({name: 'noteBookList'})
+            }else {
+              this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]; // 进入的笔记本列表数据
+            }
           }
-
-
-
           // 搜索模式下要手动修改 currentNote
           if (this.$store.state.noteModule.isSearchNoteListShow){
             this.$store.state.noteModule.currentNote.pid = noteBookId
@@ -174,42 +176,13 @@ export default {
         })
       }
     },
-    insertNote() {
-      // 1.操作数据库 新建一条空笔记  返回id  添加到默认笔记本中  默认笔记本可设置
 
-      let defaultNoteBookId = 1
-      this.https.insertNote({'pid': defaultNoteBookId}).then(({data}) => {
-        let newNote = data.data;
-        console.log("note created ", newNote);
-        newNote = {
-          "id": newNote.id,
-          "pid": defaultNoteBookId,
-          "title": "",
-          "status": false,
-          "summary": "",
-          "createTime": newNote.createTime,
-          "updateTime": "",
-          "remindTime": "",
-          "content": "",
-          "tagUid": "",
-          "mediaUid": "",
-          "star": false,
-          "tagList": [],
-          "mediaList": []
-        }
-        this.$store.state.noteModule.currentNote = newNote
-        // 2.修改 currentNotes,将新建置顶  // 让置顶的笔记处于选中状态
-        this.$store.state.noteModule.currentNoteList.unshift(newNote)
-        this.$store.state.noteModule.isSearchNoteListShow = false
-        this.$store.state.noteModule.isTitleEditMode = true
-        this.$store.state.noteModule.isContentEditMode = true
-      })
-    },
     updateNotes() {
-      let len = this.$store.state.noteModule.notes.length
+      // 从 notes 中移除笔记
+      // let l1 =  this.$store.state.noteModule.notes.length
       this.$store.state.noteModule.notes = this.$store.state.noteModule.notes.filter((note) => note.id != this.noteId)
-      let len2 = this.$store.state.noteModule.notes.length
-      console.log(len, len2)
+      // let l2 =  this.$store.state.noteModule.notes.length
+      // console.log('删除笔记数量',l1-l2)
     }
   },
   computed: {
@@ -238,6 +211,7 @@ export default {
   created() {
     // 初始化id 便于更新标题和内容
     this.titleIdTemp = this.contentIdTemp = this.noteId
+    console.log('note 重新加载了...')
   },
   watch: {
     // 监听标题信息  同步修改

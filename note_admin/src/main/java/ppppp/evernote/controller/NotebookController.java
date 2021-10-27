@@ -11,6 +11,7 @@ import ppppp.evernote.entity.Tag;
 import ppppp.evernote.mapper.NoteMapper;
 import ppppp.evernote.mapper.NotebookMapper;
 import ppppp.evernote.mapper.TagMapper;
+import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.util.ResultUtil;
 
 import java.util.List;
@@ -31,6 +32,9 @@ public class NotebookController {
     private NotebookMapper notebookMapper;
 
     @Autowired
+    private NotebookService notebookService;
+
+    @Autowired
     private NoteMapper noteMapper;
 
     @Autowired
@@ -39,7 +43,7 @@ public class NotebookController {
     @RequestMapping("/allNoteBooks")
     public String allNotebooks() {
 
-        List<Notebook> notebooksList = notebookMapper.selectList(null);
+        List<Notebook> notebooksList = notebookService.lambdaQuery().orderByAsc(Notebook::getId).list();
         //notebooks.forEach(System.out::println);
         return ResultUtil.successWithData(notebooksList);
     }

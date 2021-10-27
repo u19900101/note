@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 1.笔记本列表区  -->
-    <div v-if="$store.state.noteBookModule.isNoteBooksShow" >
+    <div v-if="isNoteBooksShow" >
       <div class="bijibenInfo">
         <img src="@/assets/images/huachuangbijiben.png" alt="" class="xinjian" title="创建笔记本" @click="createHander">
         <div class="message">
@@ -37,7 +37,7 @@
       <noteListBase >
         <!--       1.笔记本信息-->
         <noteBookInfo slot="noteBookInfo"><span slot="noteBookTagName">
-          {{ currentNoteBookName }}</span></noteBookInfo>
+          {{ $store.state.noteBookModule.currentNoteBook.title }}</span></noteBookInfo>
         <!--       当前笔记的数量-->
         <span slot="noteCount">{{ $store.state.noteBookModule.currentNoteBookNoteList.length }}</span>
         <!--      2.编辑模式的显示-->
@@ -74,7 +74,7 @@ export default {
     return {
       index: 0,
       state: -1,
-      currentNoteBookName: this.$store.state.noteBookModule.noteBooks[0].title,
+      isNoteBooksShow:true,
     }
   },
   components: {
@@ -93,16 +93,19 @@ export default {
     },
     // 进入详细的笔记本信息
     enterNoteBook(currentNoteBook, currentNoteBookName) {
-      this.$store.state.noteBookModule.isNoteBooksShow = false
+      // 判断当前笔记本是否有笔记
       let currentNoteList = this.$store.state.noteModule.notes.filter(item => item.pid == currentNoteBook.id);
-
-      this.$store.state.noteBookModule.currentNoteBookNoteList = currentNoteList
-      this.$store.state.noteModule.currentNoteList = currentNoteList; // 进入的笔记本列表数据
-      this.$store.state.noteModule.currentNote = currentNoteList[0]; // 进入的笔记本列表数据
-      this.$store.state.noteBookModule.currentNoteBook = currentNoteBook
-      this.$router.push({name: 'noteList'})
-      this.$router.push({name: 'note1'})
-
+      if(currentNoteList.length > 0){
+        this.isNoteBooksShow = false
+        this.$store.state.noteBookModule.currentNoteBookNoteList = currentNoteList
+        this.$store.state.noteModule.currentNoteList = this.$store.state.noteBookModule.currentNoteBookNoteList; // 进入的笔记本列表数据
+        this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]; // 进入的笔记本列表数据
+        this.$store.state.noteBookModule.currentNoteBook = currentNoteBook
+        this.$router.push({name: 'noteList'})
+        this.$router.push({name: 'note1'})
+      }else {
+        alert('当前笔记本暂无笔记...')
+      }
     },
     listItemClick(currentNote, index) {
       this.index = index
@@ -123,12 +126,6 @@ export default {
 
   created() {
     console.log("noteBookList created..");
-    this.$router.push({
-      name: 'noteBookItem', params: {
-        note: JSON.stringify(this.$store.state.noteBookModule.currentNoteBookNoteList[0]),
-        index: 0
-      }
-    })
   },
   watch:{
     $route() {

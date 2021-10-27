@@ -90,7 +90,7 @@ public class AdminTest {
     private NotebookService notebookService;
     @Test
     public void T_noteBook(){
-        List<Notebook> list = notebookService.lambdaQuery().list();
+        List<Notebook> list = notebookService.lambdaQuery().orderByAsc(Notebook::getId).list();
         //list.forEach(System.out::println);
         System.out.println(ResultUtil.successWithData(list));
     }

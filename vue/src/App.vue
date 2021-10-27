@@ -113,9 +113,6 @@ export default {
           // 2.1 将state数据写到当前 currentNoteList, currentNote currentNoteBookNoteList(当前笔记本中所有的笔记)
           this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
           this.$store.state.noteBookModule.currentNoteBookNoteList = this.$store.state.noteModule.notes;
-          this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]; // 进入的笔记本列表数据
-
-
           // 给笔记添加时间别名//
           this.getDateTimes.getDateTimes.call(this, this.$store.state.noteModule.currentNoteList);
           // 3.获取标签数据
@@ -129,7 +126,10 @@ export default {
             // 1.先初始化 列表  在列表排序中初始化 noteId
             this.$router.push({name: 'noteList'})
             // 2.初始化 笔记内容为 排序的第一个
-            this.$router.push({name: 'note1'})
+            if(this.$store.state.noteModule.currentNoteList.length >0){
+              this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]; // 进入的笔记本列表数据
+              this.$router.push({name: 'note1'})
+            }
 
           }).catch((err) => {
             // alert('网络延迟,请刷新重试')
@@ -150,10 +150,14 @@ export default {
       // 笔记
       else if (obj.click === 'note') {
         this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
-        this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]; // 进入的笔记本列表数据
+
         this.$store.state.noteBookModule.currentNoteBook =  this.$store.state.noteBookModule.noteBooks[0]
         this.$router.push({name: 'noteList'})
-        this.$router.push({name: 'note1'})
+        if(this.$store.state.noteModule.currentNoteList.length >0){
+          this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]; // 进入的笔记本列表数据
+          this.$router.push({name: 'note1'})
+        }
+
       }
       //笔记本
       else if (obj.click === 'noteBook') {
@@ -183,19 +187,19 @@ export default {
     },
     // 新建笔记
     insertNote() {
-      // 1.操作数据库 新建一条空笔记  返回id  添加到默认笔记本中  默认笔记本可设置
-      let defaultNoteBookId = 1
-      this.https.insertNote({'pid': defaultNoteBookId}).then(({data}) => {
+      // 1.操作数据库
+      // 在当前的笔记本新建笔记
+      let currentNoteBookId = this.$store.state.noteBookModule.currentNoteBook.id
+      let pid = currentNoteBookId == 0 ? 1:currentNoteBookId
+      this.https.insertNote({'pid': pid}).then(({data}) => {
         let newNote = data.data;
-        console.log("note created ", newNote);
+        console.log("新建笔记 ", newNote);
         this.$store.state.noteModule.noteId = newNote.id
         // 默认情况下未返回 title 和 content
-        // 给当前 note 清空
-        this.$store.state.noteModule.title = ''
-        this.$store.state.noteModule.content = ''
+
         newNote = {
           "id": newNote.id,
-          "pid": defaultNoteBookId,
+          "pid": pid,
           "title": "",
           "status": false,
           "summary": "",
@@ -212,16 +216,17 @@ export default {
         // 2.修改 currentNotes,将新建置顶
         // 让置顶的笔记处于选中状态
         this.$store.state.noteModule.currentNoteList.unshift(newNote)
-        this.$router.push({
-          name: 'noteList',
-          params: {
-            notes: JSON.stringify(this.$store.state.noteModule.currentNoteList),
-            noteBookTagName: "所有笔记"
-          }
-        })
-        // 3.刷新路由 让 note组件显示最新新建的值
-        this.$router.push({name: 'note1'})
+        this.$store.state.noteModule.currentNote = newNote
+        this.$store.state.noteModule.currentIndex = 0  // 让新建的笔记处于选中状态
+        // 选择笔记本的情况下 需要对notes 进行追加，因为此时 currentNoteList 指向为当前笔记本
+        if(currentNoteBookId != 0){
+          this.$store.state.noteModule.notes.unshift(newNote)
+        }
+        this.$store.state.noteBookModule.noteBooks.filter(item => item.id == pid)[0].noteCount += 1
 
+        // // 3.刷新路由 让 note组件显示最新新建的值,并且让光标自动定位到标题栏
+        this.$router.push({name: 'noteList'})
+        this.$router.push({name: 'note1'})
       })
 
 
