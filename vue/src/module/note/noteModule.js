@@ -18,13 +18,17 @@ export default {
     currentIndex:0,  // 笔记在当前列表中的index值  用于删除时，快速定位，更新列表
     currentNoteBookName: '',
 
-    //************搜索相关*****************************
+   /* ************搜索*************/
     isSearchNoteListShow: false, // 展示搜索列表 和 普通列表
     isTitleEditMode: true,  // 当前的笔记的标题是否处于编辑状态
     isContentEditMode: true,  // 当前的笔记的内容是否处于编辑状态
 
     searchNotesList: [],  //为搜索的结果单独开启空间保存
-    searchNote: {}        // 展示的当前搜素结果
+    searchNote: {},        // 展示的当前搜素结果
+    /*************收藏*************/
+    starNoteList: [],
+
+
   },
   mutations,
   actions,

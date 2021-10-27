@@ -1,7 +1,7 @@
 let navDateList = [
   {
     title:"收藏",
-    click:"startHander",
+    click:"star",
     class:"stars",
     id:0,
   },

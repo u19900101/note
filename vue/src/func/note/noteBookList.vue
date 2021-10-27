@@ -93,8 +93,25 @@ export default {
     },
     // 进入详细的笔记本信息
     enterNoteBook(currentNoteBook, currentNoteBookName) {
-      // 判断当前笔记本是否有笔记
+      // 当点击收藏笔记时  直接重复 app中点击收藏时的动作
+      if(currentNoteBook.id == 1){
+        this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.starNoteList; // 进入的笔记本列表数据
+        if(this.$store.state.noteModule.currentNoteList.length > 0){
+          // 序号为 1的是收藏笔记本
+          this.$store.state.noteBookModule.currentNoteBook = this.$store.state.noteBookModule.noteBooks[1]
+          this.$router.push({name: 'noteList'})
+          if(this.$store.state.noteModule.currentNoteList.length >0){
+            this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]; // 进入的笔记本列表数据
+            this.$router.push({name: 'note1'})
+          }
+        }else {
+          alert('当前笔记本暂无笔记...')
+        }
+        return
+      }
+
       let currentNoteList = this.$store.state.noteModule.notes.filter(item => item.pid == currentNoteBook.id);
+      // 判断当前笔记本是否有笔记
       if(currentNoteList.length > 0){
         this.isNoteBooksShow = false
         this.$store.state.noteBookModule.currentNoteBookNoteList = currentNoteList

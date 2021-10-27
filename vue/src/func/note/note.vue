@@ -7,7 +7,7 @@
           <span slot="noteBookName"> {{ noteBookName }}</span>
           <div slot="moveNoteBook"
                class="mynotesbook"
-               v-for="(item,index) in $store.state.noteBookModule.noteBooks.slice(1)"
+               v-for="(item,index) in $store.state.noteBookModule.noteBooks.slice(2)"
                :key="index"
                :class="item.title == noteBookName ? 'active' : ''"
                @click="moveByNotes(item.id,item.title)"
@@ -109,21 +109,32 @@ export default {
       if(this.$store.state.noteBookModule.currentNoteBook.id != 0){
         this.updateNotes()
       }
-
+      // 收藏模式下的删除
+      if (this.$store.state.noteBookModule.currentNoteBook.id == 1){
+        // 移除收藏 1.修改 starNoteList  2.更新 starNoteBook
+        this.$store.state.noteModule.starNoteList = this.$store.state.noteModule.starNoteList.filter((note) => note.id != this.noteId)
+        this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.starNoteList
+        if( this.$store.state.noteModule.starNoteList.length == 0){
+          this.$router.push({name: 'noteList'})
+        }else {
+          this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
+        }
+        this.$store.state.noteBookModule.noteBooks[1].noteCount -= 1
+        return
+      }
       // 1.更新笔记本列表
       // 即将删除最后一篇笔记
       if (this.$store.state.noteModule.currentNoteList.length == 1) {
         console.log('删除最后一篇笔记')
         this.$store.state.noteModule.currentNoteList = []
-
         if (this.$store.state.noteModule.isSearchNoteListShow) {
           if (this.$store.state.noteModule.notes.length > 0) {
             this.$store.state.noteModule.isSearchNoteListShow = false
             this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
             this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
           }
-          // 笔记本模式下删除最后一条笔记时跳转到笔记本列表
-        } else if (this.$store.state.noteBookModule.currentNoteBook.id != 0){
+        } // 2.笔记本模式下删除最后一条笔记时跳转到笔记本列表
+        else if (this.$store.state.noteBookModule.currentNoteBook.id != 0){
           this.$router.push({name: 'noteBookList'})
         }
         this.$router.push({name: 'noteList'})
@@ -175,7 +186,6 @@ export default {
     updateNotes() {
       // 从 notes 中移除笔记
       this.$store.state.noteModule.notes = this.$store.state.noteModule.notes.filter((note) => note.id != this.noteId)
-
     }
   },
   computed: {

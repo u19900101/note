@@ -12,8 +12,8 @@
           <div class="deftimes main"
                title="设置提醒"
                @click.stop="remindHander"
-              >
-<!--             :class="noteContent.remind && !noteContent.completeState ? 'active' : ''"-->
+          >
+            <!--             :class="noteContent.remind && !noteContent.completeState ? 'active' : ''"-->
             <!--提醒已添加 通知我弹窗-->
             <setremin></setremin>
 
@@ -27,19 +27,19 @@
             <showtimes></showtimes>
 
           </div>
-<!--          <div class="tixingshijian" :class="noteContent.completeState ? 'wancheng' : ''">-->
-<!--            {{ noteContent.remindTime }}-->
-<!--          </div>-->
+          <!--          <div class="tixingshijian" :class="noteContent.completeState ? 'wancheng' : ''">-->
+          <!--            {{ noteContent.remindTime }}-->
+          <!--          </div>-->
 
           <!--收藏笔记-->
-          <div  @click = "starNote" class="defshake main" :title="!star ? '收藏' : '取消收藏'">
+          <div @click="starNoteClick" class="defshake main" :title="!star ? '收藏' : '取消收藏'">
             <img v-if="!star" src="@/assets/images/defshoucang.png" alt="">
             <!--取消收藏笔记-->
             <img v-else src="@/assets/images/shanchukuaijiefangshiwujiaoxing.png" alt="">
           </div>
 
           <div class="definfo main bj-n" title="笔记信息" @click="infoHander"></div>
-<!--          存放 deleteNote 搜素和编辑各自展示  便于删除后列表的更新-->
+          <!--          存放 deleteNote 搜素和编辑各自展示  便于删除后列表的更新-->
           <slot name="deleteNote"></slot>
 
         </div>
@@ -117,7 +117,6 @@ export default {
       //--------------------------------------------------
 
 
-
       moveNote: false, //移动笔记本显隐
 
       findNotes: '', //查找笔记本
@@ -149,25 +148,73 @@ export default {
     showtimes,
 
   },
+  computed: {
+    //借助mapState生成计算属性，从state中读取数据。（数组写法）
+    ...mapState('noteModule', {
+      noteId: state => state.currentNote.id,
+      tagList: state => state.currentNote.tagList
+    }),
+    star: {
+      get: function () {
+        return this.$store.state.noteModule.currentNote.star
+      },
+      set: function (newValue) {
+      }
+    },
+    //搜索笔记
+    filterNoteBooks() {
+      if (this.findNotes == "" || this.findNotes.length == 0) {
+        return []
+      } else {
+        return this.noteBooks.filter(item => {
+          return item.title.trim().match(this.findNotes)
+        })
+      }
+
+    },
+    //tag输入框的动态宽度计算
+    tagWidth() {
+      return {
+        width: this.tagVal.length * 12 + 26 + 'px'
+      }
+    },
+  },
   methods: {
     // 收藏/取消收藏笔记
-    starNote(){
-      console.log("收藏/取消收藏笔记")
+    starNoteClick() {
       // 1.操作数据库 更新笔记的收藏信息
-      this.https.updateNote({id: this.noteId,star:!this.star}).then(({data}) => {
-        // 2.更新页面
-        this.star = !this.star
+      this.https.updateNote({id: this.noteId, star: !this.star}).then(({data}) => {
         console.log("收藏/取消收藏笔记成功  ", data);
       })
+      // 3.更新笔记本列表 和 starNoteList
+      this.$store.state.noteModule.currentNote.star = !this.star// 此时会同时修改 this.star
+      if (this.star) {
+        // 添加收藏
+        this.$store.state.noteModule.starNoteList.unshift(this.$store.state.noteModule.currentNote)
+        this.$store.state.noteBookModule.noteBooks[1].noteCount += 1
+      } else {
+        // 移除收藏 1.修改 starNoteList  2.更新 starNoteBook
+        this.$store.state.noteModule.starNoteList = this.$store.state.noteModule.starNoteList.filter((note) => note.id != this.noteId)
+        // 在收藏列表中取消收藏 要跳转  其他情况则不需要进行页面跳转，只需要进行数据更新
+        if (this.$store.state.noteBookModule.currentNoteBook.id == 1){
+          this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.starNoteList
+          if( this.$store.state.noteModule.starNoteList.length == 0){
+            this.$router.push({name: 'noteList'})
+          }else {
+            this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
+          }
+        }
+        this.$store.state.noteBookModule.noteBooks[1].noteCount -= 1
+      }
 
-      // 3.更新笔记本列表
-      this.$store.state.noteModule.currentNoteList.forEach((note) =>{
-        if(note.id == this.noteId){
+    },
+
+    updateNotes() {
+      this.$store.state.noteModule.notes.forEach((note) => {
+        if (note.id == this.noteId) {
           note.star = !note.star
         }
       })
-
-
     },
     getNoteBookNameById(noteBookId) {
       let noteBook = this.$store.state.noteBookModule.noteBooks.filter(item => item.id == noteBookId)[0]
@@ -241,7 +288,6 @@ export default {
     },
 
 
-
     // searchDown  搜索笔记本列表
     // 从vuex中的笔记列表中过滤,同步到当前组件
     searchDown() {
@@ -296,8 +342,6 @@ export default {
     closeQuick() {
       this.$store.commit('closeQuickbox')
     },
-
-
 
 
     //infoMation组件显示的笔记信息对象
@@ -360,32 +404,7 @@ export default {
       this.messageState = false;
     }
   },
-  computed: {
 
-    //借助mapState生成计算属性，从state中读取数据。（数组写法）
-    ...mapState('noteModule', {
-      noteId: state => state.currentNote.id,
-      star: state => state.currentNote.star,
-      tagList: state => state.currentNote.tagList
-    }),
-    //搜索笔记
-    filterNoteBooks() {
-      if (this.findNotes == "" || this.findNotes.length == 0) {
-        return []
-      } else {
-        return this.noteBooks.filter(item => {
-          return item.title.trim().match(this.findNotes)
-        })
-      }
-
-    },
-    //tag输入框的动态宽度计算
-    tagWidth() {
-      return {
-        width: this.tagVal.length * 12 + 26 + 'px'
-      }
-    },
-  },
   created() {
 
   },

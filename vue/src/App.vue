@@ -113,6 +113,8 @@ export default {
           // 2.1 将state数据写到当前 currentNoteList, currentNote currentNoteBookNoteList(当前笔记本中所有的笔记)
           this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
           this.$store.state.noteBookModule.currentNoteBookNoteList = this.$store.state.noteModule.notes;
+
+          this.$store.state.noteModule.starNoteList = this.$store.state.noteModule.notes.filter((note) => note.star == true)
           // 给笔记添加时间别名//
           this.getDateTimes.getDateTimes.call(this, this.$store.state.noteModule.currentNoteList);
           // 3.获取标签数据
@@ -138,19 +140,22 @@ export default {
         })
       })
     },
-    // 让搜索框通过vuex中的状态让它显示出来,并且网页剪辑隐藏
-    searchState() {
-      this.$router.push({name: 'search'})
-    },
+
     navClickHandler(obj, index) {
       // 收藏
-      if (obj.click === 'start') {
-        this.$store.commit('startShow')
+      if (obj.click === 'star') {
+        this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.starNoteList; // 进入的笔记本列表数据
+        // 序号为 1的是收藏笔记本
+        this.$store.state.noteBookModule.currentNoteBook = this.$store.state.noteBookModule.noteBooks[1]
+        this.$router.push({name: 'noteList'})
+        if(this.$store.state.noteModule.currentNoteList.length >0){
+          this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]; // 进入的笔记本列表数据
+          this.$router.push({name: 'note1'})
+        }
       }
       // 笔记
       else if (obj.click === 'note') {
         this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
-
         this.$store.state.noteBookModule.currentNoteBook =  this.$store.state.noteBookModule.noteBooks[0]
         this.$router.push({name: 'noteList'})
         if(this.$store.state.noteModule.currentNoteList.length >0){
