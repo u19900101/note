@@ -24,6 +24,11 @@ public class Notebook implements Serializable {
 
     private static final long serialVersionUID=1L;
 
+    /*自定义字段 用于封装 el-tree*/
+    @TableField(exist = false)
+    List<Notebook> children;
+
+    private Float sort;
     /**
      * 唯一uid
      */
@@ -65,7 +70,5 @@ public class Notebook implements Serializable {
      */
     private Boolean status;
 
-    /*自定义字段 用于封装 el-tree*/
-    @TableField(exist = false)
-    List<Notebook> children;
+
 }

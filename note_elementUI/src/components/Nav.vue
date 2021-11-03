@@ -6,19 +6,20 @@
         <el-aside :style="{width: navWidth + 'px'}">
             <el-tree :data="data"
                      ref="mytree"
-                    node-key="id"
-                    accordion
-                    @node-click="handleNodeClick"
-                    @node-drag-start="handleDragStart"
-                    @node-drag-enter="handleDragEnter"
-                    @node-drag-leave="handleDragLeave"
-                    @node-drag-over="handleDragOver"
-                    @node-drag-end="handleDragEnd"
-                    @node-drop="handleDrop"
-                    @node-contextmenu=handleNodeContextmenu
-                    draggable
-                    :allow-drop="allowDrop"
-                    :allow-drag="allowDrag">
+                     node-key="id"
+                     accordion
+                     @node-click="handleNodeClick"
+                     @node-drag-start="handleDragStart"
+                     @node-drag-enter="handleDragEnter"
+                     @node-drag-leave="handleDragLeave"
+                     @node-drag-over="handleDragOver"
+                     @node-drag-end="handleDragEnd"
+                     @node-drop="handleDrop"
+                     @node-contextmenu=handleNodeContextmenu
+                     draggable
+                     :allow-drop="allowDrop"
+                     :allow-drag="allowDrag"
+            >
                 <!-- 自定义节点-->
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <!-- 给一级节点 设置自定义图标-->
@@ -57,7 +58,7 @@
                 navMin: 150,
                 //收藏-1 笔记-2 笔记本-3 标签-4  废纸篓-5  新建笔记-6
                 firstLevelIds: [1, 2, 3, 4, 5, 6],  //一级菜单id，不允许拖动
-                icons: ['el-icon-star-on', 'el-icon-document', 'el-icon-notebook-2', 'el-icon-discount', 'el-icon-delete','el-icon-circle-plus-outline'],
+                icons: ['el-icon-star-on', 'el-icon-document', 'el-icon-notebook-2', 'el-icon-discount', 'el-icon-delete', 'el-icon-circle-plus-outline'],
                 data: [
                     {
                         id: 6,
@@ -66,7 +67,8 @@
                     {
                         id: 1,
                         title: '收藏'
-                    }, {
+                    },
+                    {
                         id: 2,
                         title: '全部笔记'
                     },
@@ -114,11 +116,11 @@
         },
         methods: {
             /* 构造树形data*/
-            getNotebooks(){
+            getNotebooks() {
                 let noteBooks = this.$store.state.noteBooks
-                // console.log('构造树形data',noteBooks)
                 return noteBooks
             },
+            /*导航栏宽度可拖拽组件*/
             widthChange(movement) {
                 this.navWidth -= movement
                 if (this.navWidth < this.navMin || this.navWidth > this.navMax) {
@@ -137,8 +139,8 @@
                 console.log('clicked Node', data.title);
             },
             handleDragStart(node, ev) {
-                console.log('drag start', node);
-            //    将当前拖拽节点设置为全局变量，以便在内容区能取值
+                // console.log('drag start', node);
+                //    将当前拖拽节点设置为全局变量，以便在内容区能取值
                 this.$store.state.currentNode = node
             },
             handleDragEnter(draggingNode, dropNode, ev) {
@@ -150,17 +152,101 @@
             handleDragOver(draggingNode, dropNode, ev) {
                 // console.log('tree drag over: ', draggingNode.data.title ,'--> ',dropNode.data.title);
             },
+
+            // 对节点获取新的排序
+           /* updateSort(draggingNode, currentParentNode) {
+
+                let brotherNotes = this.$refs.mytree.getNode(draggingNode.data.id).parent.data.children
+                console.log(brotherNotes)
+                // 获取相邻的两个节点
+                let currentIndex = 0
+                let s1, s2, s
+
+                brotherNotes.forEach((item, index, array) => {
+                    if (item.id == draggingNode.data.id) {
+                        // console.log(item.title,index)
+                        currentIndex = index
+                    }
+                })
+                //节点放置在中间时
+                if (currentIndex > 0 && currentIndex < brotherNotes.length - 1) {
+                    s1 = brotherNotes[currentIndex - 1].sort
+                    s2 = brotherNotes[currentIndex + 1].sort
+                    s = (s1 + s2) / 2
+                    console.log('中间：', s1, s, s2)
+                } else if (currentIndex == 0) { //当拖到第一个时
+                    if (brotherNotes.length > 1) {
+                        s2 = brotherNotes[currentIndex + 1].sort
+                        s = s2 / 2
+                    } else {
+                        s = 1
+                    }
+                    console.log('第一：', s, s2)
+                } else {     //当拖到最后一个时
+                    s1 = brotherNotes[currentIndex - 1].sort
+                    s = s1 + 1
+                    console.log('最后：', s1, s)
+                }
+
+                //更新当前node的sort字段
+                brotherNotes[currentIndex].sort = s
+                this.$refs.mytree.updateKeyChildren(currentParentNode.id, brotherNotes)//更新node-key的子节点
+
+                return s
+            },*/
             handleDragEnd(draggingNode, dropNode, dropType, ev) {
                 // 无法直接获取拖拽完成后的node父id，才用使用id获取当前节点的方式，间接获取pid，用于更新
-                let currentParentNode = this.$refs.mytree.getNode(draggingNode.data.id).parent.data
-                console.log('tree drag end: ', draggingNode.data.title,'--> ',currentParentNode.title);
-                if(currentParentNode.id == 3){
+                let currentParentNode = this.$refs.mytree.getNode(draggingNode.data.id).parent
+                // console.log('tree drag end: ', draggingNode.data.title, '--> ', currentParentNode.data.title);
                 //    变化到数据库中的id为 0
-                    currentParentNode.id  = 0
+                if (currentParentNode.data.id == 3) {
+                    currentParentNode.data.id = 0
                 }
-                this.https.updateNotebook({id: draggingNode.data.id, pid: currentParentNode.id}).then(({data}) => {
-                    console.log('更新笔记本成功', data)
-                })
+                let preId,currentId,nextId,currentIndex= 0
+                let brotherNotes = this.$refs.mytree.getNode(draggingNode.data.id).parent.data.children
+                console.log(brotherNotes)
+                if(brotherNotes.length == 1){
+                    currentId = brotherNotes[0].id
+                    console.log( '只有一个节点：',0, brotherNotes[0].id, 0)
+                }else {
+                    // 获取相邻的两个节点
+                    brotherNotes.forEach((item, index, array) => {
+                        if (item.id == draggingNode.data.id) {
+                            currentIndex = index
+                        }
+                    })
+                    currentId = brotherNotes[currentIndex].id
+                    //节点放置的位置
+                    if (currentIndex > 0 && currentIndex < brotherNotes.length - 1) {
+                        // console.log( '中间：',brotherNotes[currentIndex - 1].title, brotherNotes[currentIndex].title, brotherNotes[currentIndex +1].title)
+                        console.log( '中间：',brotherNotes[currentIndex - 1].id, brotherNotes[currentIndex].id, brotherNotes[currentIndex +1].id)
+                        preId = brotherNotes[currentIndex - 1].id
+                        nextId = brotherNotes[currentIndex + 1].id
+                    } else if (currentIndex == 0) { //当拖到第一个时
+                        console.log( '第一：', 0,brotherNotes[currentIndex].id, brotherNotes[currentIndex +1].id)
+                        nextId = brotherNotes[currentIndex + 1].id
+                    } else {     //当拖到最后一个时
+                        console.log( '最后：',brotherNotes[currentIndex - 1].id, brotherNotes[currentIndex].id,0)
+                        preId = brotherNotes[currentIndex - 1].id
+                    }
+                }
+
+                  this.https.updateNotebook({
+                                  preId,
+                                  currentId,
+                                  nextId,
+                                  pid: currentParentNode.data.id,
+                              }).then(({data}) => {
+                                  console.log('更新笔记本成功', data)
+                              })
+
+               /* let sort = 1
+                /!* 只有在同一级之间拖拽时更新 sort字段  跨级移动不更新*!/
+                if(currentParentNode.level + 1 == draggingNode.level){
+                      sort = this.updateSort(draggingNode, currentParentNode.data)
+                }
+*/
+
             },
             handleDrop(draggingNode, dropNode, dropType, ev) { // dropType -- inner
 
