@@ -24,7 +24,8 @@ public class Tag implements Serializable {
     /**
      * 唯一uid
      */
-    private String id;
+    private Integer id;
+    private Integer pid;
 
     /**
      * 标签内容

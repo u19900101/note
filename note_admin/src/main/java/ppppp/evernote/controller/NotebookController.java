@@ -1,4 +1,5 @@
 package ppppp.evernote.controller;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -14,6 +15,7 @@ import ppppp.evernote.mapper.TagMapper;
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.util.ResultUtil;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -43,11 +45,33 @@ public class NotebookController {
     @RequestMapping("/allNoteBooks")
     public String allNotebooks() {
 
-        List<Notebook> notebooksList = notebookService.lambdaQuery().orderByAsc(Notebook::getId).list();
-        //notebooks.forEach(System.out::println);
+        List<Notebook> notebooksList = notebookService.lambdaQuery()
+                .eq(Notebook::getPid, 0)
+                .orderByDesc(Notebook::getUpdateTime)
+                .list();
+        for (Notebook notebook : notebooksList) {
+            getChildren(notebook);
+        }
+
         return ResultUtil.successWithData(notebooksList);
     }
 
 
+    @PostMapping("/updateNotebook")
+    public String updateNotebook(@RequestBody Notebook notebook) {
+        notebook.setUpdateTime(new Date());//设置更新时间
+        boolean b = notebookService.updateById(notebook);
+        return ResultUtil.successWithData(b);
+    }
+
+    public void getChildren(Notebook notebook) {
+        List<Notebook> son = notebookService.lambdaQuery().eq(Notebook::getPid, notebook.getId()).list();
+        if (son.size() > 0) {
+            for (Notebook sonNotebook : son) {
+                getChildren(sonNotebook);
+            }
+        }
+        notebook.setChildren(son);
+    }
 }
 

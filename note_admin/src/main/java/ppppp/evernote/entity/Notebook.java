@@ -27,8 +27,9 @@ public class Notebook implements Serializable {
     /**
      * 唯一uid
      */
-    private String id;
+    private Integer id;
 
+    private Integer pid;
     /**
      * 笔记本标题
      */
@@ -64,6 +65,7 @@ public class Notebook implements Serializable {
      */
     private Boolean status;
 
-
-
+    /*自定义字段 用于封装 el-tree*/
+    @TableField(exist = false)
+    List<Notebook> children;
 }

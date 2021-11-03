@@ -26,8 +26,7 @@
 
           <div class="newshare active"
                @mouseover="shareOverHander"
-               @mouseout="shareOutHander"
-          >
+               @mouseout="shareOutHander">
             <img src="./assets/images/fenxiang1.png" alt="" v-show="!share">
             <img src="./assets/images/fenxiang2.png" alt="" v-show="share" title="分享" @click="shareHander">
           </div>
@@ -35,7 +34,7 @@
         <!-- 收藏 笔记 笔记本 标签 -->
         <div class="yinxlb">
           <div v-for="(item,index) in navList"
-               :class="[item.class,navState === index ? 'active' : '']"
+               :class="[item.class,navClickIndex === index ? 'active' : '']"
                :title="item.title"
                :key="item.id" @click="navClickHandler(item,index)"></div>
         </div>
@@ -81,6 +80,7 @@ export default {
       navShow: true, // 导航显隐
       searchshow: false, //搜索显隐
       share: false, // 分享显隐
+      navClickIndex: 1 //收藏- 0  笔记-1(初始化选中)  笔记本-2  标签-3
     }
   },
   components: {
@@ -144,6 +144,7 @@ export default {
     navClickHandler(obj, index) {
       // 收藏
       if (obj.click === 'star') {
+        this.navClickIndex = 0
         this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.starNoteList; // 进入的笔记本列表数据
         // 序号为 1的是收藏笔记本
         this.$store.state.noteBookModule.currentNoteBook = this.$store.state.noteBookModule.noteBooks[1]
@@ -155,6 +156,7 @@ export default {
       }
       // 笔记
       else if (obj.click === 'note') {
+        this.navClickIndex = 1
         this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes; // 进入的笔记本列表数据
         this.$store.state.noteBookModule.currentNoteBook =  this.$store.state.noteBookModule.noteBooks[0]
         this.$router.push({name: 'noteList'})
@@ -166,6 +168,7 @@ export default {
       }
       //笔记本
       else if (obj.click === 'noteBook') {
+        this.navClickIndex = 2  // 图标选中的样式控制
         // 初始化默认显示的笔记本
         let defaultNoteBookId = this.$store.state.noteBookModule.noteBooks[0].id
         let currentNoteBookNoteList = this.$store.state.noteModule.notes.filter(item => item.pid ==defaultNoteBookId);
@@ -175,6 +178,7 @@ export default {
       }
       //标签
       else if (obj.click === 'tag') {
+        this.navClickIndex = 3
         this.$store.dispatch('noteTagShow');
       }
       // 选中标识  todo

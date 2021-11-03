@@ -104,4 +104,23 @@ public class AdminTest {
         System.out.println(ResultUtil.successWithData(list));
     }
 
+    @Test
+    public void T_getNoteBookTree(){
+
+        List<Notebook> list = notebookService.lambdaQuery().eq(Notebook::getPid,0).list();
+        for (Notebook notebook : list) {
+            getChildren(notebook);
+        }
+        System.out.println(list);
+    }
+
+    public void getChildren(Notebook notebook){
+        List<Notebook> son = notebookService.lambdaQuery().eq(Notebook::getPid,notebook.getId()).list();
+        if(son.size() > 0 ){
+            for (Notebook sonNotebook : son) {
+                getChildren(sonNotebook);
+            }
+        }
+        notebook.setChildren(son);
+    }
 }

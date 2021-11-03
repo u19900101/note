@@ -63,7 +63,8 @@ public class NoteController {
         // 设置修改时间为当前时间
         note.setUpdateTime(new Date());
 
-        // 携带 pid 则表示移动笔记,对笔记本进行操作
+
+        // 更新 笔记本  携带 pid 则表示移动笔记
         if(note.getPid() != null){
             // 新笔记本 +1
             Notebook notebook = notebookService.getById(note.getPid());
@@ -75,13 +76,18 @@ public class NoteController {
             notebook.setNoteCount(notebook.getNoteCount() -1);
             notebookService.updateById(notebook);
         }
-
+        // 收藏数量 +1  -1
+        if(note.getStar() != null){
+            int changeCount = note.getStar() ? 1:-1;
+            Notebook notebook = notebookService.getById(1);
+            notebook.setNoteCount(notebook.getNoteCount() + changeCount);
+            notebookService.updateById(notebook);
+        }
         // 更新 笔记
         boolean b = noteService.updateById(note);
 
         Note byId = noteService.getById(note.getId());
         return ResultUtil.successWithData(byId);
-
     }
 
     // 新建笔记
