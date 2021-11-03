@@ -9,7 +9,7 @@ const vm = axios.create({
 });
 
 /*
-* http://admin.note.com/api/admin/noteBook/allNoteBooks
+* http://admin.note.com/api/admin/tag/allTags
 * */
 /**笔记本*/
 export function getNotebooks() {
@@ -27,18 +27,8 @@ export function updateNotebook(data) {
 export function getNotes() {
     return vm.get('/api/admin/note/allNotes')
 }
-
-export function insertNote(data) {
-    return vm.post('/api/admin/note/insert', data)
-}
-
-export function getTags() {
-    return vm.get('/tag.json')
-}
-
 // 更新笔记的标题和内容
 export function updateNote(data) {
-
     return vm.post('/api/admin/note/update', data)
 }
 
@@ -50,6 +40,17 @@ export function deleteNote(data) {
 export function searchNoteByWords(data) {
     return vm.post('/es/search', data)
 }
+export function insertNote(data) {
+    return vm.post('/api/admin/note/insert', data)
+}
+
+/**标签**/
+export function getTags() {
+    return vm.get('/api/admin/tag/allTags')
+}
+export function updateTag(data) {
+    return vm.post('/api/admin/tag/updateTag', data)
+}
 
 
 export default {
@@ -57,10 +58,9 @@ export default {
         Vue.prototype.https = {
             getNotebooks,
             updateNotebook,
-
-
-            getNotes,
             getTags,
+            updateTag,
+            getNotes,
             updateNote,
             insertNote,
             searchNoteByWords,

@@ -60,7 +60,6 @@
                     // 2.获取笔记数据 初始化 notes
                     this.https.getNotes().then(({data}) => {
                         this.$store.state.notes = data.data
-
                     }).then(() => {
                         // 2.1 将state数据写到当前 currentNoteList, currentNote currentNoteBookNoteList(当前笔记本中所有的笔记)
                         this.$store.state.currentNoteList = this.$store.state.notes; // 进入的笔记本列表数据
@@ -71,7 +70,7 @@
                         this.tool.getDateTimes.call(this, this.$store.state.currentNoteList);
                         // 3.获取标签数据
                         this.https.getTags().then(({data}) => {
-                            this.$store.state.allTags = data.data;
+                            this.$store.state.tags = data.data;
                         }).then(() => {
                             console.log("标签数据请求完成");
                             //关闭loading动画

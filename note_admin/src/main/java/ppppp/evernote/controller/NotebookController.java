@@ -69,20 +69,20 @@ public class NotebookController {
         float preSort = -1, nextSort = -1,sort = 1;
 
         Integer preId = (Integer) obj.get("preId");
-        if(preId != null){
+        if(preId != 0){
             preSort = notebookService.getById(preId).getSort();
         }
         Integer nextId = (Integer) obj.get("nextId");
-        if(nextId != null){
+        if(nextId != 0){
             nextSort = notebookService.getById(nextId).getSort();
         }
 
         /*中间*/
-        if(preId != null && nextId != null){
+        if(preId != 0 && nextId != 0){
             sort = (preSort + nextSort)/2;
-        }else if(preId == null && nextId != null){ /*第一*/
+        }else if(preId == 0 && nextId != 0){ /*第一*/
             sort = nextSort/2;
-        }else if(preId != null && nextId == null){  /*最后*/
+        }else if(preId != 0 && nextId == 0){  /*最后*/
             sort = preSort + 1;
         }else {  /*前后都为空 则表示拖拽到的父节点为叶子节点*/
             //sort = 1;

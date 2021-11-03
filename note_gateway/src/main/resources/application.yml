@@ -15,7 +15,7 @@ spring:
 #          因为gateway 无法解析下划线, 所以一定记着，微服务下给服务起实例名不要带下划线
           uri: lb://note-admin
           predicates:
-            - Path=/api/admin/**,/hello
+            - Path=/api/admin/**
           filters:
             - RewritePath=/api/(?<segment>.*),/$\{segment}
 #        es 搜索

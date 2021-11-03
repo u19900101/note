@@ -2,6 +2,9 @@ package ppppp.evernote.entity;
 
 import java.util.Date;
 import java.io.Serializable;
+import java.util.List;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -27,6 +30,10 @@ public class Tag implements Serializable {
     private Integer id;
     private Integer pid;
 
+    Float sort;
+    /*自定义字段 用于封装 el-tree*/
+    @TableField(exist = false)
+    List<Tag> children;
     /**
      * 标签内容
      */

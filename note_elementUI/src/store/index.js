@@ -57,6 +57,7 @@ const state = {
 
     /*************标签*************/
     isTagNotesShow: false, //标签笔记是否显示
+    tags:[],
 
 }
 
