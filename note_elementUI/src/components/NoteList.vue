@@ -114,22 +114,26 @@
             // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
             mouseDown(){
                 if(this.iconMouseLeave && this.sortPanelMouseLeave){
-                    console.log('离开')
+                    // console.log('离开')
                     this.sortClick(-1)
                 }else {
-                    console.log('进入')
+                    // console.log('进入')
                 }
             },
 
             sortClick(sortType) {
-                this.isSortShow = !this.isSortShow
-                console.log('sortType is ', sortType,this.isSortShow)  // sortType 为 -1 时 进行关闭操作
                 // 排序面板出现就开始监控鼠标按下时间
-                if(this.isSortShow){
-                   document.addEventListener('mousedown', this.mouseDown)
-               }else {
-                    document.removeEventListener('mousedown', this.mouseDown)
+                if(sortType == -1){
+                    this.isSortShow = !this.isSortShow
+                    if(this.isSortShow){
+                        document.addEventListener('mousedown', this.mouseDown)
+                    }else {
+                        document.removeEventListener('mousedown', this.mouseDown)
+                    }
+                }else {
+                    console.log('sortType is ', sortType)  // sortType 为 -1 时 进行关闭操作
                 }
+
             },
 
             handleChange(value) {
