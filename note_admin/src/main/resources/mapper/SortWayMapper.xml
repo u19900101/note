@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ppppp.evernote.mapper.SortWayMapper">
+
+<!--    &lt;!&ndash; 通用查询映射结果 &ndash;&gt;
+    <resultMap id="BaseResultMap" type="ppppp.evernote.entity.Sortway">
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="location" property="location" />
+        <result column="reverse" property="reverse" />
+    </resultMap>
+
+    &lt;!&ndash; 通用查询结果列 &ndash;&gt;
+    <sql id="Base_Column_List">
+        create_time, update_time, location, reverse
+    </sql>-->
+
+</mapper>

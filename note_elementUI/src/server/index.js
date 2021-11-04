@@ -9,7 +9,7 @@ const vm = axios.create({
 });
 
 /*
-* http://admin.note.com/api/admin/note/allNotes
+* http://admin.note.com/api/admin/sortWay/allSortWay
 * */
 /**笔记本*/
 export function getNotebooks() {
@@ -52,6 +52,17 @@ export function updateTag(data) {
     return vm.post('/api/admin/tag/updateTag', data)
 }
 
+/**排序方式*/
+export function getSortWay() {
+    return vm.get('/api/admin/sortWay/allSortWay')
+}
+
+export function updateSortWay(data) {
+    return vm.post('/api/admin/sortWay/updateSortWay', data)
+}
+
+
+
 
 export default {
     install(Vue) {
@@ -64,7 +75,9 @@ export default {
             updateNote,
             insertNote,
             searchNoteByWords,
-            deleteNote
+            deleteNote,
+            getSortWay,
+            updateSortWay,
         }
     }
 }

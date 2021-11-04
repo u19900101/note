@@ -59,6 +59,8 @@ const state = {
     isTagNotesShow: false, //标签笔记是否显示
     tags:[],
 
+    /*************排序*************/
+    sortWay:{},
 }
 
 //创建并暴露store

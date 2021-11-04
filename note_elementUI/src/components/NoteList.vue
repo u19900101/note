@@ -59,7 +59,10 @@
                                     </el-row>
                                     <el-row>
                                         <!--根据排序方式来决定显示的时间类型 note.createTime -->
-                                        <span style="font-size: small;color: #49a2de">{{note.updateTime}}</span>
+                                        <span style="font-size: small;color: #49a2de">
+                                            {{$store.state.sortWay.updateTime ? '更新时间' : '创建时间'}}
+                                            {{$store.state.sortWay.updateTime ? note.updateTime : note.createTime}}
+                                        </span>
                                     </el-row>
                                 </el-col>
                                 <!--图片-->

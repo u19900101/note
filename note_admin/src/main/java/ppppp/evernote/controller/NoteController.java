@@ -7,12 +7,15 @@ import org.springframework.web.bind.annotation.*;
 
 import ppppp.evernote.entity.Note;
 import ppppp.evernote.entity.Notebook;
+import ppppp.evernote.entity.Sortway;
 import ppppp.evernote.entity.Tag;
 import ppppp.evernote.service.NoteService;
 import ppppp.evernote.service.NotebookService;
+import ppppp.evernote.service.SortWayService;
 import ppppp.evernote.service.TagService;
 import ppppp.evernote.util.ResultUtil;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -36,11 +39,25 @@ public class NoteController {
     @Autowired
     private TagService tagService;
 
+    @Autowired
+    private SortWayService sortWayService;
+
     @RequestMapping("/allNotes")
     public String getAllNotes() {
-        List<Note> noteList = noteService.lambdaQuery().orderByDesc(Note::getId).list();
-        for (Note note : noteList) {
+        // 根据sortway中的排序字段进行查询
+        Sortway sortway = sortWayService.getById(1);
+        List<Note> noteList = null;
 
+        // 默认均为日期逆序为正常排序
+        if(sortway.isCreateTime()){
+            noteList = noteService.lambdaQuery().orderByDesc(Note::getCreateTime).list();
+        }else if(sortway.isUpdateTime()){
+            noteList = noteService.lambdaQuery().orderByDesc(Note::getUpdateTime).list();
+        }
+        //逆序
+        if(sortway.isReverse()) Collections.reverse(noteList);
+
+        for (Note note : noteList) {
             if(note.getTagUid() != null){
                 for (String tag : note.getTagUid().split(",")) {
                     note.getTagList().add(tag);
@@ -52,8 +69,9 @@ public class NoteController {
                     note.getMediaList().add(mediaId);
                 }
             }
-
         }
+
+
         return ResultUtil.successWithData(noteList);
     }
 

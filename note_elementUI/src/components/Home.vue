@@ -72,9 +72,6 @@
                         this.https.getTags().then(({data}) => {
                             this.$store.state.tags = data.data;
                         }).then(() => {
-                            console.log("标签数据请求完成");
-                            //关闭loading动画
-                            this.loadingState = false
                             // 创建页面时初始化
                             // 1.先初始化 列表  在列表排序中初始化 noteId
                             // this.$router.push({name: 'noteList'})
@@ -83,10 +80,15 @@
                                 this.$store.state.currentNote = this.$store.state.notes[0]; // 进入的笔记本列表数据
                                 // this.$router.push({name: 'note1'})
                             }
+                            this.https.getSortWay().then(({data}) => {
+                                this.$store.state.sortWay = data.data[0];
+                                console.log("所有数据请求完成");
+                                this.loadingState = false   //关闭loading动画
+                            }).catch((err) => {
+                                alert('网络延迟,请刷新重试')
+                                console.log(err);
+                            })
 
-                        }).catch((err) => {
-                            alert('网络延迟,请刷新重试')
-                            console.log(err);
                         })
                     })
                 })
