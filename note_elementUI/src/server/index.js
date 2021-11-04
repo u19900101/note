@@ -9,7 +9,7 @@ const vm = axios.create({
 });
 
 /*
-* http://admin.note.com/api/admin/tag/allTags
+* http://admin.note.com/api/admin/note/allNotes
 * */
 /**笔记本*/
 export function getNotebooks() {

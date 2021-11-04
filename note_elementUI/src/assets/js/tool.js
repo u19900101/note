@@ -1,10 +1,12 @@
 //小工具类
 import Vue from 'vue'
+import el from "element-ui/src/locale/lang/el";
 export default {
     install(Vue){
         Vue.prototype.tool = {
             getfirstLevelId,
             getDateTimes,
+            sortWay
         }
     }
 }
@@ -74,4 +76,32 @@ function getfirstLevelId(node) {
     } else {
         return node.data.id
     }
+}
+
+/**排序*/
+function sortWay(notes,sortWay){
+
+    //创建时间
+    if(sortWay.createTime){
+        notes.sort(function(a,b){
+            return getTime(b.createTime) - getTime(a.createTime);
+        });
+    } // 更新时间
+    else if(sortWay.updateTime){
+        notes.sort(function(a,b){
+            return getTime(b.updateTime) - getTime(a.updateTime);
+        });
+    } //地点 todo
+
+    // 实时同步笔记列表时间
+   // getDateTimes(notes)
+
+}
+
+function getTime(strTime){
+    // 第三种方式 "2014-07-10 10:21:12"
+    let date = new Date(strTime); //时间对象
+    let str = date.getTime(); //转换成时间戳
+    // str = str / 1000;
+    return str
 }

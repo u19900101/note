@@ -38,53 +38,75 @@
                     {
                         value: '0',
                         label: '创建时间',
-                        disabled: false,
-
                     }, {
                         value: '1',
                         label: '更新时间',
-                        disabled: false,
                     },
                     {
                         value: '2',
                         label: '位置',
-                        disabled: false,
-
                     }, {
                         value: '3',
                         label: '倒序排列',
                     }]
             },
-            // 节点的互斥多选
+            // 节点的互斥多选  0-创建时间  1-更新时间  2-位置  3-倒序排列
             sortChanged(node) {
                 // 将node 变为 array
                 let lastValues = []
-                this.lastCheckNodes.forEach((v) => {lastValues.push(v)})
+                this.lastCheckNodes.forEach((v) => {
+                    lastValues.push(v)
+                })
                 let currentValues = []
-                node.forEach((v) => {currentValues.push(v[0])})
-                console.log(currentValues, lastValues)
+                node.forEach((v) => {
+                    currentValues.push(v[0])
+                })
+                // console.log(currentValues, lastValues)
 
                 //新增
-                if(currentValues.length > lastValues.length){
+                let addIndex = null
+                if (currentValues.length > lastValues.length) {
                     //差集 找到新增的节点
-                    let addIndex = currentValues.filter(function (v) {return lastValues.indexOf(v) == -1})[0]
-                    console.log('addIndex ',addIndex)
+                    addIndex = currentValues.filter(function (v) {
+                        return lastValues.indexOf(v) == -1
+                    })[0]
+                    // console.log('addIndex ',addIndex)
                     let selected = []
                     // 将新增的选中放入数组中
                     selected.push(addIndex)
                     // 判断当前选中(本次选中或者 历史已选中) 中是否包含 逆序 这一项
-                    if(currentValues.includes('3') && addIndex!= '3') selected.push('3')
+                    if (currentValues.includes('3') && addIndex != '3') selected.push('3')
                     // 若当前选中为 逆序 则 将将之前已经选中的前三项 加入
-                    if( addIndex == '3') selected.push(lastValues[0])
+                    if (addIndex == '3') selected.push(lastValues[0])
 
                     // 记录本次选中  更新 当前页面选中
                     this.lastCheckNodes = selected
-                    this.selected =  selected
-                }else { //减少
+                    this.selected = selected
+                } else { //减少
+                    if( this.lastCheckNodes.includes('3') && !currentValues.includes('3')){
+                        console.log('取消了逆序...')
+                        addIndex = '3'
+                    }
                     this.lastCheckNodes = currentValues
-                    this.selected =  currentValues
+                    this.selected = currentValues
                 }
-                // console.log('selected is ',this.selected)
+                console.log('当前排序方式：', this.selected)
+
+                // 根据排序方式 更新笔记的顺序
+                let sortWay = {
+                    createTime: this.selected.includes('0'),
+                    updateTime: this.selected.includes('1'),
+                    location: this.selected.includes('2'),
+                    reverse: addIndex == '3'
+                }
+
+                // 是否进行逆序
+                if (sortWay.reverse) {
+                    console.log('倒序...')
+                    this.$store.state.currentNoteList.reverse()
+                }else  if (sortWay.createTime || sortWay.updateTime) {
+                    this.tool.sortWay(this.$store.state.currentNoteList, sortWay);
+                }
             },
 
         },
