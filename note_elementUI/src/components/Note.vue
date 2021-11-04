@@ -84,24 +84,20 @@
                 title: '',
                 content: '',
                 star: false, //当前日记是否已收藏
-                options: [
-                    {
-                        value: '1',
-                        label: '我的抗战ing'
-                    }, {
-                        value: '2',
-                        label: '我的抗战2'
-                    }, {
-                        value: '3',
-                        label: '蚵仔煎'
-                    },],
-                value: {
-                    value: '1',
-                    label: '我的抗战ing'
-                },
+                options: this.getOption(),
+                value:this.getOption()[0],
             }
         },
         methods: {
+            getOption(){
+                let options = []
+                this.$store.state.noteBooks.forEach((noteBook) =>{
+                    options.push({
+                        value: noteBook.id,
+                        label: noteBook.title})
+                })
+                return options
+            },
             handleTargetDragOver(e) {
                 let firstLevelId = this.tool.getfirstLevelId(this.$store.state.currentNode)
                 // 判断节点是否为标签子的节点

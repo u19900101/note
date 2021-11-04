@@ -7,20 +7,25 @@
             <el-row>
                 <el-col :span="16" style="text-align: center"> 当前笔记本</el-col>
                 <el-col :span="8" style="text-align: right;">
-                    <div class="sortButton">
-                        <el-button round>
-                            <i class="el-icon-sort" @click="sortClick(-1)"></i>
+                    <div class="sortButton" >
+                        <el-button round
+                                   @click="sortClick(-1)"
+                                   @mouseleave.native="iconMouseLeave = true"
+                                   @mouseenter.native="iconMouseLeave = false">
+                            <i class="el-icon-sort" ></i>
                         </el-button>
                     </div>
                 </el-col>
-
             </el-row>
 
             <!--笔记排序 级联面板-->
             <cascader :isSortShow="isSortShow"
                       @sortClick="sortClick"
+                      @mouseleave.native="sortPanelMouseLeave = true"
+                      @mouseenter.native="sortPanelMouseLeave = false"
                       :style="{'margin-left': (noteListWidth-30) + 'px'}">
             </cascader>
+
 
             <!--搜索入口-->
             <el-row class="search">
@@ -36,24 +41,25 @@
             <el-container>
                 <el-aside style="height: 500px;" :style="{width: noteListWidth + 'px'}">
                     <el-scrollbar class="page-scroll">
-                        <div v-for="(v,index) in new Array(15)">
+                        <div v-for="(note,index) in this.$store.state.currentNoteList">
                             <!-- type="flex" 为了让图片居中-->
                             <el-row style="border-bottom: solid;padding-left: 5px" type="flex">
                                 <!--标题  标签  内容-->
                                 <el-col :span="16">
                                     <el-row>
                                         <div class='titleInList'>
-                                             标题 - {{index}}
+                                             标题 - {{note.title}}
                                         </div>
                                     </el-row>
                                     <el-row>
                                         <div class="contentInList">
-                                            <span style="color: #49a2de">标签 - {{index}}</span>
-                                            内容- {{index}}Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur, minus fugit in perspiciatis内容sssssss
+                                            <span style="color: #49a2de">标签 - {{note.tagList}}</span>
+                                            内容- {{note.content}}Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur, minus fugit in perspiciatis内容sssssss
                                         </div>
                                     </el-row>
                                     <el-row>
-                                        <span style="font-size: small;color: #49a2de">日期：2021.10.31</span>
+                                        <!--根据排序方式来决定显示的时间类型 note.createTime -->
+                                        <span style="font-size: small;color: #49a2de">{{note.updateTime}}</span>
                                     </el-row>
                                 </el-col>
                                 <!--图片-->
@@ -100,32 +106,30 @@
                 navMin: 150,
                 searchValue: '',
                 isSortShow: false,
-                value: 'zhinan',
-                isMouseleaveSortArea: false,  // 鼠标是否离开了排序区域
-                options: [
-                    {
-                        value: 'zhinan',
-                        label: '指南ssssssssss',
-                        children: [
-                            {
-                                value: 'zhinan',
-                                label: '指南ssssssssss',
-                            }
-                        ]
-                    }, {
-                        value: 'zujian',
-                        label: '组件sssssssssssss',
-                    }, {
-                        value: 'ziyuan',
-                        label: '资源ssssssssssssssss',
-                    }]
+                iconMouseLeave: false,  // 鼠标是否离开了图标区域
+                sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
             }
         },
         methods: {
+            // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
+            mouseDown(){
+                if(this.iconMouseLeave && this.sortPanelMouseLeave){
+                    console.log('离开')
+                    this.sortClick(-1)
+                }else {
+                    console.log('进入')
+                }
+            },
 
             sortClick(sortType) {
                 this.isSortShow = !this.isSortShow
-                console.log('sortType is ', sortType)  // sortType 为 -1 时 进行关闭操作
+                console.log('sortType is ', sortType,this.isSortShow)  // sortType 为 -1 时 进行关闭操作
+                // 排序面板出现就开始监控鼠标按下时间
+                if(this.isSortShow){
+                   document.addEventListener('mousedown', this.mouseDown)
+               }else {
+                    document.removeEventListener('mousedown', this.mouseDown)
+                }
             },
 
             handleChange(value) {

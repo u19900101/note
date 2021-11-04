@@ -48,6 +48,16 @@ public class TagController {
         Integer pid = (Integer) obj.get("pid");
         Tag.setPid(pid);
 
+        float sort = getSort(obj);
+
+        Tag.setSort(sort);
+        Tag.setUpdateTime(new Date());//设置更新时间
+        boolean b = tagService.updateById(Tag);
+        return ResultUtil.successWithData(b);
+    }
+
+    public float getSort(HashMap obj) {
+
         float preSort = -1, nextSort = -1,sort = 1;
 
         Integer preId = (Integer) obj.get("preId");
@@ -69,13 +79,9 @@ public class TagController {
         }else {  /*前后都为空 则表示拖拽到的父节点为叶子节点*/
             //sort = 1;
         }
-
-        Tag.setSort(sort);
-        Tag.setUpdateTime(new Date());//设置更新时间
-        boolean b = tagService.updateById(Tag);
-        return ResultUtil.successWithData(b);
+        return sort;
     }
-    
+
     public void getChildren(Tag tag) {
         List<Tag> son = tagService.lambdaQuery()
                 .eq(Tag::getPid, tag.getId())

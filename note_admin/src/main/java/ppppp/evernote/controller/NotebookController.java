@@ -66,6 +66,14 @@ public class NotebookController {
         Integer pid = (Integer) obj.get("pid");
         notebook.setPid(pid);
 
+        float sort = getSort(obj);
+
+        notebook.setSort(sort);
+        notebook.setUpdateTime(new Date());//设置更新时间
+        boolean b = notebookService.updateById(notebook);
+        return ResultUtil.successWithData(b);
+    }
+    public float getSort(HashMap obj) {
         float preSort = -1, nextSort = -1,sort = 1;
 
         Integer preId = (Integer) obj.get("preId");
@@ -87,13 +95,9 @@ public class NotebookController {
         }else {  /*前后都为空 则表示拖拽到的父节点为叶子节点*/
             //sort = 1;
         }
-
-        notebook.setSort(sort);
-        notebook.setUpdateTime(new Date());//设置更新时间
-        boolean b = notebookService.updateById(notebook);
-        return ResultUtil.successWithData(b);
+        return sort;
     }
-
+    //todo 泛型优化一下？
     public void getChildren(Notebook notebook) {
         List<Notebook> son = notebookService.lambdaQuery()
                 .eq(Notebook::getPid, notebook.getId())
@@ -106,5 +110,7 @@ public class NotebookController {
         }
         notebook.setChildren(son);
     }
+
+
 }
 
