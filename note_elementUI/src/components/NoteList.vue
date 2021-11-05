@@ -42,14 +42,18 @@
                     <el-scrollbar class="page-scroll">
                         <div v-for="(note,index) in $store.state.currentNoteList">
                             <!-- type="flex" 为了让图片居中 -->
+                            <!--列表区  标题  标签  内容-->
 
                             <el-row @click.native="noteClick(note,index)"
-                                    @mousedown.native="itemMouseDown(index)"
-                                    @mouseenter.native="itemMouseEnter(index)"
-                                    @mouseleave.native="itemMouseLeave(index)"
+                                    @mousedown.native="currentIndex = index"
+                                    @mouseenter.native="enterIndex = index"
                                     :id="index"
-                                    style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;" type="flex">
-                                <!--标题  标签  内容-->
+                                    :style="{  backgroundColor:getBgColor(index),
+                                             border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'
+                                    }"
+                                    style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
+                                    type="flex">
+
                                 <el-col :span="16">
                                     <!--标题-->
                                     <el-row>
@@ -59,12 +63,8 @@
                                     </el-row>
                                     <!--标签 & 内容-->
                                     <el-row>
-                                        <!-- 给多行省略符 元素动态设置背景色
-                                        @mouseenter.native="itemMouseEnter(index)"
-                                             @mouseleave.native="itemMouseLeave(index)"
-                                             :style="{'--backgroundColor':currentIndex === index ? '#E6E6E6' : '#ffffff'}"
-                                             -->
-                                        <div class="contentInList" :id="index + '-content'">
+                                        <!-- 给多行省略符 元素动态设置背景色-->
+                                        <div class="contentInList" :style="{'--backgroundColor':getBgColor(index)}">
                                             <span style="color: #49a2de">{{getTagList(note)}}</span>
                                             <span> 内容- {{note.content}}</span>
                                         </div>
@@ -123,7 +123,7 @@
         data() {
             return {
                 currentIndex: 0, //当前选中的笔记 序号
-                lastIndex: 0, //上一次选中的笔记 序号
+                enterIndex: 0,
                 fits: ['fill', 'contain', 'cover', 'none', 'scale-down'],
                 noteListWidth: 240, // 笔记列表的初始宽度
                 navMax: 240,
@@ -137,37 +137,11 @@
 
         methods: {
             /*控制列表颜色*/
-            /*点击选择中 item 的颜色*/
-            itemMouseDown(index) {
-                /*给本次的选中颜色*/
-                this.handleItemStyle(index,"#E6E6E6","1px solid #C3E5F5","contentInList-hover","contentInList-selected")
-                /*取消上一次选中item的颜色*/
-                if( this.lastIndex != index)  {
-                    this.handleItemStyle(this.lastIndex,"#ffffff","1px solid #D7DADC","contentInList-selected","contentInList")
-                }
-                /*更新当前选中和上一次选中的值*/
-                this.currentIndex = index
-                this.lastIndex = index
-            },
-            /*鼠标移入时item 颜色*/
-            itemMouseEnter(index) {
-                if(this.currentIndex != index) {
-                    this.handleItemStyle(index,"#EDF6FD","1px solid #D7DADC","contentInList","contentInList-hover")
-                }
-            },
-            /*鼠标离开时item的颜色*/
-            itemMouseLeave(index) {
-                if(this.currentIndex != index) {
-                    this.handleItemStyle(index,"#ffffff","1px solid #D7DADC","contentInList-hover","contentInList")
-                }
-            },
-            handleItemStyle(index,background,border,removeStyle,addStyle){
-                document.getElementById(index).style.background = background
-                document.getElementById(index).style.border = border
-                /*处理伪元素的样式*/
-                let div = document.getElementById(index + "-content")
-                div.classList.remove(removeStyle);
-                div.classList.add(addStyle);
+            getBgColor(index) {
+                /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/
+                if (this.currentIndex == index) return "#E6E6E6"
+                if (this.enterIndex == index) return "#EDF6FD"
+                return "#ffffff"
             },
             getTagList(note) {
                 let dynamicTags = []
@@ -177,7 +151,6 @@
             noteClick(note, index) {
                 this.$store.state.currentNote = note
                 this.$store.state.currentIndex = index
-                // console.log(note, index)
             },
             // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
             mouseDown() {
@@ -216,7 +189,7 @@
         },
         mounted() {
             /*初始化选中项目的颜色*/
-            this.itemMouseDown(this.currentIndex)
+            // this.itemMouseDown(this.currentIndex)
         },
     }
 </script>
@@ -243,42 +216,8 @@
     .contentInList::after {
         content: "...";
         font-size: small;
-        /*background: var(--backgroundColor); !*加背景覆盖源文本*!*/
-        background: #ffffff; /*加背景覆盖源文本*/
-        position: absolute;
-        bottom: 3px;
-        right: 5px;
-        line-height: 12px
-    }
-
-    /* 选中时的样式和伪元素样式*/
-    .contentInList-selected {
-        font-size: small;
-        position: relative;
-        height: 35px;
-        overflow: hidden;
-    }
-    .contentInList-selected::after {
-        content: "...";
-        font-size: small;
-        background: #E6E6E6;
-        position: absolute;
-        bottom: 3px;
-        right: 5px;
-        line-height: 12px
-    }
-
-    /* hover时的样式和伪元素样式*/
-    .contentInList-hover {
-        font-size: small;
-        position: relative;
-        height: 35px;
-        overflow: hidden;
-    }
-    .contentInList-hover::after {
-        content: "...";
-        font-size: small;
-        background:  #EDF6FD ;
+        background: var(--backgroundColor); /*加背景覆盖源文本*/
+        /*background: #ffffff; !*加背景覆盖源文本*!*/
         position: absolute;
         bottom: 3px;
         right: 5px;
