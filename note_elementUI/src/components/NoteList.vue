@@ -7,12 +7,12 @@
             <el-row>
                 <el-col :span="16" style="text-align: center"> 当前笔记本</el-col>
                 <el-col :span="8" style="text-align: right;">
-                    <div class="sortButton" >
+                    <div class="sortButton">
                         <el-button round
                                    @click="sortClick(-1)"
                                    @mouseleave.native="iconMouseLeave = true"
                                    @mouseenter.native="iconMouseLeave = false">
-                            <i class="el-icon-sort" ></i>
+                            <i class="el-icon-sort"></i>
                         </el-button>
                     </div>
                 </el-col>
@@ -48,20 +48,27 @@
                                 <el-col :span="16">
                                     <el-row>
                                         <div class='titleInList'>
-                                             标题 - {{note.title}}
+                                            标题 - {{note.title}}
                                         </div>
                                     </el-row>
                                     <el-row>
                                         <div class="contentInList">
                                             <span style="color: #49a2de">标签 - {{note.tagList}}</span>
-                                            内容- {{note.content}}Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur, minus fugit in perspiciatis内容sssssss
+                                            <span style="color: #de4978"> 内容- {{note.content}}Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                                            Consequatur, minus fugit in perspiciatis内容sssssss</span>
+
                                         </div>
                                     </el-row>
                                     <el-row>
                                         <!--根据排序方式来决定显示的时间类型 note.createTime -->
                                         <span style="font-size: small;color: #49a2de">
                                             {{$store.state.sortWay.updateTime ? '更新时间' : '创建时间'}}
-                                            {{$store.state.sortWay.updateTime ? note.updateTime : note.createTime}}
+                                            <!--若有别名字段就显示别名-->
+                                            {{
+                                            $store.state.sortWay.updateTime
+                                            ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
+                                            : (note.createTimeAlias ? note.createTime:note.createTime)
+                                            }}
                                         </span>
                                     </el-row>
                                 </el-col>
@@ -115,25 +122,25 @@
         },
         methods: {
             // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
-            mouseDown(){
-                if(this.iconMouseLeave && this.sortPanelMouseLeave){
+            mouseDown() {
+                if (this.iconMouseLeave && this.sortPanelMouseLeave) {
                     // console.log('离开')
                     this.sortClick(-1)
-                }else {
+                } else {
                     // console.log('进入')
                 }
             },
 
             sortClick(sortType) {
                 // 排序面板出现就开始监控鼠标按下时间
-                if(sortType == -1){
+                if (sortType == -1) {
                     this.isSortShow = !this.isSortShow
-                    if(this.isSortShow){
+                    if (this.isSortShow) {
                         document.addEventListener('mousedown', this.mouseDown)
-                    }else {
+                    } else {
                         document.removeEventListener('mousedown', this.mouseDown)
                     }
-                }else {
+                } else {
                     console.log('sortType is ', sortType)  // sortType 为 -1 时 进行关闭操作
                 }
 
@@ -154,25 +161,26 @@
 
 <style>
     /*笔记列表中图片 居中 */
-    .innerCenter{
+    .innerCenter {
         /*background: aqua;*/
-        display:flex;
-        justify-content:center;/*主轴上居中*/
-        align-items:center;/*侧轴上居中*/
+        display: flex;
+        justify-content: center; /*主轴上居中*/
+        align-items: center; /*侧轴上居中*/
     }
 
     /*笔记列表中的内容样式  多行截断*/
     .contentInList {
         font-size: small;
         position: relative;
-      /*  line-height: 20px;*/
+        /*  line-height: 20px;*/
         height: 35px;
         overflow: hidden;
     }
+
     .contentInList::after {
         content: "...";
         font-size: small;
-        background: #ffffff;  /*加背景覆盖源文本*/
+        background: #ffffff; /*加背景覆盖源文本*/
         position: absolute;
         bottom: 5px;
         right: 5px;
@@ -193,6 +201,7 @@
         height: 100%;
         width: 100%;
     }
+
     .page-scroll .el-scrollbar__wrap {
         overflow-x: hidden;
     }

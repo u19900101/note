@@ -66,8 +66,7 @@
                         this.$store.state.currentNoteBookNoteList = this.$store.state.notes;
 
                         this.$store.state.starNoteList = this.$store.state.notes.filter((note) => note.star == true)
-                        // 给笔记添加时间别名//
-                        this.tool.getDateTimes.call(this, this.$store.state.currentNoteList);
+
                         // 3.获取标签数据
                         this.https.getTags().then(({data}) => {
                             this.$store.state.tags = data.data;
@@ -82,6 +81,8 @@
                             }
                             this.https.getSortWay().then(({data}) => {
                                 this.$store.state.sortWay = data.data[0];
+                                // 给笔记添加时间别名//
+                                this.tool.getDateTimes(this.$store.state.currentNoteList,this.$store.state.sortWay);
                                 console.log("所有数据请求完成");
                                 this.loadingState = false   //关闭loading动画
                             }).catch((err) => {
