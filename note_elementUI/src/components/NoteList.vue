@@ -41,14 +41,14 @@
                 <el-aside style="height: 500px;" :style="{width: noteListWidth + 'px'}">
                     <el-scrollbar class="page-scroll">
                         <div v-for="(note,index) in $store.state.currentNoteList">
-                            <!-- type="flex" 为了让图片居中-->
+                            <!-- type="flex" 为了让图片居中 -->
+
                             <el-row @click.native="noteClick(note,index)"
-                                    :style="{/*设置选中时的背景色*/
-                                     backgroundColor:currentIndex === index ? '#EDF6FD' : '',
-                                     /*设置选中时的边框色*/
-                                     border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC',}"
-                                    @mouseover.native="currentIndex=index"
-                                    style="padding-left: 5px;border-radius: 5px;" type="flex">
+                                    @mousedown.native="itemMouseDown(index)"
+                                    @mouseenter.native="itemMouseEnter(index)"
+                                    @mouseleave.native="itemMouseLeave(index)"
+                                    :id="index"
+                                    style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;" type="flex">
                                 <!--标题  标签  内容-->
                                 <el-col :span="16">
                                     <!--标题-->
@@ -59,8 +59,12 @@
                                     </el-row>
                                     <!--标签 & 内容-->
                                     <el-row>
-                                        <!-- 给多行省略符 元素动态设置背景色-->
-                                        <div class="contentInList" :style="{'--backgroundColor':currentIndex === index ? '#EDF6FD' : '#ffffff'}">
+                                        <!-- 给多行省略符 元素动态设置背景色
+                                        @mouseenter.native="itemMouseEnter(index)"
+                                             @mouseleave.native="itemMouseLeave(index)"
+                                             :style="{'--backgroundColor':currentIndex === index ? '#E6E6E6' : '#ffffff'}"
+                                             -->
+                                        <div class="contentInList" :id="index + '-content'">
                                             <span style="color: #49a2de">{{getTagList(note)}}</span>
                                             <span> 内容- {{note.content}}</span>
                                         </div>
@@ -119,6 +123,7 @@
         data() {
             return {
                 currentIndex: 0, //当前选中的笔记 序号
+                lastIndex: 0, //上一次选中的笔记 序号
                 fits: ['fill', 'contain', 'cover', 'none', 'scale-down'],
                 noteListWidth: 240, // 笔记列表的初始宽度
                 navMax: 240,
@@ -129,10 +134,44 @@
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
             }
         },
+
         methods: {
-            getTagList(note){
+            /*控制列表颜色*/
+            /*点击选择中 item 的颜色*/
+            itemMouseDown(index) {
+                /*给本次的选中颜色*/
+                this.handleItemStyle(index,"#E6E6E6","1px solid #C3E5F5","contentInList-hover","contentInList-selected")
+                /*取消上一次选中item的颜色*/
+                if( this.lastIndex != index)  {
+                    this.handleItemStyle(this.lastIndex,"#ffffff","1px solid #D7DADC","contentInList-selected","contentInList")
+                }
+                /*更新当前选中和上一次选中的值*/
+                this.currentIndex = index
+                this.lastIndex = index
+            },
+            /*鼠标移入时item 颜色*/
+            itemMouseEnter(index) {
+                if(this.currentIndex != index) {
+                    this.handleItemStyle(index,"#EDF6FD","1px solid #D7DADC","contentInList","contentInList-hover")
+                }
+            },
+            /*鼠标离开时item的颜色*/
+            itemMouseLeave(index) {
+                if(this.currentIndex != index) {
+                    this.handleItemStyle(index,"#ffffff","1px solid #D7DADC","contentInList-hover","contentInList")
+                }
+            },
+            handleItemStyle(index,background,border,removeStyle,addStyle){
+                document.getElementById(index).style.background = background
+                document.getElementById(index).style.border = border
+                /*处理伪元素的样式*/
+                let div = document.getElementById(index + "-content")
+                div.classList.remove(removeStyle);
+                div.classList.add(addStyle);
+            },
+            getTagList(note) {
                 let dynamicTags = []
-                note.tagList.forEach((tag)=>dynamicTags.push(tag.title))
+                note.tagList.forEach((tag) => dynamicTags.push(tag.title))
                 return dynamicTags.toString()
             },
             noteClick(note, index) {
@@ -174,7 +213,11 @@
                     this.noteListWidth = this.noteListWidth > this.navMin ? this.navMax : this.navMin
                 }
             },
-        }
+        },
+        mounted() {
+            /*初始化选中项目的颜色*/
+            this.itemMouseDown(this.currentIndex)
+        },
     }
 </script>
 
@@ -200,12 +243,48 @@
     .contentInList::after {
         content: "...";
         font-size: small;
-        background: var(--backgroundColor); /*加背景覆盖源文本*/
+        /*background: var(--backgroundColor); !*加背景覆盖源文本*!*/
+        background: #ffffff; /*加背景覆盖源文本*/
         position: absolute;
         bottom: 3px;
         right: 5px;
-        line-height:12px
+        line-height: 12px
     }
+
+    /* 选中时的样式和伪元素样式*/
+    .contentInList-selected {
+        font-size: small;
+        position: relative;
+        height: 35px;
+        overflow: hidden;
+    }
+    .contentInList-selected::after {
+        content: "...";
+        font-size: small;
+        background: #E6E6E6;
+        position: absolute;
+        bottom: 3px;
+        right: 5px;
+        line-height: 12px
+    }
+
+    /* hover时的样式和伪元素样式*/
+    .contentInList-hover {
+        font-size: small;
+        position: relative;
+        height: 35px;
+        overflow: hidden;
+    }
+    .contentInList-hover::after {
+        content: "...";
+        font-size: small;
+        background:  #EDF6FD ;
+        position: absolute;
+        bottom: 3px;
+        right: 5px;
+        line-height: 12px
+    }
+
 
     /*笔记列表中的标题样式*/
     .titleInList {

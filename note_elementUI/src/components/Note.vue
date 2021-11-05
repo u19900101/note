@@ -6,7 +6,7 @@
             <el-row>
                 <el-input
                         size="small"
-                        placeholder="笔记标题"
+                        placeholder="请输入笔记标题"
                         v-model="title">
                 </el-input>
             </el-row>

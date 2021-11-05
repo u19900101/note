@@ -99,15 +99,7 @@
         created() {
             this.getData()
         },
-        mounted() {
-            this.$bus.$on('getNavWidth', (data) => {
-                console.log('调整 navWidth的 值为', data[1])
-                this.navWidth = data[1] + '%'
-            })
-        },
-        beforeDestroy() {
-            this.$bus.$off('getNavWidth')
-        }
+
     }
 </script>
 
