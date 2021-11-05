@@ -59,7 +59,8 @@ public class NoteController {
 
         for (Note note : noteList) {
             if(note.getTagUid() != null){
-                for (String tag : note.getTagUid().split(",")) {
+                for (String tagId : note.getTagUid().split(",")) {
+                    Tag tag = tagService.getById(tagId);
                     note.getTagList().add(tag);
                 }
             }

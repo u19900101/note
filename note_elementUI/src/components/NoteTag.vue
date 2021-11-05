@@ -33,17 +33,26 @@
         name: "NoteTag",
         data() {
             return {
-                dynamicTags: ['标签一', '标签二', '标签三'],
                 inputVisible: false,
                 inputValue: '',
                 restaurants: [],
                 state1: '',
             };
         },
+        computed:{
+            dynamicTags(){
+                return this.getDynamicTags()
+            }
+        },
         methods: {
+            getDynamicTags(){
+                let dynamicTags = []
+                this.$store.state.currentNote.tagList.forEach((tag)=>dynamicTags.push(tag.title))
+                return dynamicTags
+            },
             querySearch(queryString, cb) {
-                var restaurants = this.restaurants;
-                var results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants;
+                let restaurants = this.restaurants;
+                let results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants;
                 // 调用 callback 返回建议列表的数据
                 cb(results);
             },

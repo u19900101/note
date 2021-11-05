@@ -16,11 +16,11 @@
                 <div class="toolLeft">
                     <i class="el-icon-notebook-2"></i>
                     <!--让下拉框随着内容的变化动态的改变宽带 字体的大小是 12 英文和中文的宽度不一样 粗略的进行计算 -->
-                    <el-select v-model="value" filterable placeholder="请选择"
+                    <el-select v-model="currentNoteBook" filterable placeholder="请选择"
                                size="small"
-                               :style="{width: value.label.length*12 + 50+ 'px'}">
+                               :style="{width: currentNoteBook.label.length*12 + 50+ 'px'}">
                         <el-option
-                                v-for="item in options"
+                                v-for="item in notebooks"
                                 :key="item.value"
                                 :label="item.label"
                                 :value="{ value: item.value, label: item.label }">
@@ -81,22 +81,96 @@
         },
         data() {
             return {
-                title: '',
-                content: '',
-                star: false, //当前日记是否已收藏
-                options: this.getOption(),
-                value:this.getOption()[0],
+                notebooks: this.getNoteBooks(),
             }
         },
+        computed:{
+            title:{
+                get: function () {
+                    return this.$store.state.currentNote.title
+                },
+                set: function (newValue) {
+                    this.$store.state.currentNote.title = newValue
+                    this.https.updateNote({id: this.$store.state.currentNote.id, title: newValue}).then(({data}) => {
+                        console.log("修改数据库成功", data);
+                    })
+                }
+            },
+            content:{
+                get: function () {
+                    return this.$store.state.currentNote.content
+                },
+                set: function (newValue) {
+                    this.$store.state.currentNote.content = newValue
+                    this.https.updateNote({id: this.$store.state.currentNote.id, content: newValue}).then(({data}) => {
+                        console.log("修改数据库成功", data);
+                    })
+                }
+            },
+
+            tagList:{
+                get: function () {
+                    let dynamicTags = []
+                    this.$store.state.currentNote.tagList.forEach((tag)=>dynamicTags.push(tag.title))
+                    return dynamicTags
+                },
+                set: function (newValue) {
+                    // this.$store.state.currentNote.content = newValue
+                    console.log('tagList..undone ',newValue)
+                }
+            },
+
+            star:{
+                get: function () {
+                    return this.$store.state.currentNote.star
+                },
+                set: function (newValue) {
+                    this.$store.state.currentNote.star = newValue
+                    this.https.updateNote({id: this.$store.state.currentNote.id, star: newValue}).then(({data}) => {
+                        console.log("修改数据库成功", data);
+                    })
+                }
+            },
+            currentNoteBook:{
+                get: function () {
+                    let currentNoteBook = this.notebooks.filter((n)=> n.value == this.$store.state.currentNote.pid)[0]
+                    // console.log('currentNoteBook is ',currentNoteBook)
+                    return currentNoteBook
+                },
+                set: function (newValue) {
+                    // 更新笔记本的id
+                    this.$store.state.currentNote.pid = newValue.value
+                    console.log("set currentNoteBook...",newValue);
+
+                     this.$store.state.currentNote.star = newValue
+                     this.https.updateNote({id: this.$store.state.currentNote.id, pid: newValue.value}).then(({data}) => {
+                         console.log("修改数据库成功", data);
+                     })
+                }
+            },
+        },
         methods: {
-            getOption(){
-                let options = []
-                this.$store.state.noteBooks.forEach((noteBook) =>{
-                    options.push({
+            // 将树形的noteBook变为一条条普通noteBook，不进行级联选择
+            fromTreeToNormal(treeData,normalData){
+                treeData.forEach((item) =>{
+                    normalData.push(item)
+                    if(item.children.length > 0){
+                        return this.fromTreeToNormal(item.children,normalData)
+                    }
+                })
+            },
+
+            getNoteBooks(){
+                let notebooksNormal = []
+                let notebooks = []
+                this.fromTreeToNormal(this.$store.state.noteBooks,notebooksNormal)
+
+                notebooksNormal.forEach((noteBook) =>{
+                    notebooks.push({
                         value: noteBook.id,
                         label: noteBook.title})
                 })
-                return options
+                return notebooks
             },
             handleTargetDragOver(e) {
                 let firstLevelId = this.tool.getfirstLevelId(this.$store.state.currentNode)

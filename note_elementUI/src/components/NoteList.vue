@@ -40,7 +40,7 @@
             <el-container>
                 <el-aside style="height: 500px;" :style="{width: noteListWidth + 'px'}">
                     <el-scrollbar class="page-scroll">
-                        <div v-for="(note,index) in this.$store.state.currentNoteList">
+                        <div v-for="(note,index) in $store.state.currentNoteList">
                             <!-- type="flex" 为了让图片居中-->
                             <el-row @click.native="noteClick(note,index)"
                                     :style="{/*设置选中时的背景色*/
@@ -48,23 +48,25 @@
                                      /*设置选中时的边框色*/
                                      border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC',}"
                                     @mouseover.native="currentIndex=index"
-                                    @mouseout.native="currentIndex=-1"
                                     style="padding-left: 5px;border-radius: 5px;" type="flex">
                                 <!--标题  标签  内容-->
                                 <el-col :span="16">
+                                    <!--标题-->
                                     <el-row>
                                         <div class='titleInList'>
                                             标题 - {{note.title}}
                                         </div>
                                     </el-row>
+                                    <!--标签 & 内容-->
                                     <el-row>
                                         <!-- 给多行省略符 元素动态设置背景色-->
                                         <div class="contentInList" :style="{'--backgroundColor':currentIndex === index ? '#EDF6FD' : '#ffffff'}">
-                                            <span style="color: #49a2de">标签 - {{note.tagList}}</span>
-                                            <span> 内容- {{note.content}}Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                                            Consequatur, minus fugit in perspiciatis内容sssssss</span>
+                                            <span style="color: #49a2de">{{getTagList(note)}}</span>
+                                            <span> 内容- {{note.content}}</span>
                                         </div>
                                     </el-row>
+
+                                    <!--时间-->
                                     <el-row>
                                         <!--根据排序方式来决定显示的时间类型 note.createTime -->
                                         <span style="font-size: small;color: #49a2de">
@@ -128,9 +130,15 @@
             }
         },
         methods: {
-
+            getTagList(note){
+                let dynamicTags = []
+                note.tagList.forEach((tag)=>dynamicTags.push(tag.title))
+                return dynamicTags.toString()
+            },
             noteClick(note, index) {
-                console.log(note, index)
+                this.$store.state.currentNote = note
+                this.$store.state.currentIndex = index
+                // console.log(note, index)
             },
             // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
             mouseDown() {

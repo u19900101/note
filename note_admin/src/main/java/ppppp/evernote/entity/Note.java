@@ -89,7 +89,7 @@ public class Note implements Serializable {
     private Boolean star;
     @TableField(exist = false)
     // 解决初始化赋值时为null
-    private List<String> tagList = new ArrayList<>();
+    private List<Tag> tagList = new ArrayList<>();
 
     /**
      * 图片，视频，文件,一篇博客对应多媒体文件路径

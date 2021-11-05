@@ -55,16 +55,7 @@ public class AdminTest {
 
     @Autowired
     private NoteService noteService;
-    @Test
-    public void T_note(){
-        List<Note> noteList = noteService.lambdaQuery().list();
-        for (Note note : noteList) {
-            for (String tag : note.getTagUid().split(",")) {
-                note.getTagList().add(tag);
-            }
-        }
-        System.out.println(ResultUtil.successWithData(noteList));
-    }
+
 
     @Test
     public void T_orderBy(){
