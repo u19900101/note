@@ -43,7 +43,14 @@
                     <el-scrollbar class="page-scroll">
                         <div v-for="(note,index) in this.$store.state.currentNoteList">
                             <!-- type="flex" 为了让图片居中-->
-                            <el-row style="border-bottom: solid;padding-left: 5px" type="flex">
+                            <el-row @click.native="noteClick(note,index)"
+                                    :style="{/*设置选中时的背景色*/
+                                     backgroundColor:currentIndex === index ? '#EDF6FD' : '',
+                                     /*设置选中时的边框色*/
+                                     border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC',}"
+                                    @mouseover.native="currentIndex=index"
+                                    @mouseout.native="currentIndex=-1"
+                                    style="padding-left: 5px;border-radius: 5px;" type="flex">
                                 <!--标题  标签  内容-->
                                 <el-col :span="16">
                                     <el-row>
@@ -56,7 +63,6 @@
                                             <span style="color: #49a2de">标签 - {{note.tagList}}</span>
                                             <span style="color: #de4978"> 内容- {{note.content}}Lorem ipsum dolor sit amet consectetur adipisicing elit.
                                             Consequatur, minus fugit in perspiciatis内容sssssss</span>
-
                                         </div>
                                     </el-row>
                                     <el-row>
@@ -110,6 +116,7 @@
         },
         data() {
             return {
+                currentIndex: 0, //当前选中的笔记 序号
                 fits: ['fill', 'contain', 'cover', 'none', 'scale-down'],
                 noteListWidth: 240, // 笔记列表的初始宽度
                 navMax: 240,
@@ -121,6 +128,10 @@
             }
         },
         methods: {
+
+            noteClick(note, index) {
+                console.log(note, index)
+            },
             // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
             mouseDown() {
                 if (this.iconMouseLeave && this.sortPanelMouseLeave) {
