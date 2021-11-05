@@ -1,8 +1,7 @@
 <template>
     <el-container>
-        <!-- -->
-        <el-aside :style="{width: noteListWidth + 'px'}">
 
+        <el-aside :style="{width: noteListWidth + 'px'}">
             <!--当前笔记本 笔记排序按钮-->
             <el-row>
                 <el-col :span="16" style="text-align: center"> 当前笔记本</el-col>
@@ -59,9 +58,10 @@
                                         </div>
                                     </el-row>
                                     <el-row>
-                                        <div class="contentInList">
+                                        <!-- 给多行省略符 元素动态设置背景色-->
+                                        <div class="contentInList" :style="{'--backgroundColor':currentIndex === index ? '#EDF6FD' : '#ffffff'}">
                                             <span style="color: #49a2de">标签 - {{note.tagList}}</span>
-                                            <span style="color: #de4978"> 内容- {{note.content}}Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                                            <span> 内容- {{note.content}}Lorem ipsum dolor sit amet consectetur adipisicing elit.
                                             Consequatur, minus fugit in perspiciatis内容sssssss</span>
                                         </div>
                                     </el-row>
@@ -171,6 +171,7 @@
 </script>
 
 <style>
+
     /*笔记列表中图片 居中 */
     .innerCenter {
         /*background: aqua;*/
@@ -191,10 +192,11 @@
     .contentInList::after {
         content: "...";
         font-size: small;
-        background: #ffffff; /*加背景覆盖源文本*/
+        background: var(--backgroundColor); /*加背景覆盖源文本*/
         position: absolute;
-        bottom: 5px;
+        bottom: 3px;
         right: 5px;
+        line-height:12px
     }
 
     /*笔记列表中的标题样式*/
