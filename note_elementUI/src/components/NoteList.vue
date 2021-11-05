@@ -1,6 +1,5 @@
 <template>
     <el-container>
-
         <el-aside :style="{width: noteListWidth + 'px'}">
             <!--当前笔记本 笔记排序按钮-->
             <el-row>
@@ -25,7 +24,6 @@
                       :style="{'margin-left': (noteListWidth-30) + 'px'}">
             </cascader>
 
-
             <!--搜索入口-->
             <el-row class="search">
                 <el-input
@@ -43,7 +41,6 @@
                         <div v-for="(note,index) in $store.state.currentNoteList">
                             <!-- type="flex" 为了让图片居中 -->
                             <!--列表区  标题  标签  内容-->
-
                             <el-row @click.native="noteClick(note,index)"
                                     @mousedown.native="currentIndex = index"
                                     @mouseenter.native="enterIndex = index"
@@ -110,7 +107,6 @@
 <script>
     import borderLine from "./BorderLine"
     import noteSort from "./NoteSort"
-
     import cascader from "./Cascader"
 
     export default {
@@ -186,10 +182,6 @@
                     this.noteListWidth = this.noteListWidth > this.navMin ? this.navMax : this.navMin
                 }
             },
-        },
-        mounted() {
-            /*初始化选中项目的颜色*/
-            // this.itemMouseDown(this.currentIndex)
         },
     }
 </script>
