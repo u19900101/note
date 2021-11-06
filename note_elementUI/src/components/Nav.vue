@@ -115,7 +115,43 @@
             * 传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。
             * */
             handleNodeClick(data, node, e) {
-                console.log('clicked Node', data.title);
+               /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
+                // console.log('clicked Node',data.title);
+                switch(data.id)
+                {
+                    case 6: this.insertNote();break;
+                    case 1: this.initCurrentNoteList(this.$store.state.starNoteList);break; // 收藏笔记
+                    case 2: this.initCurrentNoteList(this.$store.state.notes);break;//所有笔记
+                    case 3: console.log();break;//'笔记本'
+                    case 4: console.log('标签');break;
+                    case 5: console.log('废纸篓');break;
+                }
+
+
+            },
+            insertNote(){
+                console.log('insertNote')
+                /* 若当前笔记为空 则指定 id = 3 笔记本为本次默认笔记本*/
+                this.https.insertNote({'pid': this.$store.state.currentNote.pid || 3}).then(({data}) => {
+                    let newNote = data.data;
+                    console.log("新建笔记 ", data);
+                    // 2.修改 currentNotes,将新建置顶
+                    this.$store.state.currentNoteList.unshift(newNote)
+                    this.$store.state.currentNote = newNote
+                    this.$store.state.currentIndex = 0  // 让新建的笔记处于选中状态
+                    // 选择笔记本的情况下 需要对notes 进行追加，因为此时 currentNoteList 指向为当前笔记本
+
+                    // 修改相应笔记本的笔记数量
+                    // this.$store.state.noteBookModule.noteBooks.filter(item => item.id == pid)[0].noteCount += 1
+                })
+            },
+
+            initCurrentNoteList(currentNoteList){
+                this.$store.state.currentNoteList = currentNoteList
+                if(this.$store.state.currentNoteList.length > 0 ){
+                    this.$store.state.currentNote = currentNoteList[0]
+                    this.$store.state.currentIndex = 0
+                }
             },
             handleDragStart(node, ev) {
                 // console.log('drag start', node);
@@ -131,6 +167,8 @@
             handleDragOver(draggingNode, dropNode, ev) {
                 // console.log('tree drag over: ', draggingNode.data.title ,'--> ',dropNode.data.title);
             },
+
+            /*获取拖拽节点的 {preId, currentId, nextId}*/
             getIds(draggingNode) {
                 let [preId, currentId, nextId, currentIndex] = [0, 0, 0, 0]
                 let brotherNotes = this.$refs.mytree.getNode(draggingNode.data.id).parent.data.children

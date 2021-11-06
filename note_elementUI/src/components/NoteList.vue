@@ -42,11 +42,11 @@
                             <!-- type="flex" 为了让图片居中 -->
                             <!--列表区  标题  标签  内容-->
                             <el-row @click.native="noteClick(note,index)"
-                                    @mousedown.native="currentIndex = index"
+                                    @mousedown.native="$store.state.currentIndex = index"
                                     @mouseenter.native="enterIndex = index"
                                     :id="index"
                                     :style="{  backgroundColor:getBgColor(index),
-                                             border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'
+                                             border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'
                                     }"
                                     style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
                                     type="flex">
@@ -118,9 +118,7 @@
         },
         data() {
             return {
-                currentIndex: 0, //当前选中的笔记 序号
                 enterIndex: 0,
-                fits: ['fill', 'contain', 'cover', 'none', 'scale-down'],
                 noteListWidth: 240, // 笔记列表的初始宽度
                 navMax: 240,
                 navMin: 150,
@@ -135,7 +133,7 @@
             /*控制列表颜色*/
             getBgColor(index) {
                 /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/
-                if (this.currentIndex == index) return "#E6E6E6"
+                if (this.$store.state.currentIndex == index) return "#E6E6E6"
                 if (this.enterIndex == index) return "#EDF6FD"
                 return "#ffffff"
             },

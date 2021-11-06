@@ -201,10 +201,29 @@
                 this.star = !this.star
                 this.$message({
                     message: this.star ? '已收藏' : '取消收藏',
-                    type: this.star ? 'success' : 'error',
-                    duration: 500,  //显示时间, 毫秒。设为 0 则不会自动关闭 默认3000
+                    type: this.star ? 'success' : 'info',
+                    duration: 1000,  //显示时间, 毫秒。设为 0 则不会自动关闭 默认3000
                     center: true
                 });
+                /*更新收藏笔记的数据*/
+                if(this.star){
+                    this.$store.state.starNoteList.push(this.$store.state.currentNote)
+                    /* 2.更新所有笔记*/
+                    this.$store.state.notes.forEach((n) => {
+                        if(n.id == this.$store.state.currentNote.id) n.star = true
+                    })
+
+                }else {
+                    this.removeCurrentNoteByTypeName('starNoteList')
+                    /* 2.更新所有笔记*/
+                    this.$store.state.notes.forEach((n) => {
+                        if(n.id == this.$store.state.currentNote.id) n.star = false
+                    })
+                }
+
+            },
+            removeCurrentNoteByTypeName(typeName){
+                this.$store.state[typeName] = this.$store.state[typeName].filter((n) => n.id != this.$store.state.currentNote.id)
             },
             deleteClick() {
                 console.log('deleteClick...')
@@ -214,21 +233,81 @@
                     type: 'warning',
                     center: true
                 }).then(() => {
-                    this.$message({
-                        type: 'success',
-                        message: '删除成功!',
-                        duration: 500,
-                    });
+                    this.deleteNote()
+                    this.$message({type: 'success',message: '删除成功!',duration: 1000,});
                 }).catch(() => {
                     this.$message({
                         type: 'info',
                         message: '已取消删除',
-                        duration: 500,
+                        duration: 1000,
                     });
                 });
-            }
+            },
+            deleteNote(){
+                // 2.1 数据库
+                // 	    2.1.1 将 数据库中该note的 status 字段改为 1 表示逻辑删除
+                //   	2.1.2 修改该笔记所包含的所有tag数量都 -1
+                //      2.1.3 修改该笔记所在笔记本数量 -1
+                // 2.2 页面变化
+                //  	2.2.1 设置成功后 将该 note从currentNotes列表和note列表中移除
+                //  	2.2.2 noteBook中也删除相应的笔记
+                //      2.2.3 当前的note页面显示 栈顶笔记
+                this.https.deleteNote({id: this.$store.state.currentNote.id}).then(({data}) => {
+                    console.log("逻辑删除成功  ", data);
+                    /* 1.更新所有笔记*/
+                    this.removeCurrentNoteByTypeName('notes')
 
-        }
+                    /* 2.修改当前选中的笔记*/
+                    this.$store.state.currentIndex = 0
+                    this.$store.state.currentNoteList.splice(this.$store.state.currentIndex, 1)
+                    if(this.$store.state.currentNoteList.length > 0) {
+                        this.$store.state.currentNote = this.$store.state.currentNoteList[0]
+                    }else {
+                        this.$store.state.currentNote = {}
+                    }
+                })
+                //  更新笔记本中笔记的数量
+                /*this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == this.pid)[0].noteCount -= 1
+                if(this.$store.state.noteBookModule.currentNoteBook.id != 0){
+                    this.updateNotes()
+                }*/
+                // 收藏模式下的删除
+                /*if (this.$store.state.noteBookModule.currentNoteBook.id == 1){
+                    // 移除收藏 1.修改 starNoteList  2.更新 starNoteBook
+                    this.$store.state.noteModule.starNoteList = this.$store.state.noteModule.starNoteList.filter((note) => note.id != this.noteId)
+                    this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.starNoteList
+                    if( this.$store.state.noteModule.starNoteList.length == 0){
+                        this.$router.push({name: 'noteList'})
+                    }else {
+                        this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
+                    }
+                    this.$store.state.noteBookModule.noteBooks[1].noteCount -= 1
+                    return
+                }*/
+                // 1.更新笔记本列表
+                // 即将删除最后一篇笔记
+                /* if (this.$store.state.noteModule.currentNoteList.length == 1) {
+                     console.log('删除最后一篇笔记')
+                     this.$store.state.noteModule.currentNoteList = []
+                     if (this.$store.state.noteModule.isSearchNoteListShow) {
+                         if (this.$store.state.noteModule.notes.length > 0) {
+                             this.$store.state.noteModule.isSearchNoteListShow = false
+                             this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
+                             this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
+                         }
+                     } // 2.笔记本模式下删除最后一条笔记时跳转到笔记本列表
+                     else if (this.$store.state.noteBookModule.currentNoteBook.id != 0){
+                         this.$router.push({name: 'noteBookList'})
+                     }
+                     this.$router.push({name: 'noteList'})
+                 }
+                 else {
+                     this.$store.state.noteModule.currentNoteList.splice(currentIndex, 1)
+                     this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
+                 }*/
+            }
+        },
+
     }
 </script>
 
