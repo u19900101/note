@@ -18,7 +18,7 @@
                     <!--让下拉框随着内容的变化动态的改变宽带 字体的大小是 12 英文和中文的宽度不一样 粗略的进行计算 -->
                     <el-select v-model="currentNoteBook" filterable placeholder="请选择"
                                size="small"
-                               :style="{width: currentNoteBook.label.length*12 + 50+ 'px'}">
+                               :style="{width: getBt(currentNoteBook.label)*6 + 70+ 'px'}">
                         <el-option
                                 v-for="item in notebooks"
                                 :key="item.value"
@@ -84,8 +84,8 @@
                 notebooks: this.getNoteBooks(),
             }
         },
-        computed:{
-            title:{
+        computed: {
+            title: {
                 get: function () {
                     return this.$store.state.currentNote.title
                 },
@@ -96,7 +96,7 @@
                     })
                 }
             },
-            content:{
+            content: {
                 get: function () {
                     return this.$store.state.currentNote.content
                 },
@@ -108,19 +108,19 @@
                 }
             },
 
-            tagList:{
+            tagList: {
                 get: function () {
                     let dynamicTags = []
-                    this.$store.state.currentNote.tagList.forEach((tag)=>dynamicTags.push(tag.title))
+                    this.$store.state.currentNote.tagList.forEach((tag) => dynamicTags.push(tag.title))
                     return dynamicTags
                 },
                 set: function (newValue) {
                     // this.$store.state.currentNote.content = newValue
-                    console.log('tagList..undone ',newValue)
+                    console.log('tagList..undone ', newValue)
                 }
             },
 
-            star:{
+            star: {
                 get: function () {
                     return this.$store.state.currentNote.star
                 },
@@ -131,44 +131,53 @@
                     })
                 }
             },
-            currentNoteBook:{
+            currentNoteBook: {
                 get: function () {
-                    let currentNoteBook = this.notebooks.filter((n)=> n.value == this.$store.state.currentNote.pid)[0]
+                    let currentNoteBook = this.notebooks.filter((n) => n.value == this.$store.state.currentNote.pid)[0]
                     // console.log('currentNoteBook is ',currentNoteBook)
                     return currentNoteBook
                 },
                 set: function (newValue) {
                     // 更新笔记本的id
                     this.$store.state.currentNote.pid = newValue.value
-                    console.log("set currentNoteBook...",newValue);
+                    console.log("set currentNoteBook...", newValue);
 
-                     this.$store.state.currentNote.star = newValue
-                     this.https.updateNote({id: this.$store.state.currentNote.id, pid: newValue.value}).then(({data}) => {
-                         console.log("修改数据库成功", data);
-                     })
+                    this.$store.state.currentNote.star = newValue
+                    this.https.updateNote({
+                        id: this.$store.state.currentNote.id,
+                        pid: newValue.value
+                    }).then(({data}) => {
+                        console.log("修改数据库成功", data);
+                    })
                 }
             },
         },
         methods: {
+            /*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
+            getBt(str) {
+                let char = str.replace(/[^\x00-\xff]/g, '**');
+                return char.length;
+            },
             // 将树形的noteBook变为一条条普通noteBook，不进行级联选择
-            fromTreeToNormal(treeData,normalData){
-                treeData.forEach((item) =>{
+            fromTreeToNormal(treeData, normalData) {
+                treeData.forEach((item) => {
                     normalData.push(item)
-                    if(item.children.length > 0){
-                        return this.fromTreeToNormal(item.children,normalData)
+                    if (item.children.length > 0) {
+                        return this.fromTreeToNormal(item.children, normalData)
                     }
                 })
             },
 
-            getNoteBooks(){
+            getNoteBooks() {
                 let notebooksNormal = []
                 let notebooks = []
-                this.fromTreeToNormal(this.$store.state.noteBooks,notebooksNormal)
+                this.fromTreeToNormal(this.$store.state.noteBooks, notebooksNormal)
 
-                notebooksNormal.forEach((noteBook) =>{
+                notebooksNormal.forEach((noteBook) => {
                     notebooks.push({
                         value: noteBook.id,
-                        label: noteBook.title})
+                        label: noteBook.title
+                    })
                 })
                 return notebooks
             },

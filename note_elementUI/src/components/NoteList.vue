@@ -61,7 +61,7 @@
                                     <!--标签 & 内容-->
                                     <el-row>
                                         <!-- 给多行省略符 元素动态设置背景色-->
-                                        <div class="contentInList" :style="{'--backgroundColor':getBgColor(index)}">
+                                        <div class="more-line">
                                             <span style="color: #49a2de">{{getTagList(note)}}</span>
                                             <span> 内容- {{note.content}}</span>
                                         </div>
@@ -196,24 +196,15 @@
         align-items: center; /*侧轴上居中*/
     }
 
-    /*笔记列表中的内容样式  多行截断*/
-    .contentInList {
+    /*笔记列表中的内容样式  多行截断  (超级简化版)*/
+    .more-line {
         font-size: small;
-        position: relative;
-        /*  line-height: 20px;*/
-        height: 35px;
+        display: -webkit-box !important;
         overflow: hidden;
-    }
-
-    .contentInList::after {
-        content: "...";
-        font-size: small;
-        background: var(--backgroundColor); /*加背景覆盖源文本*/
-        /*background: #ffffff; !*加背景覆盖源文本*!*/
-        position: absolute;
-        bottom: 3px;
-        right: 5px;
-        line-height: 12px
+        text-overflow: ellipsis;
+        word-break: break-all;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
     }
 
 
