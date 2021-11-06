@@ -27,13 +27,16 @@ export function updateNotebook(data) {
 export function getNotes() {
     return vm.get('/api/admin/note/allNotes')
 }
+export function getLogicDeletedNotes() {
+    return vm.get('/api/admin/note/getLogicDeletedNotes')
+}
 // 更新笔记的标题和内容
 export function updateNote(data) {
     return vm.post('/api/admin/note/update', data)
 }
 
-export function deleteNote(data) {
-    return vm.post('/api/admin/note/delete', data)
+export function logicDeleteNote(data) {
+    return vm.post('/api/admin/note/logicDeleteNote', data)
 }
 
 // 使用es 搜索笔记
@@ -75,9 +78,12 @@ export default {
             updateNote,
             insertNote,
             searchNoteByWords,
-            deleteNote,
+
             getSortWay,
             updateSortWay,
+
+            logicDeleteNote,
+            getLogicDeletedNotes,
         }
     }
 }

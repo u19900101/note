@@ -59,6 +59,10 @@
                 this.https.getNotebooks().then(({data}) => {
                     this.$store.state.noteBooks = data.data
                     this.$store.state.currentNoteBook = data.data[0]
+                    this.https.getLogicDeletedNotes().then(({data}) => {
+                        this.$store.state.logicDeletedNotesList = data.data
+                        console.log('init',this.$store.state.logicDeletedNotesList)
+                    })
                 }).then(() => {
                     // 2.获取笔记数据 初始化 notes
                     this.https.getNotes().then(({data}) => {

@@ -233,7 +233,7 @@
                     type: 'warning',
                     center: true
                 }).then(() => {
-                    this.deleteNote()
+                    this.logicDeleteNote()
                     this.$message({type: 'success',message: '删除成功!',duration: 1000,});
                 }).catch(() => {
                     this.$message({
@@ -243,7 +243,7 @@
                     });
                 });
             },
-            deleteNote(){
+            logicDeleteNote(){
                 // 2.1 数据库
                 // 	    2.1.1 将 数据库中该note的 status 字段改为 1 表示逻辑删除
                 //   	2.1.2 修改该笔记所包含的所有tag数量都 -1
@@ -252,7 +252,7 @@
                 //  	2.2.1 设置成功后 将该 note从currentNotes列表和note列表中移除
                 //  	2.2.2 noteBook中也删除相应的笔记
                 //      2.2.3 当前的note页面显示 栈顶笔记
-                this.https.deleteNote({id: this.$store.state.currentNote.id}).then(({data}) => {
+                this.https.logicDeleteNote({id: this.$store.state.currentNote.id}).then(({data}) => {
                     console.log("逻辑删除成功  ", data);
                     /* 1.更新所有笔记*/
                     this.removeCurrentNoteByTypeName('notes')
@@ -271,40 +271,6 @@
                 if(this.$store.state.noteBookModule.currentNoteBook.id != 0){
                     this.updateNotes()
                 }*/
-                // 收藏模式下的删除
-                /*if (this.$store.state.noteBookModule.currentNoteBook.id == 1){
-                    // 移除收藏 1.修改 starNoteList  2.更新 starNoteBook
-                    this.$store.state.noteModule.starNoteList = this.$store.state.noteModule.starNoteList.filter((note) => note.id != this.noteId)
-                    this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.starNoteList
-                    if( this.$store.state.noteModule.starNoteList.length == 0){
-                        this.$router.push({name: 'noteList'})
-                    }else {
-                        this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
-                    }
-                    this.$store.state.noteBookModule.noteBooks[1].noteCount -= 1
-                    return
-                }*/
-                // 1.更新笔记本列表
-                // 即将删除最后一篇笔记
-                /* if (this.$store.state.noteModule.currentNoteList.length == 1) {
-                     console.log('删除最后一篇笔记')
-                     this.$store.state.noteModule.currentNoteList = []
-                     if (this.$store.state.noteModule.isSearchNoteListShow) {
-                         if (this.$store.state.noteModule.notes.length > 0) {
-                             this.$store.state.noteModule.isSearchNoteListShow = false
-                             this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
-                             this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
-                         }
-                     } // 2.笔记本模式下删除最后一条笔记时跳转到笔记本列表
-                     else if (this.$store.state.noteBookModule.currentNoteBook.id != 0){
-                         this.$router.push({name: 'noteBookList'})
-                     }
-                     this.$router.push({name: 'noteList'})
-                 }
-                 else {
-                     this.$store.state.noteModule.currentNoteList.splice(currentIndex, 1)
-                     this.$store.state.noteModule.currentNote = this.$store.state.noteModule.currentNoteList[0]
-                 }*/
             }
         },
 

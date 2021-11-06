@@ -61,6 +61,9 @@ const state = {
 
     /*************排序*************/
     sortWay:{},
+
+    /*************废纸篓*************/
+    logicDeletedNotesList: []
 }
 
 //创建并暴露store

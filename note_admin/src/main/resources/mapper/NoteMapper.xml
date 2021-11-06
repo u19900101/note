@@ -4,7 +4,7 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="ppppp.evernote.entity.Note">
-        <id column="uid" property="uid" />
+        <id column="id" property="id" />
         <result column="pid" property="pid" />
         <result column="title" property="title" />
         <result column="status" property="status" />

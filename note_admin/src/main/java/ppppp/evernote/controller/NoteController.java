@@ -44,37 +44,18 @@ public class NoteController {
 
     @RequestMapping("/allNotes")
     public String getAllNotes() {
-        // 根据sortway中的排序字段进行查询
-        Sortway sortway = sortWayService.getById(1);
-        List<Note> noteList = null;
-
-        // 默认均为日期逆序为正常排序
-        if(sortway.isCreateTime()){
-            noteList = noteService.lambdaQuery().orderByDesc(Note::getCreateTime).list();
-        }else if(sortway.isUpdateTime()){
-            noteList = noteService.lambdaQuery().orderByDesc(Note::getUpdateTime).list();
-        }
-        //逆序
-        if(sortway.isReverse()) Collections.reverse(noteList);
-
-        for (Note note : noteList) {
-            if(note.getTagUid() != null){
-                for (String tagId : note.getTagUid().split(",")) {
-                    Tag tag = tagService.getById(tagId);
-                    note.getTagList().add(tag);
-                }
-            }
-            if(note.getMediaUid() != null){
-                for (String mediaId : note.getMediaUid().split(",")) {
-                    //todo 图片视频表
-                    note.getMediaList().add(mediaId);
-                }
-            }
-        }
-
-
+        List<Note> noteList = getSortWayNotes();
+        fillNoteList(noteList);
         return ResultUtil.successWithData(noteList);
     }
+
+    @RequestMapping("/getLogicDeletedNotes")
+    public String getLogicDeletedNotes() {
+        List<Note> noteList = noteService.lambdaQuery().eq(Note::getWastepaper,true).list();
+        fillNoteList(noteList);
+        return ResultUtil.successWithData(noteList);
+    }
+
 
     // 更新笔记内容 移动笔记
     @PostMapping("/update")
@@ -127,9 +108,9 @@ public class NoteController {
 
     }
 
-    // todo delete 请求？？
-    @PostMapping("/delete")
-    public String deleteNote(@RequestBody Note note) {
+
+    @PostMapping("/logicDeleteNote")
+    public String logicDeleteNote(@RequestBody Note note) {
 
         note = noteService.getById(note.getId());
         // 1.更新 标签数据
@@ -149,9 +130,42 @@ public class NoteController {
         boolean isNoteBookUpdated = notebookService.updateById(notebook);
 
         // 3.逻辑删除note
-        boolean isLogicalDelete = noteService.removeById(note);
+        note.setWastepaper(true);
+        boolean isLogicalDelete = noteService.updateById(note);
         System.out.println(ResultUtil.successWithData(isNoteBookUpdated && isLogicalDelete));
         return ResultUtil.successWithData(isLogicalDelete);
+    }
+
+    private void fillNoteList(List<Note> noteList) {
+        for (Note note : noteList) {
+            if (note.getTagUid() != null) {
+                for (String tagId : note.getTagUid().split(",")) {
+                    Tag tag = tagService.getById(tagId);
+                    note.getTagList().add(tag);
+                }
+            }
+            if (note.getMediaUid() != null) {
+                for (String mediaId : note.getMediaUid().split(",")) {
+                    //todo 图片视频表
+                    note.getMediaList().add(mediaId);
+                }
+            }
+        }
+    }
+    private List<Note> getSortWayNotes() {
+        // 根据sortway中的排序字段进行查询
+        Sortway sortway = sortWayService.getById(1);
+        List<Note> noteList = null;
+
+        // 默认均为日期逆序为正常排序
+        if(sortway.isCreateTime()){
+            noteList = noteService.lambdaQuery().eq(Note::getWastepaper,false).orderByDesc(Note::getCreateTime).list();
+        }else if(sortway.isUpdateTime()){
+            noteList = noteService.lambdaQuery().eq(Note::getWastepaper,false).orderByDesc(Note::getUpdateTime).list();
+        }
+        //逆序
+        if(sortway.isReverse()) Collections.reverse(noteList);
+        return noteList;
     }
 }
 

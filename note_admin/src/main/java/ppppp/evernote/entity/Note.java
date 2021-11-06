@@ -48,6 +48,8 @@ public class Note implements Serializable {
     @TableLogic // 逻辑删除字段 ，1-删除，0-未删除
     private Boolean status;
 
+    /**废纸篓*/
+    private Boolean wastepaper;
     /**
      * 笔记简介
      */

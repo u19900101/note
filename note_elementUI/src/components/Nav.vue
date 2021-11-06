@@ -115,21 +115,33 @@
             * 传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。
             * */
             handleNodeClick(data, node, e) {
-               /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
-                // console.log('clicked Node',data.title);
-                switch(data.id)
-                {
-                    case 6: this.insertNote();break;
-                    case 1: this.initCurrentNoteList(this.$store.state.starNoteList);break; // 收藏笔记
-                    case 2: this.initCurrentNoteList(this.$store.state.notes);break;//所有笔记
-                    case 3: console.log();break;//'笔记本'
-                    case 4: console.log('标签');break;
-                    case 5: console.log('废纸篓');break;
+                /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
+                console.log('clicked Node',data.id,data.title);
+                switch (data.id) {
+                    case 6:
+                        this.insertNote();
+                        break;
+                    case 1:
+                        this.initCurrentNoteList(this.$store.state.starNoteList);
+                        break; // 收藏笔记
+                    case 2:
+                        this.initCurrentNoteList(this.$store.state.notes);
+                        break;//所有笔记
+                    case 3:
+                        console.log();
+                        break;//'笔记本'
+                    case 4:
+                        console.log('标签');
+                        break;
+                    case 5:
+                        console.log('this.$store.state.logicDeletedNotesList',this.$store.state.logicDeletedNotesList);
+                        this.initCurrentNoteList(this.$store.state.logicDeletedNotesList);
+                        break; /*'废纸篓' */
                 }
 
 
             },
-            insertNote(){
+            insertNote() {
                 console.log('insertNote')
                 /* 若当前笔记为空 则指定 id = 3 笔记本为本次默认笔记本*/
                 this.https.insertNote({'pid': this.$store.state.currentNote.pid || 3}).then(({data}) => {
@@ -146,9 +158,9 @@
                 })
             },
 
-            initCurrentNoteList(currentNoteList){
+            initCurrentNoteList(currentNoteList) {
                 this.$store.state.currentNoteList = currentNoteList
-                if(this.$store.state.currentNoteList.length > 0 ){
+                if (this.$store.state.currentNoteList.length > 0) {
                     this.$store.state.currentNote = currentNoteList[0]
                     this.$store.state.currentIndex = 0
                 }
@@ -217,18 +229,17 @@
                     pid: currentParentNode.level == 1 ? 0 : currentParentNode.data.id,
                 }
                 // 笔记本 - 3
-                if(firstLevelTitle == '笔记本'){
-                    console.log('noteBook...',firstLevelTitle);
+                if (firstLevelTitle == '笔记本') {
+                    console.log('noteBook...', firstLevelTitle);
                     this.https.updateNotebook(obj).then(({data}) => {
                         console.log('更新笔记本成功', data)
                     })
-                }else {  // 标签 - 4 操作
-                    console.log('tag...',firstLevelTitle);
+                } else {  // 标签 - 4 操作
+                    console.log('tag...', firstLevelTitle);
                     this.https.updateTag(obj).then(({data}) => {
                         console.log('更新笔记本成功', data)
                     })
                 }
-
 
 
             },
@@ -242,7 +253,7 @@
             allowDrop(draggingNode, dropNode, type) {
                 /*console.log('allowDrop...',draggingNode, dropNode)*/
                 // 不能移动到一级目录
-                if(dropNode.level == 1){
+                if (dropNode.level == 1) {
                     return false
                 }
                 // 只能在同一个一级目录中进行移动
