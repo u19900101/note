@@ -35,8 +35,8 @@ export function updateNote(data) {
     return vm.post('/api/admin/note/update', data)
 }
 
-export function logicDeleteNote(data) {
-    return vm.post('/api/admin/note/logicDeleteNote', data)
+export function deleteNote(data) {
+    return vm.post('/api/admin/note/deleteNote', data)
 }
 
 // 使用es 搜索笔记
@@ -82,7 +82,7 @@ export default {
             getSortWay,
             updateSortWay,
 
-            logicDeleteNote,
+            deleteNote,
             getLogicDeletedNotes,
         }
     }

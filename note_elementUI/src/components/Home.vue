@@ -27,7 +27,7 @@
             <!--笔记内容-->
             <note v-if="$store.state.currentNoteList.length > 0 "></note>
             <div v-else style="text-align: center;width: 100%;">
-                <h1>空空如也，新建一篇笔记吧</h1>
+                <h1>空空如也 </h1>
             </div>
         </el-container>
 
@@ -61,7 +61,6 @@
                     this.$store.state.currentNoteBook = data.data[0]
                     this.https.getLogicDeletedNotes().then(({data}) => {
                         this.$store.state.logicDeletedNotesList = data.data
-                        console.log('init',this.$store.state.logicDeletedNotesList)
                     })
                 }).then(() => {
                     // 2.获取笔记数据 初始化 notes

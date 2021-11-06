@@ -109,8 +109,9 @@ public class NoteController {
     }
 
 
-    @PostMapping("/logicDeleteNote")
-    public String logicDeleteNote(@RequestBody Note note) {
+    /* 包含 逻辑删除和状态修改 */
+    @PostMapping("/deleteNote")
+    public String deleteNote(@RequestBody Note note) {
 
         note = noteService.getById(note.getId());
         // 1.更新 标签数据
@@ -129,9 +130,15 @@ public class NoteController {
         notebook.setNoteCount(notebook.getNoteCount() - 1);
         boolean isNoteBookUpdated = notebookService.updateById(notebook);
 
-        // 3.逻辑删除note
-        note.setWastepaper(true);
-        boolean isLogicalDelete = noteService.updateById(note);
+        boolean isLogicalDelete = false;
+        // 3.逻辑删除和状态修改
+        if(note.getWastepaper()){
+            isLogicalDelete = noteService.removeById(note.getId());
+        }else { //状态修改
+            note.setWastepaper(true);
+            isLogicalDelete = noteService.updateById(note);
+        }
+
         System.out.println(ResultUtil.successWithData(isNoteBookUpdated && isLogicalDelete));
         return ResultUtil.successWithData(isLogicalDelete);
     }

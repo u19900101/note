@@ -134,7 +134,6 @@
                         console.log('标签');
                         break;
                     case 5:
-                        console.log('this.$store.state.logicDeletedNotesList',this.$store.state.logicDeletedNotesList);
                         this.initCurrentNoteList(this.$store.state.logicDeletedNotesList);
                         break; /*'废纸篓' */
                 }

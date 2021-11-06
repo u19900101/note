@@ -39,6 +39,7 @@ const state = {
         title: '',  //标题
         content: '', //内容
         pid: '', // noteContent对象的pid
+        wastepaper: false
     }, //组件展示的数据对象
     isNotesShow: true, //快捷方式进入详情笔记本,笔记本信息列表隐藏
 

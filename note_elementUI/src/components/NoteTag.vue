@@ -3,7 +3,7 @@
         <el-tag
                 :key="tag"
                 v-for="tag in dynamicTags"
-                closable
+                :closable = "$store.state.currentNote.wastepaper ? false : true"
                 :disable-transitions="false"
                 @close="handleClose(tag)">
             {{tag}}
@@ -23,7 +23,7 @@
         ></el-autocomplete>
 
         <!--新增标签按钮-->
-        <el-button v-else class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
+        <el-button v-else :disabled="$store.state.currentNote.wastepaper" class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
     </div>
 </template>
 
