@@ -25,15 +25,11 @@ public class SortwayController {
         List<Sortway> sortWayList = sortWayService.lambdaQuery().list();
         return ResultUtil.successWithData(sortWayList);
     }
-
+    /*ps 更新 导航栏和笔记列表栏的宽度*/
     @PostMapping("/updateSortWay")
     public String updateTag(@RequestBody Sortway sortway) {
-        System.out.println(sortway);
-        sortway.setId(1);
         boolean b = sortWayService.updateById(sortway);
         return ResultUtil.successWithData(b);
     }
-
-
 }
 

@@ -59,7 +59,10 @@
                 this.https.getNotebooks().then(({data}) => {
                     this.$store.state.noteBooks = data.data[0]
                     this.$store.state.currentNoteBook = data.data[0][0]
+                    /* 将noteBookTree 封装上笔记的数量*/
+                    this.addNoteCount(data.data[1])
                     this.$store.state.noteBooksTree = data.data[1]
+                    // console.log('kkkk',data.data[1])
                     this.https.getLogicDeletedNotes().then(({data}) => {
                         this.$store.state.logicDeletedNotesList = data.data
                     })
@@ -101,6 +104,12 @@
                     })
                 })
             },
+            addNoteCount(treeData) {
+                treeData.forEach((n) =>{
+                    n.title += ' (' + n.noteCount + ')'
+                    if(n.children.length > 0 ) this.addNoteCount(n.children)
+                })
+            }
         },
         // 组件创建时 请求数据
         created() {

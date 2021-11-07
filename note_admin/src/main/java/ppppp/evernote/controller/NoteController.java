@@ -165,13 +165,13 @@ public class NoteController {
         List<Note> noteList = null;
 
         // 默认均为日期逆序为正常排序
-        if(sortway.isCreateTime()){
+        if(sortway.getCreateTime()){
             noteList = noteService.lambdaQuery().eq(Note::getWastepaper,false).orderByDesc(Note::getCreateTime).list();
-        }else if(sortway.isUpdateTime()){
+        }else if(sortway.getUpdateTime()){
             noteList = noteService.lambdaQuery().eq(Note::getWastepaper,false).orderByDesc(Note::getUpdateTime).list();
         }
         //逆序
-        if(sortway.isReverse()) Collections.reverse(noteList);
+        if(sortway.getReverse()) Collections.reverse(noteList);
         return noteList;
     }
 }

@@ -7,7 +7,8 @@
             <el-tree :data="data"
                      ref="mytree"
                      node-key="id"
-
+                     :expand-on-click-node = false
+                     :highlight-current = "true"
                      @node-click="handleNodeClick"
                      @node-drag-start="handleDragStart"
                      @node-drag-enter="handleDragEnter"
@@ -51,9 +52,8 @@
         data() {
 
             return {
-                navWidth: 150, // 导航栏的初始宽度
-                noteListWidth: 240, // 笔记列表的初始宽度
-                navMax: 240,
+                navWidth: this.$store.state.sortWay.navWidth, // 导航栏的初始宽度
+                navMax: 800,
                 navMin: 150,
                 //收藏-1 笔记-2 笔记本-3 标签-4  废纸篓-5  新建笔记-6
                 icons: ['el-icon-star-on', 'el-icon-document', 'el-icon-notebook-2', 'el-icon-discount', 'el-icon-delete', 'el-icon-circle-plus-outline'],
@@ -104,6 +104,10 @@
                 if (this.navWidth < this.navMin || this.navWidth > this.navMax) {
                     this.navWidth = this.navWidth > this.navMin ? this.navMax : this.navMin
                 }
+                /*将导航栏的宽度写进数据库*/
+                this.https.updateSortWay({id: 1,navWidth:this.navWidth}).then(({data}) => {
+                    console.log(data)
+                })
             },
             /*
             * event、传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
@@ -158,10 +162,10 @@
             initCurrentNoteListByName(currentNoteBookName, noteBookId) {
 
                 if (currentNoteBookName == "noteBookNameId") {
-                    console.log('noteBookId is ', noteBookId);
+                    // console.log('noteBookId is ', noteBookId);
                     /*获取所有子笔记*/
                     let parentIds =  this.getChildrenIds(noteBookId,this.$store.state.noteBooksTree)
-                    console.log('parentIds are ',parentIds)
+                    // console.log('parentIds are ',parentIds)
                     this.$store.state.currentNoteList =  this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
                 } else {
                     this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
@@ -338,7 +342,7 @@
         font-size: 20px;
     }
 
-    /* 节点选中时的背景色*/
+    /* 树背景色*/
     .el-tree-node:focus > .el-tree-node__content {
         background-color: #4a5d6b !important;
     }
@@ -348,8 +352,9 @@
         background-color: #354553 !important;
     }
 
+    /* 节点选中时的背景色*/
     .el-tree--highlight-current .el-tree-node.is-current > .el-tree-node__content {
-        background-color: rgba(16, 15, 14, 0.53) !important;
+        background-color: rgba(212, 119, 27, 0.53) !important;
     }
 
     /* 一级节点的高度*/

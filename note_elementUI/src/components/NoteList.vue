@@ -121,8 +121,8 @@
         data() {
             return {
                 enterIndex: 0,
-                noteListWidth: 240, // 笔记列表的初始宽度
-                navMax: 240,
+                noteListWidth: this.$store.state.sortWay.listWidth, // 笔记列表的初始宽度
+                navMax: 800,
                 navMin: 150,
                 searchValue: '',
                 isSortShow: false,
@@ -170,7 +170,6 @@
                 } else {
                     console.log('sortType is ', sortType)  // sortType 为 -1 时 进行关闭操作
                 }
-
             },
 
             handleChange(value) {
@@ -181,6 +180,9 @@
                 if (this.noteListWidth < this.navMin || this.noteListWidth > this.navMax) {
                     this.noteListWidth = this.noteListWidth > this.navMin ? this.navMax : this.navMin
                 }
+                this.https.updateSortWay({id: 1,listWidth:this.noteListWidth}).then(({data}) => {
+                    console.log('成功更新列表宽度',data)
+                })
             },
         },
     }
