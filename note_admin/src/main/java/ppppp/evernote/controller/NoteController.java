@@ -98,16 +98,28 @@ public class NoteController {
         note.setTitle("");
         note.setContent("");
         noteService.save(note);
-        Note byId = noteService.getById(note.getId());
+        //Note byId = noteService.getById(note.getId());
 
-        // 给 所在笔记本的数量 + 1
-        Notebook notebook = notebookService.getById(note.getPid());
-        notebook.setNoteCount(notebook.getNoteCount() + 1);
-        boolean updateNoteBook = notebookService.updateById(notebook);
-        return ResultUtil.successWithData(byId);
+        // 给 所在笔记本和所有父节点的数量 + 1
+        boolean isSucceed = true;
+        try  {
+            updateNoteCount(note.getPid(), 1);
+        }  catch  (StopMsgException e) {
+            isSucceed = false;
+        }
+
+        return ResultUtil.successWithData(isSucceed);
 
     }
-
+    public void updateNoteCount(int noteId,int count){
+        Notebook notebook = notebookService.getById(noteId);
+        notebook.setNoteCount(notebook.getNoteCount() + count);
+        boolean updateNoteBook = notebookService.updateById(notebook);
+        if(!updateNoteBook) throw  new  StopMsgException();
+        if(notebook.getPid() != null){
+            updateNoteCount(notebook.getPid(),count);
+        }
+    }
 
     /* 包含 逻辑删除和状态修改 */
     @PostMapping("/deleteNote")
@@ -173,6 +185,8 @@ public class NoteController {
         //逆序
         if(sortway.getReverse()) Collections.reverse(noteList);
         return noteList;
+    }
+    static  class  StopMsgException  extends  RuntimeException {
     }
 }
 

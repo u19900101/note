@@ -105,7 +105,7 @@
                     this.navWidth = this.navWidth > this.navMin ? this.navMax : this.navMin
                 }
                 /*将导航栏的宽度写进数据库*/
-                this.https.updateSortWay({id: 1,navWidth:this.navWidth}).then(({data}) => {
+                this.https.updateSortWay({id: 1, navWidth: this.navWidth}).then(({data}) => {
                     console.log(data)
                 })
             },
@@ -144,17 +144,20 @@
             insertNote() {
                 console.log('insertNote')
                 /* 若当前笔记为空 则指定 id = 3 笔记本为本次默认笔记本*/
-                this.https.insertNote({'pid': this.$store.state.currentNote.pid || 3}).then(({data}) => {
+                let pid = this.$store.state.currentNoteBook.id
+                this.https.insertNote({'pid': pid}).then(({data}) => {
                     let newNote = data.data;
                     console.log("新建笔记 ", data);
                     // 2.修改 currentNotes,将新建置顶
                     this.$store.state.currentNoteList.unshift(newNote)
                     this.$store.state.currentNote = newNote
                     this.$store.state.currentIndex = 0  // 让新建的笔记处于选中状态
-                    // 选择笔记本的情况下 需要对notes 进行追加，因为此时 currentNoteList 指向为当前笔记本
+                    // todo 选择笔记本的情况下 需要对notes 进行追加，因为此时 currentNoteList 指向为当前笔记本
 
-                    // 修改相应笔记本的笔记数量
-                    // this.$store.state.noteBookModule.noteBooks.filter(item => item.id == pid)[0].noteCount += 1
+                    // 修改相应笔记本的笔记数量  和树形列表的显示
+                    this.$store.state.noteBooks.filter(item => item.id == pid)[0].noteCount += 1
+                    // 树形  更新本节点和所有父节点的数量
+
                 })
             },
 
@@ -164,9 +167,9 @@
                 if (currentNoteBookName == "noteBookNameId") {
                     // console.log('noteBookId is ', noteBookId);
                     /*获取所有子笔记*/
-                    let parentIds =  this.getChildrenIds(noteBookId,this.$store.state.noteBooksTree)
+                    let parentIds = this.getChildrenIds(noteBookId, this.$store.state.noteBooksTree)
                     // console.log('parentIds are ',parentIds)
-                    this.$store.state.currentNoteList =  this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
+                    this.$store.state.currentNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
                 } else {
                     this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
                 }
@@ -294,25 +297,25 @@
             },
 
             //遍历树 找到所有子id
-            getChildrenIds(noteBookId,pData) {
-                for(let n of pData){
+            getChildrenIds(noteBookId, pData) {
+                for (let n of pData) {
                     /*在自身节点中找*/
-                    if(n.id == noteBookId) {
+                    if (n.id == noteBookId) {
                         let res = []
-                        this.getChildrenNotes(n,res)
+                        this.getChildrenNotes(n, res)
                         return res
                     }
                     /*在子节点中找*/
-                    if(n.children.length > 0 ){
-                        let res = this.getChildrenIds(noteBookId,n.children)
-                        if(res) return res
+                    if (n.children.length > 0) {
+                        let res = this.getChildrenIds(noteBookId, n.children)
+                        if (res) return res
                     }
                 }
             },
-            getChildrenNotes(treeNode,res) {
-                if(treeNode.children.length > 0 ){
-                    treeNode.children.forEach((n) =>{
-                        this.getChildrenNotes(n,res)
+            getChildrenNotes(treeNode, res) {
+                if (treeNode.children.length > 0) {
+                    treeNode.children.forEach((n) => {
+                        this.getChildrenNotes(n, res)
                     })
                 }
                 res.push(treeNode.id)
