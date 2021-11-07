@@ -15,6 +15,7 @@ import ppppp.evernote.mapper.TagMapper;
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.util.ResultUtil;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,10 @@ public class NotebookController {
 
     @RequestMapping("/allNoteBooks")
     public String allNotebooks() {
+        ArrayList<List<Notebook>> list = new ArrayList<>();
+        /*添加原始notebook数据*/
 
+        list.add(notebookService.lambdaQuery().list());
         List<Notebook> notebooksList = notebookService.lambdaQuery()
                 .eq(Notebook::getPid, 0)
                 .orderByAsc(Notebook::getSort)
@@ -53,8 +57,9 @@ public class NotebookController {
         for (Notebook notebook : notebooksList) {
             getChildren(notebook);
         }
-
-        return ResultUtil.successWithData(notebooksList);
+        /*添加原始notebook数据*/
+        list.add(notebooksList);
+        return ResultUtil.successWithData(list);
     }
 
 

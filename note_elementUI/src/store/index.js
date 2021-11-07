@@ -16,6 +16,7 @@ const state = {
 
     /**笔记本**/
     noteBooks: [],  //所有笔记本列表
+    noteBooksTree:[],// 树形封装
     currentNoteBookNoteList:[],
 
 

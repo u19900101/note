@@ -1,9 +1,11 @@
 <template>
     <el-container>
         <el-aside :style="{width: noteListWidth + 'px'}">
-            <!--当前笔记本 笔记排序按钮-->
+            <!--笔记本名称 && 笔记排序按钮-->
             <el-row>
-                <el-col :span="16" style="text-align: center"> 当前笔记本</el-col>
+                <!--笔记本名称-->
+                <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
+                    <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span></el-col>
                 <el-col :span="8" style="text-align: right;">
                     <div class="sortButton">
                         <el-button round

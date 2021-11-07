@@ -57,8 +57,9 @@
             getData() {
                 // 1.获取笔记本数据 初始化笔记本
                 this.https.getNotebooks().then(({data}) => {
-                    this.$store.state.noteBooks = data.data
-                    this.$store.state.currentNoteBook = data.data[0]
+                    this.$store.state.noteBooks = data.data[0]
+                    this.$store.state.currentNoteBook = data.data[0][0]
+                    this.$store.state.noteBooksTree = data.data[1]
                     this.https.getLogicDeletedNotes().then(({data}) => {
                         this.$store.state.logicDeletedNotesList = data.data
                     })

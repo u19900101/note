@@ -22,10 +22,10 @@
                                :disabled="$store.state.currentNote.wastepaper"
                                :style="{width: getBt(currentNoteBook.label)*6 + 70+ 'px'}">
                         <el-option
-                                v-for="item in notebooks"
-                                :key="item.value"
-                                :label="item.label"
-                                :value="{ value: item.value, label: item.label }">
+                                v-for="item in $store.state.noteBooks"
+                                :key="item.id"
+                                :label="item.title"
+                                :value="{ value: item.id, label: item.title }">
                         </el-option>
                     </el-select>
                 </div>
@@ -98,11 +98,7 @@
         components: {
             noteTag,
         },
-        data() {
-            return {
-                notebooks: this.getNoteBooks(),
-            }
-        },
+
         computed: {
             title: {
                 get: function () {
@@ -152,19 +148,17 @@
             },
             currentNoteBook: {
                 get: function () {
-                    let currentNoteBook = this.notebooks.filter((n) => n.value == this.$store.state.currentNote.pid)[0]
-                    // console.log('currentNoteBook is ',currentNoteBook)
-                    return currentNoteBook
+                    let currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == this.$store.state.currentNote.pid)[0]
+                    return { value: currentNoteBook.id,label:currentNoteBook.title}
                 },
                 set: function (newValue) {
                     // 更新笔记本的id
-                    this.$store.state.currentNote.pid = newValue.value
-                    console.log("set currentNoteBook...", newValue);
+                    this.$store.state.currentNote.pid = newValue.id
 
                     this.$store.state.currentNote.star = newValue
                     this.https.updateNote({
                         id: this.$store.state.currentNote.id,
-                        pid: newValue.value
+                        pid: newValue.id
                     }).then(({data}) => {
                         console.log("修改数据库成功", data);
                     })
@@ -177,29 +171,7 @@
                 let char = str.replace(/[^\x00-\xff]/g, '**');
                 return char.length;
             },
-            // 将树形的noteBook变为一条条普通noteBook，不进行级联选择
-            fromTreeToNormal(treeData, normalData) {
-                treeData.forEach((item) => {
-                    normalData.push(item)
-                    if (item.children.length > 0) {
-                        return this.fromTreeToNormal(item.children, normalData)
-                    }
-                })
-            },
 
-            getNoteBooks() {
-                let notebooksNormal = []
-                let notebooks = []
-                this.fromTreeToNormal(this.$store.state.noteBooks, notebooksNormal)
-
-                notebooksNormal.forEach((noteBook) => {
-                    notebooks.push({
-                        value: noteBook.id,
-                        label: noteBook.title
-                    })
-                })
-                return notebooks
-            },
             handleTargetDragOver(e) {
                 let firstLevelId = this.tool.getfirstLevelId(this.$store.state.currentNode)
                 // 判断节点是否为标签子的节点

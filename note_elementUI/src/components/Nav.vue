@@ -18,8 +18,7 @@
                      @node-contextmenu=handleNodeContextmenu
                      draggable
                      :allow-drop="allowDrop"
-                     :allow-drag="allowDrag"
-            >
+                     :allow-drag="allowDrag">
                 <!-- 自定义节点-->
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <!-- 给一级节点 设置自定义图标-->
@@ -60,32 +59,32 @@
                 icons: ['el-icon-star-on', 'el-icon-document', 'el-icon-notebook-2', 'el-icon-discount', 'el-icon-delete', 'el-icon-circle-plus-outline'],
                 data: [
                     {
-                        id: 6,
+                        id: 'insertNote',
                         title: '新建笔记'
                     },
                     {
-                        id: 1,
+                        id: 'allStarNotes',
                         title: '收藏'
                     },
                     {
-                        id: 2,
+                        id: 'allNotes',
                         title: '全部笔记'
                     },
                     /*笔记本*/
                     {
-                        id: 3,
+                        id: 'noteBooks',
                         title: '笔记本',
-                        children: this.$store.state.noteBooks
+                        children: this.$store.state.noteBooksTree
                     },
                     /*标签*/
                     {
-                        id: 4,
+                        id: 'allTags',
                         title: '标签',
                         children: this.$store.state.tags
                     },
                     /*废纸篓*/
                     {
-                        id: 5,
+                        id: 'wastePaper',
                         title: '废纸篓'
                     },
 
@@ -116,29 +115,27 @@
             * */
             handleNodeClick(data, node, e) {
                 /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
-                console.log('clicked Node',data.id,data.title);
+                // console.log('clicked Node',data.id,data.title);
                 switch (data.id) {
-                    case 6:
+                    case 'insertNote':
                         this.insertNote();
                         break;
-                    case 1:
-                        this.initCurrentNoteList(this.$store.state.starNoteList);
+                    case 'allStarNotes':
+                        this.initCurrentNoteListByName("starNoteList", 1);
                         break; // 收藏笔记
-                    case 2:
-                        this.initCurrentNoteList(this.$store.state.notes);
+                    case 'noteBooks': //'笔记本'
+                    case 'allNotes':
+                        this.initCurrentNoteListByName("notes", 0);
                         break;//所有笔记
-                    case 3:
-                        console.log();
-                        break;//'笔记本'
-                    case 4:
+                    case 'allTags':
                         console.log('标签');
                         break;
-                    case 5:
-                        this.initCurrentNoteList(this.$store.state.logicDeletedNotesList);
+                    case 'wastePaper':
+                        this.initCurrentNoteListByName("logicDeletedNotesList", 2);
                         break; /*'废纸篓' */
+                    default:
+                        this.initCurrentNoteListByName("noteBookNameId", data.id);
                 }
-
-
             },
             insertNote() {
                 console.log('insertNote')
@@ -157,12 +154,23 @@
                 })
             },
 
-            initCurrentNoteList(currentNoteList) {
-                this.$store.state.currentNoteList = currentNoteList
+            /*初始化笔记列表和笔记本*/
+            initCurrentNoteListByName(currentNoteBookName, noteBookId) {
+
+                if (currentNoteBookName == "noteBookNameId") {
+                    console.log('noteBookId is ', noteBookId);
+                    /*获取所有子笔记*/
+                    let parentIds =  this.getChildrenIds(noteBookId,this.$store.state.noteBooksTree)
+                    console.log('parentIds are ',parentIds)
+                    this.$store.state.currentNoteList =  this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
+                } else {
+                    this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
+                }
                 if (this.$store.state.currentNoteList.length > 0) {
-                    this.$store.state.currentNote = currentNoteList[0]
+                    this.$store.state.currentNote = this.$store.state.currentNoteList[0]
                     this.$store.state.currentIndex = 0
                 }
+                this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == noteBookId)[0]
             },
             handleDragStart(node, ev) {
                 // console.log('drag start', node);
@@ -183,7 +191,7 @@
             getIds(draggingNode) {
                 let [preId, currentId, nextId, currentIndex] = [0, 0, 0, 0]
                 let brotherNotes = this.$refs.mytree.getNode(draggingNode.data.id).parent.data.children
-               /* console.log(brotherNotes)*/
+                /* console.log(brotherNotes)*/
                 if (brotherNotes.length == 1) {
                     currentId = brotherNotes[0].id
                     console.log('只有一个节点：', 0, brotherNotes[0].id, 0)
@@ -279,6 +287,32 @@
                 } else {
                     return node.data.title
                 }
+            },
+
+            //遍历树 找到所有子id
+            getChildrenIds(noteBookId,pData) {
+                for(let n of pData){
+                    /*在自身节点中找*/
+                    if(n.id == noteBookId) {
+                        let res = []
+                        this.getChildrenNotes(n,res)
+                        return res
+                    }
+                    /*在子节点中找*/
+                    if(n.children.length > 0 ){
+                        let res = this.getChildrenIds(noteBookId,n.children)
+                        if(res) return res
+                    }
+                }
+            },
+            getChildrenNotes(treeNode,res) {
+                if(treeNode.children.length > 0 ){
+                    treeNode.children.forEach((n) =>{
+                        this.getChildrenNotes(n,res)
+                    })
+                }
+                res.push(treeNode.id)
+
             }
         },
         created() {
