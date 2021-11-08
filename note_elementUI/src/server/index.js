@@ -18,6 +18,10 @@ export function getNotebooks() {
     return vm.get('/api/admin/noteBook/allNoteBooks')
 }
 
+export function getNoteBooksTree() {
+    return vm.get('/api/admin/noteBook/noteBooksTree')
+}
+
 export function updateNotebook(data) {
     return vm.post('/api/admin/noteBook/updateNotebook', data)
 }
@@ -72,6 +76,7 @@ export default {
         Vue.prototype.https = {
             getNotebooks,
             updateNotebook,
+            getNoteBooksTree,
             getTags,
             updateTag,
             getNotes,

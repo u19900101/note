@@ -9,9 +9,14 @@ let response = {
     "last_logindate": "2015-03-10 12:55",
   }
 }
-let res = []
+/*let res = []
 for (let key in response.data) {
   console.log(key, response.data[key]);
   res[key] = response.data[key]
 }
-console.log(res)
+console.log(res)*/
+
+let arr = ['a','b','c']
+for (let a in arr) {
+  console.log(a,arr[a]);
+}

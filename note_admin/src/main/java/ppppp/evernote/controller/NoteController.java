@@ -1,10 +1,12 @@
 package ppppp.evernote.controller;
 
 
-import com.sun.javafx.binding.ObjectConstant;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.client.RestTemplate;
 import ppppp.evernote.entity.Note;
 import ppppp.evernote.entity.Notebook;
 import ppppp.evernote.entity.Sortway;
@@ -62,8 +64,11 @@ public class NoteController {
     public String updateNote(@RequestBody Note note) {
         boolean isUpdateNoteBookCountSucceed = true;
         boolean isWastepaperSucceed = true;
+        int oldPid =  noteService.getById(note.getId()).getPid();
         // 设置修改时间为当前时间
         note.setUpdateTime(new Date());
+        // 更新 笔记
+        boolean b = noteService.updateById(note);
 
         // 更新 笔记本  携带 pid 则表示移动笔记
         if (note.getPid() != null && note.getWastepaper() == null) {
@@ -71,9 +76,12 @@ public class NoteController {
             boolean updateNewNoteBooks = updateNoteCountWrapper(note.getPid(), 1);
 
             //旧笔记本级联 -1
-            Notebook OldNotebook = notebookService.getById(noteService.getById(note.getId()).getPid());
+            Notebook OldNotebook = notebookService.getById(oldPid);
             boolean updateOldNotebook = updateNoteCountWrapper(OldNotebook.getId(), -1);
             isUpdateNoteBookCountSucceed = updateNewNoteBooks && updateOldNotebook;
+
+            //封装tree进行返回
+            return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
         }
         // 收藏数量 +1  -1
         if (note.getStar() != null) {
@@ -92,9 +100,22 @@ public class NoteController {
             isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - 1));
 
         }
-        // 更新 笔记
-        boolean b = noteService.updateById(note);
+
         return ResultUtil.successWithData(b && isUpdateNoteBookCountSucceed && isWastepaperSucceed);
+    }
+
+
+    public static String sendPostRequest(String url) {
+        RestTemplate client = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        HttpMethod method = HttpMethod.POST;
+        // 以表单的方式提交
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        //将请求头部和参数合成一个请求
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(headers);
+        //执行HTTP请求，将返回的结构使用ResultVO类格式化
+        ResponseEntity<String> response = client.exchange(url, method, requestEntity, String.class);
+        return response.getBody();
     }
 
     /* 包含 1.状态修改 2.逻辑删除 */
@@ -142,14 +163,15 @@ public class NoteController {
         note.setTitle("");
         note.setContent("");
         noteService.save(note);
-        //Note byId = noteService.getById(note.getId());
+        Note newNote = noteService.getById(note.getId());
 
         // 给 所在笔记本和所有父节点的数量 + 1
         boolean isSucceed = updateNoteCountWrapper(note.getPid(), 1);
 
-        return ResultUtil.successWithData(isSucceed);
+        return ResultUtil.successWithData(newNote);
 
     }
+
 
     public boolean updateNoteCountWrapper(int noteBookId, int count) {
         boolean isSucceed = true;

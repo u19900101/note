@@ -7,8 +7,9 @@
             <el-tree :data="data"
                      ref="mytree"
                      node-key="id"
-                     :expand-on-click-node = false
-                     :highlight-current = "true"
+                     default-expand-all
+                     :expand-on-click-node=false
+                     :highlight-current="true"
                      @node-click="handleNodeClick"
                      @node-drag-start="handleDragStart"
                      @node-drag-enter="handleDragEnter"
@@ -43,6 +44,7 @@
 
 <script>
     import borderLine from "./BorderLine";
+    import {getNoteBooksTree} from "../server";
 
     export default {
         name: "tree",
@@ -57,38 +59,6 @@
                 navMin: 150,
                 //收藏-1 笔记-2 笔记本-3 标签-4  废纸篓-5  新建笔记-6
                 icons: ['el-icon-star-on', 'el-icon-document', 'el-icon-notebook-2', 'el-icon-discount', 'el-icon-delete', 'el-icon-circle-plus-outline'],
-                data: [
-                    {
-                        id: 'insertNote',
-                        title: '新建笔记'
-                    },
-                    {
-                        id: 'allStarNotes',
-                        title: '收藏'
-                    },
-                    {
-                        id: 'allNotes',
-                        title: '全部笔记'
-                    },
-                    /*笔记本*/
-                    {
-                        id: 'noteBooks',
-                        title: '笔记本',
-                        children: this.$store.state.noteBooksTree
-                    },
-                    /*标签*/
-                    {
-                        id: 'allTags',
-                        title: '标签',
-                        children: this.$store.state.tags
-                    },
-                    /*废纸篓*/
-                    {
-                        id: 'wastePaper',
-                        title: '废纸篓'
-                    },
-
-                ],
 
                 defaultProps: {
                     children: 'children',
@@ -143,8 +113,9 @@
             },
             insertNote() {
                 console.log('insertNote')
-                /* 若当前笔记为空 则指定 id = 3 笔记本为本次默认笔记本*/
+                /* 若当前笔记 所有笔记、收藏、废纸篓 则指定 id = 3 (我的抗战)笔记本为本次默认笔记本*/
                 let pid = this.$store.state.currentNoteBook.id
+                if (pid < 2) pid = 3
                 this.https.insertNote({'pid': pid}).then(({data}) => {
                     let newNote = data.data;
                     console.log("新建笔记 ", data);
@@ -152,15 +123,31 @@
                     this.$store.state.currentNoteList.unshift(newNote)
                     this.$store.state.currentNote = newNote
                     this.$store.state.currentIndex = 0  // 让新建的笔记处于选中状态
-                    // todo 选择笔记本的情况下 需要对notes 进行追加，因为此时 currentNoteList 指向为当前笔记本
+
 
                     // 修改相应笔记本的笔记数量  和树形列表的显示
                     this.$store.state.noteBooks.filter(item => item.id == pid)[0].noteCount += 1
                     // 树形  更新本节点和所有父节点的数量
-
+                    //  选择笔记本的情况下 需要对notes 进行追加，因为此时 currentNoteList 指向为当前笔记本
+                    //    3.将新建笔记加入notes中
+                    if (this.$store.state.currentNoteBook.id > 2) {
+                        this.$store.state.notes.unshift(newNote)
+                    }
+                    //    4.更新笔记数量的显示
+                    this.https.getNoteBooksTree().then(({data}) => {
+                        console.log('xxx')
+                        this.$store.state.noteBooksTree = data.data
+                        this.addNoteCount(this.$store.state.noteBooksTree)
+                    })
                 })
             },
-
+            //遍历树 更新全部的笔记数量
+            addNoteCount(treeData) {
+                treeData.forEach((n) => {
+                    n.title += ' (' + n.noteCount + ')'
+                    if (n.children.length > 0) this.addNoteCount(n.children)
+                })
+            },
             /*初始化笔记列表和笔记本*/
             initCurrentNoteListByName(currentNoteBookName, noteBookId) {
 
@@ -320,6 +307,46 @@
                 }
                 res.push(treeNode.id)
 
+            }
+        },
+        computed: {
+            data: {
+                get: function () {
+                    return [
+                        {
+                            id: 'insertNote',
+                            title: '新建笔记'
+                        },
+                        {
+                            id: 'allStarNotes',
+                            title: '收藏'
+                        },
+                        {
+                            id: 'allNotes',
+                            title: '全部笔记'
+                        },
+                        /*笔记本*/
+                        {
+                            id: 'noteBooks',
+                            title: '笔记本',
+                            children: this.$store.state.noteBooksTree
+                        },
+                        /*标签*/
+                        {
+                            id: 'allTags',
+                            title: '标签',
+                            children: this.$store.state.tags
+                        },
+                        /*废纸篓*/
+                        {
+                            id: 'wastePaper',
+                            title: '废纸篓'
+                        },
+                    ]
+                },
+                set: function (newValue) {
+
+                }
             }
         },
         created() {

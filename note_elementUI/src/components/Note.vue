@@ -160,7 +160,11 @@
                         id: this.$store.state.currentNote.id,
                         pid: currentNoteBook.value
                     }).then(({data}) => {
-                        console.log("移动笔记本成功", data);
+                        console.log("移动笔记本成功",  data);
+                        // 进行全量更新树  级联更新自己和新笔记本 显示的笔记数量
+                        // 放弃局部更新树(遍历判断树的次数更频繁)
+                        this.$store.state.noteBooksTree = data.data
+                        this.addNoteCount(this.$store.state.noteBooksTree)
                     })
                 }
             },
@@ -288,6 +292,13 @@
                     this.$store.state.currentIndex = 0
                     this.$store.state.currentNote = this.$store.state.currentNoteList[0]
                 }
+            },
+            //遍历树 更新全部的笔记数量
+            addNoteCount(treeData) {
+                treeData.forEach((n) =>{
+                    n.title += ' (' + n.noteCount + ')'
+                    if(n.children.length > 0 ) this.addNoteCount(n.children)
+                })
             }
         },
 

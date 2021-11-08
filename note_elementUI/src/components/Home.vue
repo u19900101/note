@@ -58,6 +58,7 @@
                 // 1.获取笔记本数据 初始化笔记本
                 this.https.getNotebooks().then(({data}) => {
                     this.$store.state.noteBooks = data.data[0]
+                    /*默认初始化选择所有笔记*/
                     this.$store.state.currentNoteBook = data.data[0][0]
                     /* 将noteBookTree 封装上笔记的数量*/
                     this.addNoteCount(data.data[1])

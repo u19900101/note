@@ -51,6 +51,18 @@ public class NotebookController {
         list.add(notebookService.lambdaQuery().list());
 
         /*添加封装为tree 的 notebook*/
+        list.add(getNoteBooksTree());
+        return ResultUtil.successWithData(list);
+    }
+
+    /*添加封装为tree 的 notebook*/
+    @RequestMapping("/noteBooksTree")
+    public String noteBooksTree() {
+        return ResultUtil.successWithData(getNoteBooksTree());
+    }
+
+
+    public List<Notebook> getNoteBooksTree() {
         List<Notebook> notebooksList = notebookService.lambdaQuery()
                 .eq(Notebook::getPid, 0)
                 .orderByAsc(Notebook::getSort)
@@ -58,9 +70,7 @@ public class NotebookController {
         for (Notebook notebook : notebooksList) {
             getChildren(notebook);
         }
-
-        list.add(notebooksList);
-        return ResultUtil.successWithData(list);
+        return notebooksList;
     }
 
 
