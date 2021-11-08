@@ -21,8 +21,9 @@
                                size="small"
                                :disabled="$store.state.currentNote.wastepaper"
                                :style="{width: getBt(currentNoteBook.label)*6 + 70+ 'px'}">
+                        <!--slice(3) 过滤掉 数据库中 所有笔记，收藏，废纸篓三项-->
                         <el-option
-                                v-for="item in $store.state.noteBooks"
+                                v-for="item in $store.state.noteBooks.slice(3)"
                                 :key="item.id"
                                 :label="item.title"
                                 :value="{ value: item.id, label: item.title }">
@@ -151,16 +152,15 @@
                     let currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == this.$store.state.currentNote.pid)[0]
                     return { value: currentNoteBook.id,label:currentNoteBook.title}
                 },
-                set: function (newValue) {
-                    // 更新笔记本的id
-                    this.$store.state.currentNote.pid = newValue.id
+                set: function (currentNoteBook) {
+                    // 更新笔记本的id  {"value": 4,"label": "数据库"}
+                    this.$store.state.currentNote.pid = currentNoteBook.value
 
-                    this.$store.state.currentNote.star = newValue
                     this.https.updateNote({
                         id: this.$store.state.currentNote.id,
-                        pid: newValue.id
+                        pid: currentNoteBook.value
                     }).then(({data}) => {
-                        console.log("修改数据库成功", data);
+                        console.log("移动笔记本成功", data);
                     })
                 }
             },
@@ -253,7 +253,7 @@
                     /* 2.更新 logicDeletedNotesList*/
                     if (!this.$store.state.currentNote.wastepaper) {//从列表移入到废纸篓
                         this.$store.state.currentNote.wastepaper = true
-                        this.$store.state.logicDeletedNotesList.unshift(this.$store.state.currentNote)
+                        this.$store.state.wastepaperNotesList.unshift(this.$store.state.currentNote)
                     }
 
                     /* 3.修改当前选中的笔记*/
@@ -275,6 +275,12 @@
                 this.$store.state.currentNote.wastepaper = false
                 this.$store.state.notes.unshift(this.$store.state.currentNote)
 
+
+                /*4.后台 将 wastepaper设置为 false*/
+                this.https.updateNote({id: this.$store.state.currentNote.id, pid:this.$store.state.currentNote.pid,wastepaper: false}).then(({data}) => {
+                    console.log("修改数据库成功", data);
+                })
+
                 /*2.将 当前笔记移出  */
                 this.$store.state.currentNoteList.splice(this.$store.state.currentIndex, 1)
                 /* 3.修改当前选中的笔记*/
@@ -282,10 +288,6 @@
                     this.$store.state.currentIndex = 0
                     this.$store.state.currentNote = this.$store.state.currentNoteList[0]
                 }
-                /*4.后台 将 wastepaper设置为 false*/
-                this.https.updateNote({id: this.$store.state.currentNote.id, wastepaper: false}).then(({data}) => {
-                    console.log("修改数据库成功", data);
-                })
             }
         },
 

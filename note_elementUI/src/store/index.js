@@ -65,7 +65,7 @@ const state = {
     sortWay:{},
 
     /*************废纸篓*************/
-    logicDeletedNotesList: []
+    wastepaperNotesList:[]
 }
 
 //创建并暴露store

@@ -135,7 +135,7 @@
                         console.log('标签');
                         break;
                     case 'wastePaper':
-                        this.initCurrentNoteListByName("logicDeletedNotesList", 2);
+                        this.initCurrentNoteListByName("wastepaperNotesList", 2);
                         break; /*'废纸篓' */
                     default:
                         this.initCurrentNoteListByName("noteBookNameId", data.id);

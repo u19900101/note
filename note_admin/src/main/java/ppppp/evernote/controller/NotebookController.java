@@ -48,8 +48,9 @@ public class NotebookController {
     public String allNotebooks() {
         ArrayList<List<Notebook>> list = new ArrayList<>();
         /*添加原始notebook数据*/
-
         list.add(notebookService.lambdaQuery().list());
+
+        /*添加封装为tree 的 notebook*/
         List<Notebook> notebooksList = notebookService.lambdaQuery()
                 .eq(Notebook::getPid, 0)
                 .orderByAsc(Notebook::getSort)
@@ -57,7 +58,7 @@ public class NotebookController {
         for (Notebook notebook : notebooksList) {
             getChildren(notebook);
         }
-        /*添加原始notebook数据*/
+
         list.add(notebooksList);
         return ResultUtil.successWithData(list);
     }

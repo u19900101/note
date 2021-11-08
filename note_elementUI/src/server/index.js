@@ -27,8 +27,8 @@ export function updateNotebook(data) {
 export function getNotes() {
     return vm.get('/api/admin/note/allNotes')
 }
-export function getLogicDeletedNotes() {
-    return vm.get('/api/admin/note/getLogicDeletedNotes')
+export function getWastepaperNotes() {
+    return vm.get('/api/admin/note/getWastepaperNotes')
 }
 // 更新笔记的标题和内容
 export function updateNote(data) {
@@ -83,7 +83,7 @@ export default {
             updateSortWay,
 
             deleteNote,
-            getLogicDeletedNotes,
+            getWastepaperNotes,
         }
     }
 }

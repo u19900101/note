@@ -63,8 +63,8 @@
                     this.addNoteCount(data.data[1])
                     this.$store.state.noteBooksTree = data.data[1]
                     // console.log('kkkk',data.data[1])
-                    this.https.getLogicDeletedNotes().then(({data}) => {
-                        this.$store.state.logicDeletedNotesList = data.data
+                    this.https.getWastepaperNotes().then(({data}) => {
+                        this.$store.state.wastepaperNotesList = data.data
                     })
                 }).then(() => {
                     // 2.获取笔记数据 初始化 notes
