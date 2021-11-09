@@ -95,7 +95,7 @@
                         this.insertNote();
                         break;
                     case 'allStarNotes':
-                        this.initCurrentNoteListByName("starNoteList", 1);
+                        this.initCurrentNoteListByName("starNotesList", 1);
                         break; // 收藏笔记
                     case 'noteBooks': //'笔记本'
                     case 'allNotes':
@@ -108,7 +108,14 @@
                         this.initCurrentNoteListByName("wastepaperNotesList", 2);
                         break; /*'废纸篓' */
                     default:
-                        this.initCurrentNoteListByName("noteBookNameId", data.id);
+                        /*区分是 点击的是笔记本 还是 标签*/
+                        let firstLevelTitle = this.getfirstLevelTitle(node)
+                        if (firstLevelTitle == '笔记本') {
+                            this.initCurrentNoteListByName("noteBookNameId", data.id);
+                        } else {
+                            this.initTagNotesListByTagId(data)
+                        }
+
                 }
             },
             insertNote() {
@@ -220,7 +227,7 @@
                     currentId,
                     nextId,// 当拖拽到一级节点下时  给pid 赋值为 0 与数据库保持一致
                     pid: currentParentNode.level == 1 ? 0 : currentParentNode.data.id,
-                    oldPid:draggingNode.data.pid
+                    oldPid: draggingNode.data.pid
                 }
                 // 笔记本 - 3
                 if (firstLevelTitle == '笔记本') {
@@ -303,6 +310,36 @@
                 }
                 res.push(treeNode.id)
 
+            },
+            initTagNotesListByTagId(data) {
+                /*1.查找当前标签的所有子标签*/
+                let tagIds = []
+                this.getTagChildrenIds(tagIds,data)
+                /*2.找到 包含tagIds 的所有笔记*/
+                /*3.初始化 currentNoteList */
+                this.$store.state.currentNoteList = this.$store.state.notes.filter((n) => {
+                    /*判断两者的tagList是否有交集*/
+                    if(n.tagList.length > 0 ){
+                        let resIds = n.tagList.filter(function(v){ return tagIds.indexOf(v.id) != -1 })
+                        return resIds.length > 0
+                    }
+                    return false
+                })
+                /*3.初始化 currentNote currentNoteBook*/
+                if (this.$store.state.currentNoteList.length > 0) {
+                    this.$store.state.currentNote = this.$store.state.currentNoteList[0]
+                    this.$store.state.currentIndex = 0
+                    this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == this.$store.state.currentNote.pid)[0]
+                }
+            },
+            getTagChildrenIds(tagIds,data) {
+                tagIds.push(data.id)
+                if(data.children.length > 0) {
+                    data.children.forEach((n) =>{
+                        this.getTagChildrenIds(tagIds,n)
+                    })
+
+                }
             }
         },
         computed: {
@@ -315,11 +352,11 @@
                         },
                         {
                             id: 'allStarNotes',
-                            title: '收藏 (' + this.$store.state.starNoteList.length  +')'
+                            title: '收藏 (' + this.$store.state.starNotesList.length + ')'
                         },
                         {
                             id: 'allNotes',
-                            title: '全部笔记 (' + this.$store.state.notes.length  +')'
+                            title: '全部笔记 (' + this.$store.state.notes.length + ')'
                         },
                         /*笔记本*/
                         {
@@ -336,7 +373,7 @@
                         /*废纸篓*/
                         {
                             id: 'wastePaper',
-                            title: '废纸篓 (' + this.$store.state.wastepaperNotesList.length  +')'
+                            title: '废纸篓 (' + this.$store.state.wastepaperNotesList.length + ')'
                         },
                     ]
                 },

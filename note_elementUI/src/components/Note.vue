@@ -210,14 +210,14 @@
                 });
                 /*更新收藏笔记的数据*/
                 if (this.star) {
-                    this.$store.state.starNoteList.push(this.$store.state.currentNote)
+                    this.$store.state.starNotesList.push(this.$store.state.currentNote)
                     /* 2.更新所有笔记*/
                     this.$store.state.notes.forEach((n) => {
                         if (n.id == this.$store.state.currentNote.id) n.star = true
                     })
 
                 } else {
-                    this.removeCurrentNoteByTypeName('starNoteList')
+                    this.removeCurrentNoteByTypeName('starNotesList')
                     /* 2.更新所有笔记*/
                     this.$store.state.notes.forEach((n) => {
                         if (n.id == this.$store.state.currentNote.id) n.star = false

@@ -55,12 +55,12 @@ const state = {
     searchNotesList: [],  //为搜索的结果单独开启空间保存
     searchNote: {},        // 展示的当前搜素结果
     /*************收藏*************/
-    starNoteList: [],
+    starNotesList: [],
 
     /*************标签*************/
     isTagNotesShow: false, //标签笔记是否显示
     tags:[],
-
+    tagNotesList: [],
     /*************排序*************/
     sortWay:{},
 

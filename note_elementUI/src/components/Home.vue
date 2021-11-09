@@ -76,11 +76,13 @@
                         this.$store.state.currentNoteList = this.$store.state.notes; // 进入的笔记本列表数据
                         this.$store.state.currentNoteBookNoteList = this.$store.state.notes;
 
-                        this.$store.state.starNoteList = this.$store.state.notes.filter((note) => note.star == true)
+                        this.$store.state.starNotesList = this.$store.state.notes.filter((note) => note.star == true)
 
                         // 3.获取标签数据
                         this.https.getTags().then(({data}) => {
+                            /* 将标签数据 封装上笔记的数量*/
                             this.$store.state.tags = data.data;
+                            this.tool.addNoteCount(this.$store.state.tags)
                         }).then(() => {
                             // 创建页面时初始化
                             // 1.先初始化 列表  在列表排序中初始化 noteId
