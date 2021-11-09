@@ -137,15 +137,8 @@
                     this.https.getNoteBooksTree().then(({data}) => {
                         console.log('xxx')
                         this.$store.state.noteBooksTree = data.data
-                        this.addNoteCount(this.$store.state.noteBooksTree)
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree)
                     })
-                })
-            },
-            //遍历树 更新全部的笔记数量
-            addNoteCount(treeData) {
-                treeData.forEach((n) => {
-                    n.title += ' (' + n.noteCount + ')'
-                    if (n.children.length > 0) this.addNoteCount(n.children)
                 })
             },
             /*初始化笔记列表和笔记本*/
@@ -228,18 +221,22 @@
                     currentId,
                     nextId,// 当拖拽到一级节点下时  给pid 赋值为 0 与数据库保持一致
                     pid: currentParentNode.level == 1 ? 0 : currentParentNode.data.id,
+                    oldPid:draggingNode.data.pid
                 }
                 // 笔记本 - 3
                 if (firstLevelTitle == '笔记本') {
                     console.log('noteBook...', firstLevelTitle);
                     this.https.updateNotebook(obj).then(({data}) => {
                         console.log('更新笔记本成功', data)
+                        /*更新tree*/
+                        this.$store.state.noteBooksTree = data.data
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree)
                     })
                 } else {  // 标签 - 4 操作
                     console.log('tag...', firstLevelTitle);
-                    this.https.updateTag(obj).then(({data}) => {
-                        console.log('更新笔记本成功', data)
-                    })
+                   /* this.https.updateTag(obj).then(({data}) => {
+                        console.log('更新tag成功', data)
+                    })*/
                 }
 
 

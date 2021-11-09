@@ -1,17 +1,14 @@
 package ppppp.evernote.controller;
 
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.*;
 
 
-import ppppp.evernote.entity.Note;
+import org.springframework.web.client.RestTemplate;
 import ppppp.evernote.entity.Notebook;
-import ppppp.evernote.entity.Tag;
-import ppppp.evernote.mapper.NoteMapper;
-import ppppp.evernote.mapper.NotebookMapper;
-import ppppp.evernote.mapper.TagMapper;
+
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.util.ResultUtil;
 
@@ -19,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
+import static ppppp.evernote.util.RequestUtils.sendPostRequest;
 
 /**
  * <p>
@@ -32,17 +31,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/noteBook")
 public class NotebookController {
-    @Autowired
-    private NotebookMapper notebookMapper;
 
     @Autowired
     private NotebookService notebookService;
-
-    @Autowired
-    private NoteMapper noteMapper;
-
-    @Autowired
-    private TagMapper tagMapper;
 
     @RequestMapping("/allNoteBooks")
     public String allNotebooks() {
@@ -76,19 +67,50 @@ public class NotebookController {
 
     @PostMapping("/updateNotebook")
     public String updateNotebook(@RequestBody HashMap obj) {
+
+        /*获取数据*/
         System.out.println(obj);
         Integer currentId = (Integer) obj.get("currentId");
         Notebook notebook = notebookService.getById(currentId);
-        Integer pid = (Integer) obj.get("pid");
-        notebook.setPid(pid);
+        Integer newPid  = (Integer) obj.get("pid");
+        Integer oldPid = (Integer) obj.get("oldPid");
+        notebook.setPid(newPid);
 
-        float sort = getSort(obj);
+        /*1.级联更新笔记本数量*/
+        boolean isUpdateNoteBookCountSucceed = updateAncestorsNoteBooks(oldPid,newPid,notebook.getNoteCount());
+        if(isUpdateNoteBookCountSucceed) {
+            /*2.更新笔记本的pid*/
+            /*获取排序的指标值*/
+            float sort = getSort(obj);
+            notebook.setSort(sort);
+            notebook.setUpdateTime(new Date());//设置更新时间
+            boolean b = notebookService.updateById(notebook);
 
-        notebook.setSort(sort);
-        notebook.setUpdateTime(new Date());//设置更新时间
-        boolean b = notebookService.updateById(notebook);
-        return ResultUtil.successWithData(b);
+            //封装tree进行返回
+            if(b) return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
+            return ResultUtil.errorWithMessage("error");
+        }
+        return ResultUtil.errorWithMessage("error");
     }
+
+    private boolean updateAncestorsNoteBooks(Integer oldPid, Integer newPid, int count) {
+        // 新笔记本级联 +count
+        boolean updateNewNoteBooks = updateNoteCountWrapper(newPid, count);
+
+        //旧笔记本级联 -count
+        boolean updateOldNotebook = updateNoteCountWrapper(oldPid, -count);
+        boolean isUpdateNoteBookCountSucceed = updateNewNoteBooks && updateOldNotebook;
+        return isUpdateNoteBookCountSucceed;
+    }
+
+    private boolean updateNoteCountWrapper(Integer noteBookId, int count) {
+        RestTemplate restTemplate = new RestTemplate();
+        //1. 简单Get请求
+        String rootUrl = "http://localhost:8080/admin/note/updateNoteCountWrapper";
+        String result = restTemplate.getForObject(rootUrl + "?noteBookId="+noteBookId+"&count="+count, String.class);
+       return "true".contentEquals(result);
+    }
+
     public float getSort(HashMap obj) {
         float preSort = -1, nextSort = -1,sort = 1;
 

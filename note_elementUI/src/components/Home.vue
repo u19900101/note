@@ -61,7 +61,7 @@
                     /*默认初始化选择所有笔记*/
                     this.$store.state.currentNoteBook = data.data[0][0]
                     /* 将noteBookTree 封装上笔记的数量*/
-                    this.addNoteCount(data.data[1])
+                    this.tool.addNoteCount(data.data[1])
                     this.$store.state.noteBooksTree = data.data[1]
                     // console.log('kkkk',data.data[1])
                     this.https.getWastepaperNotes().then(({data}) => {
@@ -103,12 +103,6 @@
 
                         })
                     })
-                })
-            },
-            addNoteCount(treeData) {
-                treeData.forEach((n) =>{
-                    n.title += ' (' + n.noteCount + ')'
-                    if(n.children.length > 0 ) this.addNoteCount(n.children)
                 })
             }
         },

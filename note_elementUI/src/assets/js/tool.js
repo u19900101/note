@@ -6,7 +6,8 @@ export default {
         Vue.prototype.tool = {
             getfirstLevelId,
             getDateTimes,
-            sortWay
+            sortWay,
+            addNoteCount
         }
     }
 }
@@ -96,5 +97,14 @@ function getTime(strTime){
     let str = date.getTime(); //转换成时间戳
     // str = str / 1000;
     return str
+}
+
+/**给笔记本名称后封装数量的显示*/
+//遍历树 更新全部的笔记数量
+function addNoteCount(treeData) {
+    treeData.forEach((n) =>{
+        n.title += ' (' + n.noteCount + ')'
+        if(n.children.length > 0 ) this.addNoteCount(n.children)
+    })
 }
 

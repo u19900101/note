@@ -28,4 +28,15 @@ public class testPostRequest {
         ResponseEntity<String> response = client.exchange(url, method, requestEntity, String.class);
         return response.getBody();
     }
+
+    @Test
+    public void T_kk(){
+        RestTemplate restTemplate = new RestTemplate();
+        //1. 简单Get请求
+        String rootUrl = "http://localhost:8080/admin/note/updateNoteCountWrapper";
+        int noteBookId = 3;
+        int count = -1;
+        String result = restTemplate.getForObject(rootUrl + "?noteBookId="+noteBookId+"&count="+count, String.class);
+        System.out.println("简单Get请求:" + result);
+    }
 }

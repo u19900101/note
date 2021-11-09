@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static ppppp.evernote.util.RequestUtils.sendPostRequest;
+
 /**
  * <p>
  * 笔记 前端控制器
@@ -105,18 +107,6 @@ public class NoteController {
     }
 
 
-    public static String sendPostRequest(String url) {
-        RestTemplate client = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        HttpMethod method = HttpMethod.POST;
-        // 以表单的方式提交
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        //将请求头部和参数合成一个请求
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(headers);
-        //执行HTTP请求，将返回的结构使用ResultVO类格式化
-        ResponseEntity<String> response = client.exchange(url, method, requestEntity, String.class);
-        return response.getBody();
-    }
 
     /* 包含 1.状态修改 2.逻辑删除 */
     @PostMapping("/deleteNote")
@@ -172,7 +162,7 @@ public class NoteController {
 
     }
 
-
+    @RequestMapping("/updateNoteCountWrapper")
     public boolean updateNoteCountWrapper(int noteBookId, int count) {
         boolean isSucceed = true;
         try {
