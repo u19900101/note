@@ -69,6 +69,14 @@
                     </el-button>
                 </el-tooltip>
 
+
+                <el-button @click="clearAllWasteNotes" size="small" type="danger" round
+                           v-if="$store.state.currentNote.wastepaper"
+                           style="margin-left: 10px;">
+                    清空废纸篓
+                </el-button>
+
+
             </el-row>
         </el-header>
 
@@ -251,6 +259,10 @@
                 //      2.2.3 当前的note页面显示 栈顶笔记
                 this.https.deleteNote({id: this.$store.state.currentNote.id}).then(({data}) => {
                     console.log("删除成功", data);
+                    /*更新笔记本中笔记的数量 更新树形展示*/
+                    this.$store.state.noteBooksTree = data.data
+                    this.tool.addNoteCount(data.data)
+
                     /* 1.更新所有笔记*/
                     this.removeCurrentNoteByTypeName('notes')
 
@@ -267,11 +279,6 @@
                         this.$store.state.currentNote = this.$store.state.currentNoteList[0]
                     }
                 })
-                //  更新笔记本中笔记的数量
-                /*this.$store.state.noteBookModule.noteBooks.filter((item) => item.id == this.pid)[0].noteCount -= 1
-                if(this.$store.state.noteBookModule.currentNoteBook.id != 0){
-                    this.updateNotes()
-                }*/
             },
             /*恢复删除的笔记*/
             recoverNote() {
@@ -279,9 +286,12 @@
                 this.$store.state.currentNote.wastepaper = false
                 this.$store.state.notes.unshift(this.$store.state.currentNote)
 
-
                 /*4.后台 将 wastepaper设置为 false*/
-                this.https.updateNote({id: this.$store.state.currentNote.id, pid:this.$store.state.currentNote.pid,wastepaper: false}).then(({data}) => {
+                this.https.updateNote({
+                    id: this.$store.state.currentNote.id,
+                    pid: this.$store.state.currentNote.pid,
+                    wastepaper: false
+                }).then(({data}) => {
                     console.log("修改数据库成功", data);
                 })
 
@@ -292,8 +302,41 @@
                     this.$store.state.currentIndex = 0
                     this.$store.state.currentNote = this.$store.state.currentNoteList[0]
                 }
-            },
 
+                //  4.更新笔记数量的显示  延时加载
+                setTimeout(() => {
+                    this.https.getNoteBooksTree().then(({data}) => {
+                        this.$store.state.noteBooksTree = data.data
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree)
+                    })
+                }, 1000)
+
+            },
+            /*清空废纸篓*/
+            clearAllWasteNotes() {
+
+                this.$confirm('此操作将清空废纸篓是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    center: true
+                }).then(() => {
+                    this.https.clearAllWasteNotes().then(({data}) => {
+                        console.log("清空废纸篓", data);
+                    })
+                    this.$store.state.currentNoteList = []
+                    this.$store.state.wastepaperNotesList = []
+                    this.$message({type: 'success', message: '成功!', duration: 1000,});
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消',
+                        duration: 1000,
+                    });
+                });
+
+
+            }
         },
 
     }

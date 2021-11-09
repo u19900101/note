@@ -1,6 +1,7 @@
 package ppppp.evernote.controller;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
@@ -141,10 +142,18 @@ public class NoteController {
             // 修改废纸篓的数量 +1
             isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() + 1));
         }
-
-        return ResultUtil.successWithData(isUpdateNoteBookCountSucceed && isLogicalDelete && isWastepaperSucceed);
+        if(isUpdateNoteBookCountSucceed && isLogicalDelete && isWastepaperSucceed) return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
+        return ResultUtil.errorWithMessage("error");
     }
 
+    // 清空废纸篓
+    @PostMapping("/clearAllWasteNotes")
+    public String clearAllWasteNotes() {
+        QueryWrapper<Note> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("wastepaper",1);
+        boolean removeAll = noteService.remove(queryWrapper);
+        return ResultUtil.successWithData(removeAll);
+    }
     // 新建笔记
     @PostMapping("/insert")
     public String insertNote(@RequestBody Note note) {

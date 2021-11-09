@@ -133,9 +133,8 @@
                     if (this.$store.state.currentNoteBook.id > 2) {
                         this.$store.state.notes.unshift(newNote)
                     }
-                    //    4.更新笔记数量的显示
+                    //  4.更新笔记数量的显示
                     this.https.getNoteBooksTree().then(({data}) => {
-                        console.log('xxx')
                         this.$store.state.noteBooksTree = data.data
                         this.tool.addNoteCount(this.$store.state.noteBooksTree)
                     })
@@ -316,11 +315,11 @@
                         },
                         {
                             id: 'allStarNotes',
-                            title: '收藏'
+                            title: '收藏 (' + this.$store.state.starNoteList.length  +')'
                         },
                         {
                             id: 'allNotes',
-                            title: '全部笔记'
+                            title: '全部笔记 (' + this.$store.state.notes.length  +')'
                         },
                         /*笔记本*/
                         {
@@ -337,7 +336,7 @@
                         /*废纸篓*/
                         {
                             id: 'wastePaper',
-                            title: '废纸篓'
+                            title: '废纸篓 (' + this.$store.state.wastepaperNotesList.length  +')'
                         },
                     ]
                 },

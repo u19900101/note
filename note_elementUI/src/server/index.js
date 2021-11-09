@@ -42,7 +42,10 @@ export function updateNote(data) {
 export function deleteNote(data) {
     return vm.post('/api/admin/note/deleteNote', data)
 }
-
+// 清空废纸篓
+export function clearAllWasteNotes() {
+    return vm.post('/api/admin/note/clearAllWasteNotes')
+}
 // 使用es 搜索笔记
 export function searchNoteByWords(data) {
     return vm.post('/es/search', data)
@@ -89,6 +92,7 @@ export default {
 
             deleteNote,
             getWastepaperNotes,
+            clearAllWasteNotes,
         }
     }
 }
