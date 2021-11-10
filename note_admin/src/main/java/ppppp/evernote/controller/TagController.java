@@ -53,23 +53,26 @@ public class TagController {
     @PostMapping("/updateTag")
     public String updateTag(@RequestBody HashMap obj) {
         System.out.println(obj);
-        Integer currentId = (Integer) obj.get("currentId");
-        Tag tag = tagService.getById(currentId);
+
         Integer newPid = (Integer) obj.get("pid");
         Integer oldPid = (Integer) obj.get("oldPid");
-        tag.setPid(newPid);
 
         /*1.更新笔记本的pid*/
         /*获取排序的指标值*/
-        float sort = getSort(obj);
-        tag.setSort(sort);
-        tag.setUpdateTime(new Date());//设置更新时间
-        boolean b = tagService.updateById(tag);
+        if(obj.get("preId") != null){
+            Integer currentId = (Integer) obj.get("currentId");
+            Tag tag = tagService.getById(currentId);
+            tag.setPid(newPid);
+            float sort = getSort(obj);
+            tag.setSort(sort);
+            tag.setUpdateTime(new Date());//设置更新时间
+            boolean b = tagService.updateById(tag);
+        }
 
         /*2.根据新的层级关系 级联更新tag数量*/
         boolean isUpdateTagCountSucceed = updateAncestorsTags(oldPid, newPid);
         //封装tree进行返回
-        if (b) return sendPostRequest("http://localhost:8080/admin/tag/allTags");
+        if (isUpdateTagCountSucceed) return sendPostRequest("http://localhost:8080/admin/tag/allTags");
         return ResultUtil.errorWithMessage("error");
     }
 
@@ -96,7 +99,7 @@ public class TagController {
     }
 
 
-    /*级联所在笔记本以及所有的父笔记本*/
+    /*级联所在标签以及所有的父标签*/
     public void updateTagCountById(int tagId) {
         Tag tag = tagService.getById(tagId);
         /*得到所有的子id*/
@@ -107,7 +110,7 @@ public class TagController {
         int count = 0;
         List<Note> allNotes = noteService.lambdaQuery().list();
         for (Note note : allNotes) {
-            if (note.getTagUid() != null) {
+            if (note.getTagUid() != null && note.getTagUid().length() > 1) {
                 /*判断两者是否有交集*/
                 if (isIntersection(note.getTagUid(),tagIds)) count++;
             }

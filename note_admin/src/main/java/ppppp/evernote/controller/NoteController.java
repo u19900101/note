@@ -94,7 +94,6 @@ public class NoteController {
             notebookService.updateById(notebook);
         }
 
-
         // 从废纸篓恢复笔记  1.级联修改相关笔记本的数量 +1  2.废纸篓 -1
         if (note.getWastepaper() != null && note.getWastepaper() == false) {
             isUpdateNoteBookCountSucceed = updateNoteCountWrapper(note.getPid(), 1);
@@ -103,6 +102,7 @@ public class NoteController {
             isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - 1));
 
         }
+
 
         return ResultUtil.successWithData(b && isUpdateNoteBookCountSucceed && isWastepaperSucceed);
     }

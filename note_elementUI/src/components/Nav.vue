@@ -240,25 +240,11 @@
                         this.tool.addNoteCount(this.$store.state.noteBooksTree)
                     })
                 } else {  // 拖拽标签 新旧两个分支 全父节点更新
-                    console.log('tag...');
-
-                   /* /!*获取当前父节点的笔记数量*!/
-                    if (obj.pid != 0) {
-                        obj.NoteCount = this.getNodeCountByTagId(obj.pid, this.$store.state.tags)
-                    }
-
-                    /!*获取原父节点的笔记数量*!/
-                    if (obj.oldPid != 0) {
-                        obj.oldNoteCount = this.getNodeCountByTagId(obj.oldPid, this.$store.state.tags)
-                    }
-
-                    console.log(obj)*/
-
-                     this.https.updateTag(obj).then(({data}) => {
-                         /*更新Tag tree*/
-                         this.$store.state.tags = data.data
-                         this.tool.addNoteCount(this.$store.state.tags)
-                     })
+                    this.https.updateTag(obj).then(({data}) => {
+                        /*更新Tag tree*/
+                        this.$store.state.tags = data.data
+                        this.tool.addNoteCount(this.$store.state.tags)
+                    })
                 }
 
 
@@ -336,7 +322,9 @@
                 if (this.$store.state.currentNoteList.length > 0) {
                     this.$store.state.currentNote = this.$store.state.currentNoteList[0]
                     this.$store.state.currentIndex = 0
-                    this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == this.$store.state.currentNote.pid)[0]
+                    /*给title去掉括号*/
+                    let title = tagNodeData.title.split(' ')[0]
+                    this.$store.state.currentNoteBook = {title: title}
                 }
             },
             getTagChildrenIds(tagIds, data) {

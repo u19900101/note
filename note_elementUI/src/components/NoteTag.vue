@@ -41,15 +41,39 @@
         },
         computed:{
             dynamicTags(){
-                return this.getDynamicTags()
-            }
-        },
-        methods: {
-            getDynamicTags(){
                 let dynamicTags = []
                 this.$store.state.currentNote.tagList.forEach((tag)=>dynamicTags.push(tag.title))
                 return dynamicTags
             },
+        },
+        methods: {
+            /*移除笔记中的某一标签*/
+            handleClose(tagName) {
+                /*修改页面*/
+                let  tagId = this.$store.state.currentNote.tagList.filter((n) => n.title == tagName)[0].id
+
+                this.$store.state.currentNote.tagList = this.$store.state.currentNote.tagList.filter((n) => n.title != tagName)
+                /*更新数据库*/
+                /*将封装tagList为idStr*/
+                let tagUid = ""
+                if(this.$store.state.currentNote.tagList.length > 0){
+                    this.$store.state.currentNote.tagList.forEach((n) => tagUid += n.id + ',')
+                }
+
+                /*更新笔记*/
+                this.https.updateNote({id: this.$store.state.currentNote.id, tagUid: tagUid}).then(({data}) => {
+                    console.log("移除笔记中的某一标签 ", data);
+                    /*删除笔记中某一标签*/
+                    /*oldPid = 0 使其中一个不更新*/
+                    this.https.updateTag({pid: tagId,
+                        oldPid: 0}).then(({data}) => {
+                        /*更新Tag tree*/
+                        this.$store.state.tags = data.data
+                        this.tool.addNoteCount(this.$store.state.tags)
+                    })
+                })
+            },
+
             querySearch(queryString, cb) {
                 let restaurants = this.restaurants;
                 let results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants;
@@ -71,9 +95,6 @@
             handleSelect(item) {
                 this.inputValue = item.value
                 this.handleInputConfirm()
-            },
-            handleClose(tag) {
-                this.dynamicTags.splice(this.dynamicTags.indexOf(tag), 1);
             },
 
             showInput() {
