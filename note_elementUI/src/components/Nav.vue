@@ -113,7 +113,8 @@
                         if (firstLevelTitle == '笔记本') {
                             this.initCurrentNoteListByName("noteBookNameId", data.id);
                         } else {
-                            this.initTagNotesListByTagId(data)
+
+                            this.initTagNotesListByTagNode(data)
                         }
 
                 }
@@ -238,11 +239,26 @@
                         this.$store.state.noteBooksTree = data.data
                         this.tool.addNoteCount(this.$store.state.noteBooksTree)
                     })
-                } else {  // 标签 - 4 操作
-                    console.log('tag...', firstLevelTitle);
-                   /* this.https.updateTag(obj).then(({data}) => {
-                        console.log('更新tag成功', data)
-                    })*/
+                } else {  // 拖拽标签 新旧两个分支 全父节点更新
+                    console.log('tag...');
+
+                   /* /!*获取当前父节点的笔记数量*!/
+                    if (obj.pid != 0) {
+                        obj.NoteCount = this.getNodeCountByTagId(obj.pid, this.$store.state.tags)
+                    }
+
+                    /!*获取原父节点的笔记数量*!/
+                    if (obj.oldPid != 0) {
+                        obj.oldNoteCount = this.getNodeCountByTagId(obj.oldPid, this.$store.state.tags)
+                    }
+
+                    console.log(obj)*/
+
+                     this.https.updateTag(obj).then(({data}) => {
+                         /*更新Tag tree*/
+                         this.$store.state.tags = data.data
+                         this.tool.addNoteCount(this.$store.state.tags)
+                     })
                 }
 
 
@@ -311,20 +327,11 @@
                 res.push(treeNode.id)
 
             },
-            initTagNotesListByTagId(data) {
-                /*1.查找当前标签的所有子标签*/
-                let tagIds = []
-                this.getTagChildrenIds(tagIds,data)
-                /*2.找到 包含tagIds 的所有笔记*/
+            initTagNotesListByTagNode(tagNodeData) {
+
                 /*3.初始化 currentNoteList */
-                this.$store.state.currentNoteList = this.$store.state.notes.filter((n) => {
-                    /*判断两者的tagList是否有交集*/
-                    if(n.tagList.length > 0 ){
-                        let resIds = n.tagList.filter(function(v){ return tagIds.indexOf(v.id) != -1 })
-                        return resIds.length > 0
-                    }
-                    return false
-                })
+                this.$store.state.currentNoteList = this.getNoteListByTagNode(tagNodeData)
+
                 /*3.初始化 currentNote currentNoteBook*/
                 if (this.$store.state.currentNoteList.length > 0) {
                     this.$store.state.currentNote = this.$store.state.currentNoteList[0]
@@ -332,14 +339,41 @@
                     this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == this.$store.state.currentNote.pid)[0]
                 }
             },
-            getTagChildrenIds(tagIds,data) {
+            getTagChildrenIds(tagIds, data) {
                 tagIds.push(data.id)
-                if(data.children.length > 0) {
-                    data.children.forEach((n) =>{
-                        this.getTagChildrenIds(tagIds,n)
+                if (data.children.length > 0) {
+                    data.children.forEach((n) => {
+                        this.getTagChildrenIds(tagIds, n)
                     })
-
                 }
+            },
+            getNoteListByTagNode(tagNodeData) {
+                /*1.查找当前标签的所有子标签*/
+                let tagIds = []
+                this.getTagChildrenIds(tagIds, tagNodeData)
+
+                /*2.找到 包含tagIds 的所有笔记*/
+                return this.$store.state.notes.filter((n) => {
+                    /*判断两者的tagList是否有交集*/
+                    if (n.tagList.length > 0) {
+                        let resIds = n.tagList.filter(function (v) {
+                            return tagIds.indexOf(v.id) != -1
+                        })
+                        return resIds.length > 0
+                    }
+                    return false
+                })
+            },
+
+            getTagNodeDataById(tagId, tagTreeData) {
+                for (let t of tagTreeData) {
+                    if (t.id == tagId) return t
+                    if (t.children.length > 0) this.getTagNodeDataById(tagId, t.children)
+                }
+            },
+            getNodeCountByTagId(tagId, tagTree) {
+                let currentTagNode = this.getTagNodeDataById(tagId, tagTree)
+                return this.getNoteListByTagNode(currentTagNode).length
             }
         },
         computed: {
