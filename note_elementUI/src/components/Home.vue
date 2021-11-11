@@ -18,17 +18,21 @@
                 <noteNav/>
             </el-aside>
 
-            <!--笔记列表-->
-            <el-aside class="widthSyncChild">
-                <noteList/>
-            </el-aside>
-
-
-            <!--笔记内容-->
-            <note v-if="$store.state.currentNoteList.length > 0 "></note>
-            <div v-else style="text-align: center;width: 100%;">
-                <h1>空空如也 </h1>
-            </div>
+            <el-container v-if="$store.state.listAndNoteShow">
+                <!--笔记列表-->
+                <el-aside class="widthSyncChild">
+                    <noteList/>
+                </el-aside>
+                <!--笔记内容-->
+                <note v-if="$store.state.currentNoteList.length > 0 "></note>
+                <div v-else style="text-align: center;width: 100%;">
+                    <h1>空空如也 </h1>
+                </div>
+            </el-container>
+            <!--笔记和标签页面展示-->
+            <el-main v-else>
+                <noteBook_tag></noteBook_tag>
+            </el-main>
         </el-container>
 
 
@@ -39,14 +43,15 @@
     import borderLine from "./BorderLine";
     import noteList from "./NoteList";
     import noteNav from "./Nav";
-
+    import noteBook_tag from "./NoteBook_Tag";
     export default {
         name: 'home',
         components: {
             borderLine,
             noteList,
             noteNav,
-            note
+            note,
+            noteBook_tag,
         },
         data() {
             return {
@@ -61,8 +66,10 @@
                     /*默认初始化选择所有笔记*/
                     this.$store.state.currentNoteBook = data.data[0][0]
                     /* 将noteBookTree 封装上笔记的数量*/
+                    this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data[1]))
                     this.tool.addNoteCount(data.data[1])
                     this.$store.state.noteBooksTree = data.data[1]
+
                     // console.log('kkkk',data.data[1])
                     this.https.getWastepaperNotes().then(({data}) => {
                         this.$store.state.wastepaperNotesList = data.data
@@ -82,6 +89,7 @@
                         this.https.getTags().then(({data}) => {
                             /* 将标签数据 封装上笔记的数量*/
                             this.$store.state.tagsTree = data.data[0];
+                            this.$store.state.tagsTreePure = JSON.parse(JSON.stringify(data.data[0]));
                             this.$store.state.tags = data.data[1];
                             this.tool.addNoteCount(this.$store.state.tagsTree)
                         }).then(() => {

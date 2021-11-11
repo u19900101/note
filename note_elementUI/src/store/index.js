@@ -17,20 +17,13 @@ const state = {
     /**笔记本**/
     noteBooks: [],  //所有笔记本列表
     noteBooksTree:[],// 树形封装
+    noteBooksTreePure:[],// 树形封装
     currentNoteBookNoteList:[],
-
-
-    isNoteBooksShow: false, //笔记本组件显示和隐藏 Notebook 组件
     currentNoteBook: {
         title: '所有笔记', // 当前笔记本的名称，也有可能是当前 tag的名称
         id: 0             // 当前笔记本的id，搜索笔记时有用
     },
 
-    isSortShow: false,
-    noteListSortWay: 'createLatest', //笔记本列表排序方式,默认 创建日期(最新优先)
-
-    delNoteBookShow: false,  //删除笔记本组件显隐
-    delNoteBookObj: {}, // 要删除的笔记本
 
     /**笔记**/
     notes:[], // 所有的笔记列表
@@ -42,8 +35,6 @@ const state = {
         pid: '', // noteContent对象的pid
         wastepaper: false
     }, //组件展示的数据对象
-    isNotesShow: true, //快捷方式进入详情笔记本,笔记本信息列表隐藏
-
     currentIndex:0,  // 笔记在当前列表中的index值  用于删除时，快速定位，更新列表
     currentNoteBookName: '',
 
@@ -58,15 +49,18 @@ const state = {
     starNotesList: [],
 
     /*************标签*************/
-    isTagNotesShow: false, //标签笔记是否显示
     tags:[],     //所有标签列表
     tagsTree:[], //标签树
-    // tagNotesList: [],
+    tagsTreePure:[], //标签树
     /*************排序*************/
     sortWay:{},
 
     /*************废纸篓*************/
-    wastepaperNotesList:[]
+    wastepaperNotesList:[],
+
+    /*************页面显示控制*************/
+    listAndNoteShow: true,  //显示列表区和笔记区
+    tableData:[],           //封装笔记本和标签展示区
 }
 
 //创建并暴露store

@@ -7,7 +7,8 @@ export default {
             getfirstLevelId,
             getDateTimes,
             sortWay,
-            addNoteCount
+            addNoteCount,
+            removeNoteCount
         }
     }
 }
@@ -104,6 +105,14 @@ function getTime(strTime){
 function addNoteCount(treeData) {
     treeData.forEach((n) =>{
         n.title += ' (' + n.noteCount + ')'
+        if(n.children.length > 0 ) this.addNoteCount(n.children)
+    })
+}
+//去掉括号里的数量
+function removeNoteCount(treeData) {
+    treeData.forEach((n) =>{
+        let t = n.title.split(" ")[0]
+        n.title = t
         if(n.children.length > 0 ) this.addNoteCount(n.children)
     })
 }

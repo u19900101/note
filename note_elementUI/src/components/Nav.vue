@@ -86,7 +86,7 @@
             * */
             handleNodeClick(data, node, e) {
                 /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
-                // console.log('clicked Node',data.id,data.title);
+                if(!this.$store.state.listAndNoteShow)  this.$store.state.listAndNoteShow = true
                 switch (data.id) {
                     case 'insertNote':
                         this.insertNote();
@@ -95,11 +95,15 @@
                         this.initCurrentNoteListByName("starNotesList", 1);
                         break; // 收藏笔记
                     case 'noteBooks': //'笔记本'
-                    case 'allNotes':
+                        this.$store.state.tableData = this.$store.state.noteBooksTreePure
+                        this.$store.state.listAndNoteShow = false
+                        break;
+                    case 'allNotes'://所有笔记
                         this.initCurrentNoteListByName("notes", 0);
-                        break;//所有笔记
+                        break;
                     case 'allTags':
-                        console.log('标签');
+                        this.$store.state.tableData = this.$store.state.tagsTreePure
+                        this.$store.state.listAndNoteShow = false
                         break;
                     case 'wastePaper':
                         this.initCurrentNoteListByName("wastepaperNotesList", 2);
@@ -110,7 +114,6 @@
                         if (firstLevelTitle == '笔记本') {
                             this.initCurrentNoteListByName("noteBookNameId", data.id);
                         } else {
-
                             this.initTagNotesListByTagNode(data)
                         }
 
@@ -147,7 +150,6 @@
             },
             /*初始化笔记列表和笔记本*/
             initCurrentNoteListByName(currentNoteBookName, noteBookId) {
-
                 if (currentNoteBookName == "noteBookNameId") {
                     // console.log('noteBookId is ', noteBookId);
                     /*获取所有子笔记*/
@@ -323,7 +325,6 @@
 
             },
             initTagNotesListByTagNode(tagNodeData) {
-
                 /*3.初始化 currentNoteList */
                 this.$store.state.currentNoteList = this.getNoteListByTagNode(tagNodeData)
 
@@ -331,10 +332,10 @@
                 if (this.$store.state.currentNoteList.length > 0) {
                     this.$store.state.currentNote = this.$store.state.currentNoteList[0]
                     this.$store.state.currentIndex = 0
-                    /*给title去掉括号*/
-                    let title = tagNodeData.title.split(' ')[0]
-                    this.$store.state.currentNoteBook = {title: title}
                 }
+                /*给title去掉括号*/
+                let title = tagNodeData.title.split(' ')[0]
+                this.$store.state.currentNoteBook = {title: title}
             },
             getTagChildrenIds(tagIds, data) {
                 tagIds.push(data.id)
@@ -371,7 +372,7 @@
             getNodeCountByTagId(tagId, tagTree) {
                 let currentTagNode = this.getTagNodeDataById(tagId, tagTree)
                 return this.getNoteListByTagNode(currentTagNode).length
-            }
+            },
         },
         computed: {
             data: {
@@ -415,6 +416,11 @@
         },
         created() {
 
+        },
+        mounted() {
+            this.$bus.$on('clickNoteBook',this.initCurrentNoteListByName)
+            this.$bus.$on('initTagNotesListByTagNode',this.initTagNotesListByTagNode)
+            this.$bus.$on('getTagNodeDataById',this.getTagNodeDataById)
         }
     };
 </script>
