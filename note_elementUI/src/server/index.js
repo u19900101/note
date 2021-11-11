@@ -58,6 +58,11 @@ export function insertNote(data) {
 export function getTags() {
     return vm.get('/api/admin/tag/allTags')
 }
+
+export function getTagsTree() {
+    return vm.get('/api/admin/tag/tagsTree')
+}
+
 export function updateTag(data) {
     return vm.post('/api/admin/tag/updateTag', data)
 }
@@ -100,6 +105,7 @@ export default {
             clearAllWasteNotes,
             /*tag*/
             insertTag,
+            getTagsTree,
         }
     }
 }

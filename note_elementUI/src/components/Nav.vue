@@ -52,14 +52,12 @@
             borderLine,
         },
         data() {
-
             return {
                 navWidth: this.$store.state.sortWay.navWidth, // 导航栏的初始宽度
                 navMax: 800,
                 navMin: 150,
                 //收藏-1 笔记-2 笔记本-3 标签-4  废纸篓-5  新建笔记-6
                 icons: ['el-icon-star-on', 'el-icon-document', 'el-icon-notebook-2', 'el-icon-discount', 'el-icon-delete', 'el-icon-circle-plus-outline'],
-
                 defaultProps: {
                     children: 'children',
                     label: 'title'
@@ -67,7 +65,6 @@
             };
         },
         methods: {
-
             /*导航栏宽度可拖拽组件*/
             widthChange(movement) {
                 this.navWidth -= movement
@@ -214,47 +211,59 @@
                 return {preId, currentId, nextId}
             },
             handleDragEnd(draggingNode, dropNode, dropType, ev) {
+             /*   console.log('end...' ,dropType, )*/
+
+            },
+
+            handleDrop(draggingNode, dropNode, dropType, ev) {
                 // 无法直接获取拖拽完成后的node父id，才用使用id获取当前节点的方式，间接获取pid，用于更新
                 let currentParentNode = this.$refs.mytree.getNode(draggingNode.data.id).parent
                 // console.log('tree drag end: ', draggingNode.data.title, '--> ', currentParentNode.data.title);
-
                 let {preId, currentId, nextId} = this.getIds(draggingNode)
 
                 // 区分是 笔记本节点拖动 和 标签节点拖动
                 let firstLevelTitle = this.getfirstLevelTitle(dropNode)
-
-                let obj = {
-                    preId,
-                    currentId,
-                    nextId,// 当拖拽到一级节点下时  给pid 赋值为 0 与数据库保持一致
-                    pid: currentParentNode.level == 1 ? 0 : currentParentNode.data.id,
-                    oldPid: draggingNode.data.pid
-                }
-                // 笔记本 - 3
-                if (firstLevelTitle == '笔记本') {
-                    console.log('noteBook...', firstLevelTitle);
-                    this.https.updateNotebook(obj).then(({data}) => {
-                        console.log('更新笔记本成功', data)
+                /*在树内拖拽时才进行数据更新*/
+                if(ev.clientX < this.$store.state.sortWay.navWidth){
+                    let obj = {
+                        preId,
+                        currentId,
+                        nextId,// 当拖拽到一级节点下时  给pid 赋值为 0 与数据库保持一致
+                        pid: currentParentNode.level == 1 ? 0 : currentParentNode.data.id,
+                        oldPid: draggingNode.data.pid
+                    }
+                    if (firstLevelTitle == '笔记本') {
+                        console.log('noteBook...', firstLevelTitle);
+                        this.https.updateNotebook(obj).then(({data}) => {
+                            console.log('更新笔记本成功', data)
+                            /*更新tree*/
+                            this.$store.state.noteBooksTree = data.data
+                            this.tool.addNoteCount(this.$store.state.noteBooksTree)
+                        })
+                    } else {  // 拖拽标签 新旧两个分支 全父节点更新
+                        this.https.updateTag(obj).then(({data}) => {
+                            /*更新Tag tree*/
+                            console.log('更新标签成功', data)
+                            this.$store.state.tagsTree = data.data
+                            this.tool.addNoteCount(this.$store.state.tagsTree)
+                        })
+                    }
+                }else { //不在树内  手动恢复树的形状(可能出现的节点逃逸)
+                    if (firstLevelTitle == '笔记本') {
                         /*更新tree*/
-                        this.$store.state.noteBooksTree = data.data
-                        this.tool.addNoteCount(this.$store.state.noteBooksTree)
-                    })
-                } else {  // 拖拽标签 新旧两个分支 全父节点更新
-                    this.https.updateTag(obj).then(({data}) => {
+                        this.https.getNoteBooksTree().then(({data}) => {
+                            this.$store.state.noteBooksTree = data.data
+                            this.tool.addNoteCount(this.$store.state.noteBooksTree)
+                        })
+                    } else {
                         /*更新Tag tree*/
-                        this.$store.state.tagsTree = data.data
-                        this.tool.addNoteCount(this.$store.state.tagsTree)
-                    })
+                        this.https.getTagsTree().then(({data}) => {
+                            this.$store.state.tagsTree = data.data
+                            this.tool.addNoteCount(this.$store.state.tagsTree)
+                        })
+
+                    }
                 }
-
-
-            },
-            handleDrop(draggingNode, dropNode, dropType, ev) { // dropType -- inner
-
-                // console.log('tree drop: ', draggingNode.data.id ,'--> ',dropNode.data.id);
-                // console.log('tree drop: ', draggingNode.data.title ,'--> ',dropNode.data.title);
-
-
             },
             allowDrop(draggingNode, dropNode, type) {
                 /*console.log('allowDrop...',draggingNode, dropNode)*/
@@ -266,7 +275,7 @@
                 // 找到 level = 1，比较两者的 一级节点id是否相等
                 let draggingNodeAncestors = this.getfirstLevelId(draggingNode)
                 let dropNodeAncestors = this.getfirstLevelId(dropNode)
-
+                /*    console.log(draggingNodeAncestors == dropNodeAncestors ? 'yes': 'no')*/
                 return draggingNodeAncestors == dropNodeAncestors
             },
             allowDrag(draggingNode) {

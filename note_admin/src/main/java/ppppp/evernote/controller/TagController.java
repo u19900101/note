@@ -47,6 +47,11 @@ public class TagController {
         return ResultUtil.successWithData(tags);
     }
 
+    @RequestMapping("/tagsTree")
+    public String getTagsTree() {
+        return ResultUtil.successWithData(getTagTree());
+    }
+
     private List<Tag> getTagTree() {
         List<Tag> tagTree = tagService.lambdaQuery()
                 .eq(Tag::getPid, 0)
@@ -63,6 +68,9 @@ public class TagController {
     public String insertTag(@RequestBody Tag tag) {
         // 设置修改时间为当前时间
         tag.setCreateTime(new Date());
+        /*找到最大sort值赋值给新的tag，不然会出现新建多个tag后无法有效记录排序*/
+        Tag  maxSortTag = tagService.lambdaQuery().orderByDesc(Tag::getSort).last("limit 1").list().get(0);
+        tag.setSort(maxSortTag.getSort());
         tagService.save(tag);
         Tag newTag = tagService.getById(tag.getId());
         return ResultUtil.successWithData(newTag);
