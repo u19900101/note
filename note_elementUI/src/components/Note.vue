@@ -187,17 +187,17 @@
             handleTargetDragOver(e) {
                 let firstLevelId = this.tool.getfirstLevelId(this.$store.state.currentNode)
                 // 判断节点是否为标签子的节点
-                if (firstLevelId == 4) {
+                if (firstLevelId == "allTags") {
                     e.preventDefault(); // 使该区域允许释放
                 }
 
             },
             handleTargetDrop() {
                 console.log('在内容区放置了当前拖拽标签')
-                let {id, label} = this.$store.state.currentNode.data
+                let tag = this.$store.state.currentNode.data
                 // 触发 noteTag中的添加标签 事件
-                console.log(this.$store.state.currentNode)
-                this.$refs.noteTag.addTag(label);
+                // console.log(this.$store.state.currentNode)
+                this.$refs.noteTag.addTag(tag);
             },
 
             starClick() {

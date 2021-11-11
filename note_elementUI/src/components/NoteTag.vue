@@ -92,7 +92,6 @@
             handleSelect(item) {
                 this.inputValue = item.value
                 this.handleInputConfirm(item)
-
             },
 
             showInput() {
@@ -102,9 +101,11 @@
                 });
             },
             /*从标签栏拖拽添加标签*/
-            addTag(inputValue) {
-                console.log('addTag...')
-                // this.dynamicTags.push(inputValue);
+            addTag(tag) {
+                /*不包含时才进行添加*/
+                if(!this.$store.state.currentNote.tagUid.includes(tag.id + ",")){
+                    this.handleInputConfirm({id:tag.id,value:tag.title.split(" ")[0]})
+                }
             },
 
             /*添加标签确认提交*/

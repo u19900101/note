@@ -188,7 +188,7 @@
                 /* console.log(brotherNotes)*/
                 if (brotherNotes.length == 1) {
                     currentId = brotherNotes[0].id
-                    console.log('只有一个节点：', 0, brotherNotes[0].id, 0)
+                    // console.log('只有一个节点：', 0, brotherNotes[0].id, 0)
                 } else {
                     // 获取相邻的两个节点
                     brotherNotes.forEach((item, index, array) => {
@@ -200,14 +200,14 @@
                     //节点放置的位置
                     if (currentIndex > 0 && currentIndex < brotherNotes.length - 1) {
                         // console.log( '中间：',brotherNotes[currentIndex - 1].title, brotherNotes[currentIndex].title, brotherNotes[currentIndex +1].title)
-                        console.log('中间：', brotherNotes[currentIndex - 1].id, brotherNotes[currentIndex].id, brotherNotes[currentIndex + 1].id)
+                        // console.log('中间：', brotherNotes[currentIndex - 1].id, brotherNotes[currentIndex].id, brotherNotes[currentIndex + 1].id)
                         preId = brotherNotes[currentIndex - 1].id
                         nextId = brotherNotes[currentIndex + 1].id
                     } else if (currentIndex == 0) { //当拖到第一个时
-                        console.log('第一：', 0, brotherNotes[currentIndex].id, brotherNotes[currentIndex + 1].id)
+                        // console.log('第一：', 0, brotherNotes[currentIndex].id, brotherNotes[currentIndex + 1].id)
                         nextId = brotherNotes[currentIndex + 1].id
                     } else {     //当拖到最后一个时
-                        console.log('最后：', brotherNotes[currentIndex - 1].id, brotherNotes[currentIndex].id, 0)
+                        // console.log('最后：', brotherNotes[currentIndex - 1].id, brotherNotes[currentIndex].id, 0)
                         preId = brotherNotes[currentIndex - 1].id
                     }
                 }
