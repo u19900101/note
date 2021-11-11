@@ -40,14 +40,32 @@ public class TagController {
 
     @RequestMapping("/allTags")
     public String getAllTags() {
-        List<Tag> tagList = tagService.lambdaQuery()
+        List<List<Tag>> tags = new ArrayList<>();
+        tags.add(getTagTree());
+        /*封装单条数据*/
+        tags.add(tagService.lambdaQuery().list());
+        return ResultUtil.successWithData(tags);
+    }
+
+    private List<Tag> getTagTree() {
+        List<Tag> tagTree = tagService.lambdaQuery()
                 .eq(Tag::getPid, 0)
                 .orderByAsc(Tag::getSort)
                 .list();
-        for (Tag tag : tagList) {
+        for (Tag tag : tagTree) {
             getChildren(tag);
         }
-        return ResultUtil.successWithData(tagList);
+        return tagTree;
+    }
+
+    // 新建笔记
+    @PostMapping("/insert")
+    public String insertTag(@RequestBody Tag tag) {
+        // 设置修改时间为当前时间
+        tag.setCreateTime(new Date());
+        tagService.save(tag);
+        Tag newTag = tagService.getById(tag.getId());
+        return ResultUtil.successWithData(newTag);
     }
 
     @PostMapping("/updateTag")
@@ -72,7 +90,7 @@ public class TagController {
         /*2.根据新的层级关系 级联更新tag数量*/
         boolean isUpdateTagCountSucceed = updateAncestorsTags(oldPid, newPid);
         //封装tree进行返回
-        if (isUpdateTagCountSucceed) return sendPostRequest("http://localhost:8080/admin/tag/allTags");
+        if (isUpdateTagCountSucceed) return ResultUtil.successWithData(getTagTree());
         return ResultUtil.errorWithMessage("error");
     }
 

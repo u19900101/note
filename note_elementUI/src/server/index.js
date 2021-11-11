@@ -62,6 +62,11 @@ export function updateTag(data) {
     return vm.post('/api/admin/tag/updateTag', data)
 }
 
+export function insertTag(data) {
+    return vm.post('/api/admin/tag/insert', data)
+}
+
+
 /**排序方式*/
 export function getSortWay() {
     return vm.get('/api/admin/sortWay/allSortWay')
@@ -93,6 +98,8 @@ export default {
             deleteNote,
             getWastepaperNotes,
             clearAllWasteNotes,
+            /*tag*/
+            insertTag,
         }
     }
 }

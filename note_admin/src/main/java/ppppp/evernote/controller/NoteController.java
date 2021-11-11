@@ -2,6 +2,7 @@ package ppppp.evernote.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
@@ -193,10 +194,9 @@ public class NoteController {
         }
     }
 
-
     private void fillNoteList(List<Note> noteList) {
         for (Note note : noteList) {
-            if (note.getTagUid() != null) {
+            if (note.getTagUid() != null && note.getTagUid().length() > 1) {
                 for (String tagId : note.getTagUid().split(",")) {
                     Tag tag = tagService.getById(tagId);
                     note.getTagList().add(tag);

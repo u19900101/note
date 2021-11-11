@@ -1,12 +1,12 @@
 <template>
     <div>
         <el-tag
-                :key="tag"
-                v-for="tag in dynamicTags"
-                :closable = "$store.state.currentNote.wastepaper ? false : true"
+                :key="tag.id"
+                v-for="tag in $store.state.currentNote.tagList"
+                :closable="$store.state.currentNote.wastepaper ? false : true"
                 :disable-transitions="false"
                 @close="handleClose(tag)">
-            {{tag}}
+            {{tag.title}}
         </el-tag>
         <!--显示可输入的框-->
         <el-autocomplete
@@ -28,73 +28,71 @@
 </template>
 
 <script>
-
     export default {
         name: "NoteTag",
         data() {
             return {
                 inputVisible: false,
                 inputValue: '',
-                restaurants: [],
                 state1: '',
             };
         },
-        computed:{
-            dynamicTags(){
-                let dynamicTags = []
-                this.$store.state.currentNote.tagList.forEach((tag)=>dynamicTags.push(tag.title))
-                return dynamicTags
-            },
+        computed: {
+            /*候选标签*/
+            candidateTags() {
+                /*封装数据*/
+                let tags = []
+                let candidateTags = this.$store.state.tags.filter((t) => {
+                    for (let n of this.$store.state.currentNote.tagList) {
+                        if (n.id == t.id) return false
+                    }
+                    return true
+                }) /* { "value": "xxx", "id": "xx" },*/
+                candidateTags.forEach((n) => tags.push({value: n.title, id: n.id}))
+                return tags
+            }
         },
         methods: {
             /*移除笔记中的某一标签*/
-            handleClose(tagName) {
+            handleClose(tag) {
                 /*修改页面*/
-                let  tagId = this.$store.state.currentNote.tagList.filter((n) => n.title == tagName)[0].id
-
-                this.$store.state.currentNote.tagList = this.$store.state.currentNote.tagList.filter((n) => n.title != tagName)
+                this.$store.state.currentNote.tagList = this.$store.state.currentNote.tagList.filter((n) => n.title != tag.title)
                 /*更新数据库*/
-                /*将封装tagList为idStr*/
-                let tagUid = ""
-                if(this.$store.state.currentNote.tagList.length > 0){
-                    this.$store.state.currentNote.tagList.forEach((n) => tagUid += n.id + ',')
-                }
-
                 /*更新笔记*/
-                this.https.updateNote({id: this.$store.state.currentNote.id, tagUid: tagUid}).then(({data}) => {
+                this.https.updateNote({id: this.$store.state.currentNote.id, tagUid: this.$store.state.currentNote.tagUid.replace(tag.id + ",","") }).then(({data}) => {
                     console.log("移除笔记中的某一标签 ", data);
                     /*删除笔记中某一标签*/
                     /*oldPid = 0 使其中一个不更新*/
-                    this.https.updateTag({pid: tagId,
-                        oldPid: 0}).then(({data}) => {
+                    this.https.updateTag({
+                        pid: tag.id,
+                        oldPid: 0
+                    }).then(({data}) => {
                         /*更新Tag tree*/
-                        this.$store.state.tags = data.data
-                        this.tool.addNoteCount(this.$store.state.tags)
+                        this.$store.state.tagsTree = data.data
+                        this.tool.addNoteCount(this.$store.state.tagsTree)
                     })
                 })
             },
 
+            /*标签的搜索*/
             querySearch(queryString, cb) {
-                let restaurants = this.restaurants;
-                let results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants;
+                let tags = this.candidateTags;
+                let results = queryString ? tags.filter(this.createFilter(queryString)) : tags;
                 // 调用 callback 返回建议列表的数据
                 cb(results);
             },
+            /*创建忽略大小写的过滤器*/
             createFilter(queryString) {
                 return (restaurant) => {
                     return (restaurant.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
                 };
             },
-            loadAll() {
-                return [
-                    { "value": "三全鲜食（北新泾店）", "address": "长宁区新渔路144号" },
-                    { "value": "Hot honey 首尔炸鸡（仙霞路）", "address": "上海市长宁区淞虹路661号" },
-                ];
-            },
+
 
             handleSelect(item) {
                 this.inputValue = item.value
-                this.handleInputConfirm()
+                this.handleInputConfirm(item)
+
             },
 
             showInput() {
@@ -103,35 +101,70 @@
                     this.$refs.saveTagInput.$refs.input.focus();
                 });
             },
-
-            addTag(inputValue){
+            /*从标签栏拖拽添加标签*/
+            addTag(inputValue) {
                 console.log('addTag...')
-                this.dynamicTags.push(inputValue);
+                // this.dynamicTags.push(inputValue);
             },
-            handleInputConfirm() {
-                console.log('handleInputConfirm....')
-                let inputValue = this.inputValue;
-                if (inputValue) {
-                    this.dynamicTags.push(inputValue);
+
+            /*添加标签确认提交*/
+            handleInputConfirm(inputTag) {
+                /*1.新建标签 按下回车键进行的新建标签*/
+                if (inputTag.type == "keyup") {
+                    // 判断当前标签库是否存在同名标签(区分大小写)
+                    let inputValue = this.inputValue;
+                    if (inputValue) {
+                        inputTag = this.$store.state.tags.filter((n) => n.title == inputValue)[0]
+                        if (!inputTag) {  // 1.存在，直接 加入到 当前笔记的tagList中
+                            // 2.不存在 新建标签项 将返回的新标签加入
+                            this.https.insertTag({title: inputValue, noteCount: 1}).then(({data}) => {
+                                inputTag = data.data;
+                                this.$store.state.currentNote.tagList.push(inputTag)
+                                /*3.后台数据更新*/
+                                this.updateData(inputTag)
+                            })
+                        }else { //存在异步的情况
+                            this.$store.state.currentNote.tagList.push(inputTag)
+                        }
+                    }
+                } else {  /*2.添加标签已经存在的标签*/
+                    /*1.更新页面*/
+                    this.$store.state.currentNote.tagList.push({id: inputTag.id, title: inputTag.value})
+                    this.updateData(inputTag)
                 }
+
                 this.inputVisible = false;
                 this.inputValue = '';
             },
             /* 手动添加失去焦点事件  因为 blur事件的优先级高于 @select，前者会使后者失效*/
-            inputBlur(){
-                setTimeout(()=>{
+            inputBlur() {
+                setTimeout(() => {
                     console.log('失去焦点...')
-                    if(this.inputValue) {
+                    if (this.inputValue) {
                         this.handleInputConfirm()
                     } else {
                         this.inputVisible = false;
                     }
-                },500)
-            }
-        },
+                }, 500)
+            },
 
-        mounted() {
-            this.restaurants = this.loadAll();
+            /*数据更新*/
+            updateData(inputTag) {
+                let tagUid = this.$store.state.currentNote.tagUid + inputTag.id + ','
+                this.https.updateNote({id: this.$store.state.currentNote.id, tagUid: tagUid}).then(({data}) => {
+                    console.log("给笔记添加标签 ", data);
+                    /*删除笔记中某一标签*/
+                    /*oldPid = 0 使其中一个不更新*/
+                    this.https.updateTag({
+                        pid: inputTag.id,
+                        oldPid: 0
+                    }).then(({data}) => {
+                        /*更新Tag tree*/
+                        this.$store.state.tagsTree = data.data
+                        this.tool.addNoteCount(this.$store.state.tagsTree)
+                    })
+                })
+            }
         }
     }
 </script>
@@ -140,6 +173,7 @@
     .el-tag + .el-tag {
         margin-left: 10px;
     }
+
     .button-new-tag {
         width: 90px;
         margin-left: 10px;
@@ -148,8 +182,9 @@
         padding-top: 0;
         padding-bottom: 0;
     }
+
     .input-new-tag {
-      /*  width: 90px !important;*/ /* 控制宽度 避免被标题栏的宽度覆盖*/
+        /*  width: 90px !important;*/ /* 控制宽度 避免被标题栏的宽度覆盖*/
         margin-left: 10px;
         vertical-align: bottom;
     }

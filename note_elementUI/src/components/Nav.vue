@@ -242,8 +242,8 @@
                 } else {  // 拖拽标签 新旧两个分支 全父节点更新
                     this.https.updateTag(obj).then(({data}) => {
                         /*更新Tag tree*/
-                        this.$store.state.tags = data.data
-                        this.tool.addNoteCount(this.$store.state.tags)
+                        this.$store.state.tagsTree = data.data
+                        this.tool.addNoteCount(this.$store.state.tagsTree)
                     })
                 }
 
@@ -390,7 +390,7 @@
                         {
                             id: 'allTags',
                             title: '标签',
-                            children: this.$store.state.tags
+                            children: this.$store.state.tagsTree
                         },
                         /*废纸篓*/
                         {

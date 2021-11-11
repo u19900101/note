@@ -59,7 +59,8 @@ const state = {
 
     /*************标签*************/
     isTagNotesShow: false, //标签笔记是否显示
-    tags:[], //标签树
+    tags:[],     //所有标签列表
+    tagsTree:[], //标签树
     // tagNotesList: [],
     /*************排序*************/
     sortWay:{},
