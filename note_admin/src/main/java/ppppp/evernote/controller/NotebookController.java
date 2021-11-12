@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import ppppp.evernote.entity.Notebook;
 
+import ppppp.evernote.entity.Tag;
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.util.ResultUtil;
 
@@ -44,6 +45,17 @@ public class NotebookController {
         /*添加封装为tree 的 notebook*/
         list.add(getNoteBooksTree());
         return ResultUtil.successWithData(list);
+    }
+
+    @RequestMapping("/insertNoteBook")
+    public String insertNoteBook(@RequestBody Notebook notebook) {
+
+        notebook.setCreateTime(new Date());
+        Notebook maxSort = notebookService.lambdaQuery().orderByDesc(Notebook::getSort).last("limit 1").list().get(0);
+        notebook.setSort(maxSort.getSort()+1);
+        boolean save = notebookService.save(notebook);
+        Notebook newNoteBook = notebookService.getById(notebook.getId());
+        return ResultUtil.successWithData(newNoteBook);
     }
 
     /*添加封装为tree 的 notebook*/

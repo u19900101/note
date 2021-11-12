@@ -418,7 +418,7 @@
 
         },
         mounted() {
-            this.$bus.$on('clickNoteBook',this.initCurrentNoteListByName)
+            this.$bus.$on('initCurrentNoteListByName',this.initCurrentNoteListByName)
             this.$bus.$on('initTagNotesListByTagNode',this.initTagNotesListByTagNode)
             this.$bus.$on('getTagNodeDataById',this.getTagNodeDataById)
         }

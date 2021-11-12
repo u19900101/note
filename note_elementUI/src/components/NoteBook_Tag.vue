@@ -1,6 +1,14 @@
 <template>
     <div>
-        <!--  default-expand-all -->
+        <el-tooltip class="item"
+                    content= '新建'
+                    placement="bottom">
+            <el-button type="text" @click="insertItem" size="small" style="margin-left: 10px;padding: 0px">
+                <i class="el-icon-circle-plus"  style="font-size: 25px"></i>
+            </el-button>
+        </el-tooltip>
+
+
         <el-table
                 :data="$store.state.tableData"
                 @row-dblclick="rowDblclick"
@@ -60,12 +68,57 @@
             }
         },
         methods: {
+            insertItem(){
+                this.$prompt('请输入名称', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    inputPattern: /[\w]+/,
+                    inputErrorMessage: '不能为空'
+                }).then(({ value }) => {
+                    if (this.$store.state.tableData == this.$store.state.noteBooksTreePure) {
+                        this.https.insertNoteBook({title:value}).then(({data}) => {
+                            /*修改页面*/
+                            this.$store.state.noteBooks.push(data.data)
+                            /*给当前的列表*/
+                            data.data.children = []
+                            this.$store.state.noteBooksTreePure.push(data.data)
+                            let temp = JSON.parse(JSON.stringify(data.data))
+                            temp.title += ' ('+temp.noteCount + ')'
+                            /*手动封装子节点*/
+                            temp.children = []
+                            this.$store.state.noteBooksTree.push(temp)
+                        })
+                    }else {
+                        this.https.insertTag({title:value}).then(({data}) => {
+                            /*修改页面*/
+                            this.$store.state.tags.push(data.data)
+                            /*给当前的列表*/
+                            data.data.children = []
+                            this.$store.state.tagsTreePure.push(data.data)
+                            let temp = JSON.parse(JSON.stringify(data.data))
+                            temp.title += ' ('+temp.noteCount + ')'
+                            /*手动封装子节点*/
+                            temp.children = []
+                            this.$store.state.tagsTree.push(temp)
+                        })
+                    }
+                    this.$message({
+                        type: 'success',
+                        message: '新建成功'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '取消'
+                    });
+                });
+            },
             rowDblclick(row, column, event) {
                 /*处于编辑模式时双击不跳转*/
                 if (!this.titleOnEdit) {
                     this.$store.state.listAndNoteShow = true
                     if (this.$store.state.tableData == this.$store.state.noteBooksTreePure) {
-                        this.$bus.$emit('clickNoteBook', "noteBookNameId", row.id)
+                        this.$bus.$emit('initCurrentNoteListByName', "noteBookNameId", row.id)
                     } else {
                         let tagNodeData = this.getTagNodeDataById(row.id, this.$store.state.tagsTree)
                         this.$bus.$emit('initTagNotesListByTagNode', tagNodeData)
@@ -73,12 +126,13 @@
                 }
             },
             cellClick(row, column, cell, event) {
-                console.log(row.id, column.property)
                 this.editId = row.id
                 this.titleOnEdit = column.property == 'title'
-                setTimeout(() => {
-                    document.getElementById(row.id + 'title').focus();
-                }, 100)
+                if(this.titleOnEdit){
+                    setTimeout(()=>{
+                        document.getElementById(row.id + 'title').focus();
+                    },100)
+                }
             },
             /*名称的修改*/
             titleChanged(title) {

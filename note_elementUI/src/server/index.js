@@ -26,6 +26,10 @@ export function updateNotebook(data) {
     return vm.post('/api/admin/noteBook/updateNotebook', data)
 }
 
+export function insertNoteBook(data) {
+    return vm.post('/api/admin/noteBook/insertNoteBook', data)
+}
+
 
 /**笔记*/
 export function getNotes() {
@@ -89,6 +93,7 @@ export default {
         Vue.prototype.https = {
             getNotebooks,
             updateNotebook,
+            insertNoteBook,
             getNoteBooksTree,
             getTags,
             updateTag,

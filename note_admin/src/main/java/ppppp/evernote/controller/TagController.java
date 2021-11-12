@@ -70,7 +70,7 @@ public class TagController {
         tag.setCreateTime(new Date());
         /*找到最大sort值赋值给新的tag，不然会出现新建多个tag后无法有效记录排序*/
         Tag  maxSortTag = tagService.lambdaQuery().orderByDesc(Tag::getSort).last("limit 1").list().get(0);
-        tag.setSort(maxSortTag.getSort());
+        tag.setSort(maxSortTag.getSort()+1);
         tagService.save(tag);
         Tag newTag = tagService.getById(tag.getId());
         return ResultUtil.successWithData(newTag);
