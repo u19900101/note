@@ -72,24 +72,30 @@ public class NotebookController {
         System.out.println(obj);
         Integer currentId = (Integer) obj.get("currentId");
         Notebook notebook = notebookService.getById(currentId);
-        Integer newPid  = (Integer) obj.get("pid");
-        Integer oldPid = (Integer) obj.get("oldPid");
-        notebook.setPid(newPid);
-
+        notebook.setUpdateTime(new Date());//设置更新时间
         /*1.级联更新笔记本数量*/
-        boolean isUpdateNoteBookCountSucceed = updateAncestorsNoteBooks(oldPid,newPid,notebook.getNoteCount());
-        if(isUpdateNoteBookCountSucceed) {
-            /*2.更新笔记本的pid*/
-            /*获取排序的指标值*/
-            float sort = getSort(obj);
-            notebook.setSort(sort);
-            notebook.setUpdateTime(new Date());//设置更新时间
+        if(obj.get("pid") != null){
+            Integer newPid  = (Integer) obj.get("pid");
+            Integer oldPid = (Integer) obj.get("oldPid");
+            notebook.setPid(newPid);
+            boolean isUpdateNoteBookCountSucceed = updateAncestorsNoteBooks(oldPid,newPid,notebook.getNoteCount());
+            if(isUpdateNoteBookCountSucceed) {
+                /*2.更新笔记本的pid*/
+                /*获取排序的指标值*/
+                float sort = getSort(obj);
+                notebook.setSort(sort);
+            }
             boolean b = notebookService.updateById(notebook);
 
             //封装tree进行返回
             if(b) return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
-            return ResultUtil.errorWithMessage("error");
         }
+        if(obj.get("title") != null){
+            notebook.setTitle((String) obj.get("title"));
+            boolean b = notebookService.updateById(notebook);
+            if(b) return ResultUtil.successWithData(b);
+        }
+
         return ResultUtil.errorWithMessage("error");
     }
 

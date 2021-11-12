@@ -78,7 +78,16 @@ public class TagController {
 
     @PostMapping("/updateTag")
     public String updateTag(@RequestBody HashMap obj) {
-        System.out.println(obj);
+        Integer currentId = (Integer) obj.get("currentId");
+        Tag tag = tagService.getById(currentId);
+        tag.setUpdateTime(new Date());//设置更新时间
+
+        /*只更新笔记标题*/
+        if(obj.get("title") != null){
+            tag.setTitle((String) obj.get("title"));
+            boolean b = tagService.updateById(tag);
+            if(b) return ResultUtil.successWithData(b);
+        }
 
         Integer newPid = (Integer) obj.get("pid");
         Integer oldPid = (Integer) obj.get("oldPid");
@@ -86,12 +95,9 @@ public class TagController {
         /*1.更新笔记本的pid*/
         /*获取排序的指标值*/
         if(obj.get("preId") != null){
-            Integer currentId = (Integer) obj.get("currentId");
-            Tag tag = tagService.getById(currentId);
             tag.setPid(newPid);
             float sort = getSort(obj);
             tag.setSort(sort);
-            tag.setUpdateTime(new Date());//设置更新时间
             boolean b = tagService.updateById(tag);
         }
 
