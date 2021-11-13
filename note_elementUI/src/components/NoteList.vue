@@ -57,7 +57,7 @@
                                     <!--标题-->
                                     <el-row>
                                         <div class='titleInList'>
-                                           {{note.title}}
+                                            {{note.title}}
                                         </div>
                                     </el-row>
                                     <!--标签 & 内容-->
@@ -179,11 +179,121 @@
                 if (this.noteListWidth < this.navMin || this.noteListWidth > this.navMax) {
                     this.noteListWidth = this.noteListWidth > this.navMin ? this.navMax : this.navMin
                 }
-                this.https.updateSortWay({id: 1,listWidth:this.noteListWidth}).then(({data}) => {
-                    console.log('成功更新列表宽度',data)
+                this.https.updateSortWay({id: 1, listWidth: this.noteListWidth}).then(({data}) => {
+                    console.log('成功更新列表宽度', data)
                 })
             },
         },
+        watch: {
+            searchValue(searchValue) {
+                //  1.根据内容进行全局搜索,并高亮返回  2.点击列表可进行预览 3.点击笔记 进行修改
+                console.log("搜索字段 ", searchValue);
+                let queryData = {
+                    "query": {
+                        "bool": {
+                            "must": [ //排除逻辑删除的笔记
+                                {
+                                    "match": {
+                                        "status": false
+                                    }
+                                },
+                                {
+                                    "match": {
+                                        "wastepaper": false
+                                    }
+                                },
+                            ],
+                            "should": [
+                                {
+                                    "match": {
+                                        "title": searchValue
+                                    }
+                                },
+                                {
+                                    "match": {
+                                        "content": searchValue
+                                    }
+                                },
+                                {
+                                    "wildcard": {
+                                        "title": "*" + searchValue + "*"
+                                    }
+                                },
+                                {
+                                    "wildcard": {
+                                        "content": "*" + searchValue + "*"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "highlight": {
+                        "pre_tags": ["<font style=\"background:yellow\" color=\"red\">"],
+                        "post_tags": ["</font>"],
+                        "fields": {
+                            "title": {},
+                            "content": {}
+                        }
+                    }
+                }//搜索所有笔记
+                 // 指定笔记本进行搜索
+                if (searchValue.length > 0) {
+                    this.https.searchNoteByWords(queryData).then((data) => {
+                        let result = data.data.hits.hits
+                        if (result.length > 0) {
+                            // 封装 currentNotes  直接利用查询到的数据进行封装note
+                            let searchNotes = []
+                            result.forEach(item => {
+                                // 覆盖
+                                if (item.highlight) {
+                                    item._source.title = item.highlight.title ? item.highlight.title[0] : item._source.title;
+                                    item._source.content = item.highlight.content ? item.highlight.content[0] : item._source.content;
+                                    item._source.id = item._id
+                                    searchNotes.push(item._source)
+                                }
+                            })
+                            console.log(searchNotes)
+                            /*封装tags 便于list显示*/
+                            searchNotes.forEach((s) => {
+                                if(s.tag_uid){
+                                    let tagIds = s.tag_uid.split(",")
+                                    let tagList = []
+                                    tagIds.forEach((t) =>{
+                                        if(t.length > 0 ) tagList.push(this.$store.state.tags.filter((tag) => tag.id == t)[0])
+                                    })
+                                    s.tagList = tagList
+                                }
+
+                            })
+                            this.$store.state.searchNotesList = searchNotes
+                            console.log("搜索结果数组长度", searchNotes.length);
+                            // 封装搜索结果
+                            this.$store.state.currentNoteList = searchNotes
+
+                            if (searchNotes.length > 0) {
+                                this.$store.state.currentNote = searchNotes[0]
+                            /*    this.$store.state.noteModule.isTitleEditMode = false
+                                this.$store.state.noteModule.isContentEditMode = false*/
+                            }
+                        }
+                    });
+                }
+                // 字段为空时展示所有笔记
+                else {
+                    /*this.$store.state.noteModule.isSearchNoteListShow = false
+                    // 显示当前笔记本中的所有笔记
+                    this.$store.state.noteModule.currentIndex = 0
+                    if (this.$store.state.noteBookModule.currentNoteBook.id == 0) {
+                        this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
+                        this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
+                    } else {
+                        this.$store.state.noteModule.currentNoteList = this.$store.state.noteBookModule.currentNoteBookNoteList
+                        this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]
+                    }*/
+
+                }
+            },
+        }
     }
 </script>
 
