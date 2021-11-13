@@ -1,22 +1,31 @@
 <template>
     <div>
-        <el-tooltip class="item"
-                    content= '新建'
-                    placement="bottom">
-            <el-button type="text" @click="insertItem" size="small" style="margin-left: 10px;padding: 0px">
-                <i class="el-icon-circle-plus"  style="font-size: 25px"></i>
-            </el-button>
-        </el-tooltip>
+        <el-row class="toolLeft">
+            <el-tooltip class="item"
+                        content= '新建'
+                        placement="bottom">
+                <el-button type="text" @click="insertItem" style="margin-left: 10px;padding: 0px">
+                    <i class="el-icon-circle-plus"  style="font-size: 25px"></i>
+                </el-button>
+            </el-tooltip>
 
+            <el-input   placeholder="请输入关键字搜索"
+                        prefix-icon="el-icon-search"
+                        clearable
+                        style="margin-left: 30px"
+                        v-model="search"></el-input>
+        </el-row>
 
         <el-table
-                :data="$store.state.tableData"
+                :data="tables"
                 @row-dblclick="rowDblclick"
                 @cell-click="cellClick"
                 style="width: 100%;margin-bottom: 20px;"
                 row-key="id"
                 border
                 stripe
+                :cell-style="rowClass"
+                :header-cell-style="rowClass"
                 highlight-current-row
                 :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
             <el-table-column
@@ -68,8 +77,22 @@
         name: "noteBook_tag",
         data() {
             return {
+                search: '',  //搜索
                 titleOnEdit: false,//控制显隐
                 editId: -1 //当前编辑行index
+            }
+        },
+        computed:{
+            tables:function(){
+                let search=this.search;
+                if(search){
+                    return  this.$store.state.tableData.filter(function(dataNews){
+                        return Object.keys(dataNews).some(function(key){
+                            return String(dataNews[key]).toLowerCase().indexOf(search) > -1
+                        })
+                    })
+                }
+                return this.$store.state.tableData
             }
         },
         methods: {
@@ -224,6 +247,9 @@
                     if (t.children.length > 0) this.getTagNodeDataById(tagId, t.children)
                 }
             },
+            rowClass() { //表格数据居中显示
+                return "text-align:center"
+            }
         }
     }
 </script>
