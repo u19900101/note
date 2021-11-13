@@ -79,6 +79,9 @@ export function insertTag(data) {
     return vm.post('/api/admin/tag/insert', data)
 }
 
+export function deleteTag(data) {
+    return vm.post('/api/admin/tag/deleteTag', data)
+}
 
 /**排序方式*/
 export function getSortWay() {
@@ -115,6 +118,7 @@ export default {
             clearAllWasteNotes,
             /*tag*/
             insertTag,
+            deleteTag,
             getTagsTree,
         }
     }

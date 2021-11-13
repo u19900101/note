@@ -84,35 +84,36 @@
                     /*2.操作数据库 将包含该 id的所有笔记都移动到废纸篓 同时删除该id对应的笔记本 */
                     if (this.$store.state.tableData == this.$store.state.noteBooksTreePure) {
                         this.https.deleteNotebook({id:id}).then(({data}) => {
-                            /*修改页面*/
-                            this.$store.state.noteBooks = this.$store.state.noteBooks.filter((n)=> n.id != id)
-                            this.$store.state.noteBooksTreePure = this.$store.state.noteBooksTreePure.filter((n)=> n.id != id)
-                            /*更新树*/
-                            /*1.更新 $store.state.tableData*/
-                            this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data))
-                            this.$store.state.tableData = this.$store.state.noteBooksTreePure
+                            this.https.getNotebooks().then(({data}) => {
+                                this.$store.state.noteBooks = data.data[0]
+                                /*默认初始化选择所有笔记*/
+                                this.$store.state.currentNoteBook = data.data[0][0]
+                                /*1.更新 $store.state.tableData*/
+                                this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data[1]))
+                                this.$store.state.tableData = this.$store.state.noteBooksTreePure
 
-                            this.$store.state.noteBooksTree = data.data
-                            this.tool.addNoteCount(this.$store.state.noteBooksTree)
+                                this.tool.addNoteCount(data.data[1])
+                                this.$store.state.noteBooksTree = data.data[1]
 
-                            /*2.更新废纸篓*/
-                            this.https.getWastepaperNotes().then(({data}) => {
-                                this.$store.state.wastepaperNotesList = data.data
+                                /*2.更新废纸篓*/
+                                this.https.getWastepaperNotes().then(({data}) => {
+                                    this.$store.state.wastepaperNotesList = data.data
+                                })
                             })
                         })
-                    }else {
-                        /*this.https.insertTag({title:value}).then(({data}) => {
-                            /!*修改页面*!/
-                            this.$store.state.tags.push(data.data)
-                            /!*给当前的列表*!/
-                            data.data.children = []
-                            this.$store.state.tagsTreePure.push(data.data)
-                            let temp = JSON.parse(JSON.stringify(data.data))
-                            temp.title += ' ('+temp.noteCount + ')'
-                            /!*手动封装子节点*!/
-                            temp.children = []
-                            this.$store.state.tagsTree.push(temp)
-                        })*/
+                    }
+                    /*删除标签*/
+                    else {
+                        this.https.deleteTag({id:id}).then(({data}) => {
+                            this.https.getTags().then(({data}) => {
+                                /* 将标签数据 封装上笔记的数量*/
+                                this.$store.state.tagsTree = data.data[0];
+                                this.$store.state.tagsTreePure = JSON.parse(JSON.stringify(data.data[0]));
+                                this.$store.state.tableData = this.$store.state.tagsTreePure
+                                this.$store.state.tags = data.data[1];
+                                this.tool.addNoteCount(this.$store.state.tagsTree)
+                            })
+                        })
                     }
                     this.$message({type: 'success', message: '成功!', duration: 1000,});
                 }).catch(() => {

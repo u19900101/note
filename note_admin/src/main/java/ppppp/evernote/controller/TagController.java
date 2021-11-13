@@ -1,5 +1,6 @@
 package ppppp.evernote.controller;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,12 +70,54 @@ public class TagController {
         // 设置修改时间为当前时间
         tag.setCreateTime(new Date());
         /*找到最大sort值赋值给新的tag，不然会出现新建多个tag后无法有效记录排序*/
-        Tag  maxSortTag = tagService.lambdaQuery().orderByDesc(Tag::getSort).last("limit 1").list().get(0);
-        tag.setSort(maxSortTag.getSort()+1);
+        Tag maxSortTag = tagService.lambdaQuery().orderByDesc(Tag::getSort).last("limit 1").list().get(0);
+        tag.setSort(maxSortTag.getSort() + 1);
         tagService.save(tag);
         Tag newTag = tagService.getById(tag.getId());
         return ResultUtil.successWithData(newTag);
     }
+
+    @PostMapping("/deleteTag")
+    public String deleteTag(@RequestBody Tag tag) {
+
+        /*1.删除笔记中相关的标签id*/
+        /*得到所有的子id*/
+        ArrayList<Integer> tagIds = new ArrayList<>();
+        getAllChildernTagIds(tag, tagIds);
+        List<Note> allNotes = noteService.lambdaQuery().list();
+        for (Note note : allNotes) {
+            String tagUid = note.getTagUid();
+            if (tagUid == null || tagUid.length() < 2) {
+                continue;
+            }
+            /*找到两者交集 替换为 '' */
+            ArrayList<Integer> intersection = isIntersection(tagUid, tagIds);
+            if (intersection.size() > 0) {
+                for (Integer tagId : intersection) {
+                    tagUid = tagUid.replace(tagId + ",", "");
+                }
+                note.setTagUid(tagUid);
+                noteService.updateById(note);
+            }
+        }
+
+
+
+        /*2.更新父标签数量*/
+        tag = tagService.getById(tag.getId());
+        if (tag.getPid() != null) {
+            updateAncestorsTags(0, tag.getPid());
+        }
+
+        /*3.级联删除标签*/
+        for (Integer tagId : tagIds) {
+            tagService.removeById(tagId);
+        }
+
+
+        return ResultUtil.successWithData("");
+    }
+
 
     @PostMapping("/updateTag")
     public String updateTag(@RequestBody HashMap obj) {
@@ -83,10 +126,10 @@ public class TagController {
         tag.setUpdateTime(new Date());//设置更新时间
 
         /*只更新笔记标题*/
-        if(obj.get("title") != null){
+        if (obj.get("title") != null) {
             tag.setTitle((String) obj.get("title"));
             boolean b = tagService.updateById(tag);
-            if(b) return ResultUtil.successWithData(b);
+            if (b) return ResultUtil.successWithData(b);
         }
 
         Integer newPid = (Integer) obj.get("pid");
@@ -94,7 +137,7 @@ public class TagController {
 
         /*1.更新笔记本的pid*/
         /*获取排序的指标值*/
-        if(obj.get("preId") != null){
+        if (obj.get("preId") != null) {
             tag.setPid(newPid);
             float sort = getSort(obj);
             tag.setSort(sort);
@@ -144,7 +187,7 @@ public class TagController {
         for (Note note : allNotes) {
             if (note.getTagUid() != null && note.getTagUid().length() > 1) {
                 /*判断两者是否有交集*/
-                if (isIntersection(note.getTagUid(),tagIds)) count++;
+                if (isIntersection(note.getTagUid(), tagIds).size() > 0) count++;
             }
         }
         tag.setNoteCount(count);
@@ -152,7 +195,7 @@ public class TagController {
     }
 
 
-    public boolean isIntersection(String idsStr, ArrayList<Integer> tagIds) {
+    public ArrayList<Integer> isIntersection(String idsStr, ArrayList<Integer> tagIds) {
         ArrayList<Integer> temp = new ArrayList<>();
         ArrayList<Integer> temp2 = new ArrayList<>();
         temp2.addAll(tagIds);
@@ -161,7 +204,7 @@ public class TagController {
             temp.add(Integer.parseInt(s));
         }
         temp2.retainAll(temp);
-        return temp2.size() > 0;
+        return temp2;
     }
 
     private void getAllChildernTagIds(Tag tag, ArrayList<Integer> tagIds) {
@@ -172,7 +215,7 @@ public class TagController {
         tagIds.add(tag.getId());
         if (son.size() > 0) {
             for (Tag sonTag : son) {
-                getAllChildernTagIds(sonTag,tagIds);
+                getAllChildernTagIds(sonTag, tagIds);
             }
         }
     }
