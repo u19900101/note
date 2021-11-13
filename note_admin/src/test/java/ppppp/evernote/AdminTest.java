@@ -32,6 +32,22 @@ public class AdminTest {
     @Autowired
     private TagMapper tagMapper;
 
+
+    @Test  /*lambdaQuery 会查询出逻辑删除*/
+    public void T_delete(){
+        List<Notebook> son = notebookService.lambdaQuery()
+                .eq(Notebook::getPid, 15)
+                .orderByAsc(Notebook::getSort)
+                .list();
+        System.out.println(son);
+    }
+
+    @Test  /*lambdaQuery 会查询出逻辑删除*/
+    public void T_lambdaQuery_delete(){
+        List<Notebook> son = notebookService.lambdaQuery()
+                .list();
+        System.out.println(son.size());
+    }
     @Test
     public void testSelect() {
         System.out.println(("----- selectAll method test ------"));

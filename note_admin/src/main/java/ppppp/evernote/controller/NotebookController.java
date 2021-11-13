@@ -1,15 +1,20 @@
 package ppppp.evernote.controller;
 
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.additional.update.impl.LambdaUpdateChainWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.*;
 
 
 import org.springframework.web.client.RestTemplate;
+import ppppp.evernote.entity.Note;
 import ppppp.evernote.entity.Notebook;
 
 import ppppp.evernote.entity.Tag;
+import ppppp.evernote.mapper.NoteMapper;
+import ppppp.evernote.service.NoteService;
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.util.ResultUtil;
 
@@ -36,6 +41,12 @@ public class NotebookController {
     @Autowired
     private NotebookService notebookService;
 
+    @Autowired
+    private NoteService noteService;
+
+    @Autowired
+    private NoteMapper noteMapper;
+
     @RequestMapping("/allNoteBooks")
     public String allNotebooks() {
         ArrayList<List<Notebook>> list = new ArrayList<>();
@@ -52,10 +63,45 @@ public class NotebookController {
 
         notebook.setCreateTime(new Date());
         Notebook maxSort = notebookService.lambdaQuery().orderByDesc(Notebook::getSort).last("limit 1").list().get(0);
-        notebook.setSort(maxSort.getSort()+1);
+        notebook.setSort(maxSort.getSort() + 1);
         boolean save = notebookService.save(notebook);
         Notebook newNoteBook = notebookService.getById(notebook.getId());
         return ResultUtil.successWithData(newNoteBook);
+    }
+
+    @RequestMapping("/deleteNotebook")
+    public String deleteNotebook(@RequestBody Notebook notebook) {
+        /*1.级联删除笔记本 设置status为1*/
+        notebook = notebookService.getById(notebook.getId());
+        deleteNotebookByEntity(notebook);
+
+        /*2.将笔记本下所有的笔记移动到废纸篓*/ /*2.1.恢复时恢复到最近的笔记本中*/
+
+        /*3.更新受影响的其他noteBook  减少当前笔记本的数量*/
+        return updateAncestorsNoteBooks(notebook.getPid(),null,  notebook.getNoteCount());
+
+    }
+
+    private void deleteNotebookByEntity(Notebook notebook) {
+        /*1.更新自己*/
+        boolean b1 = notebookService.removeById(notebook.getId());
+
+        /*2.将笔记本下所有的笔记移动到废纸篓 并修改其所在笔记本为最近的笔记本*/ /*2.1.恢复时恢复到最近的笔记本中*/
+
+        Notebook latestNotebook = notebookService.lambdaQuery().orderByDesc(Notebook::getUpdateTime).last("limit 1").list().get(0);
+        LambdaUpdateWrapper<Note> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.eq(Note::getPid, notebook.getId())
+                .set(Note::getWastepaper, true)
+                .set(Note::getPid,latestNotebook.getId());
+        Integer rows = noteMapper.update(null, lambdaUpdateWrapper);
+
+        /*2.更新子节点*/
+        List<Notebook> children = notebookService.lambdaQuery().eq(Notebook::getPid, notebook.getId()).list();
+        if (children.size() > 0) {
+            for (Notebook child : children) {
+                deleteNotebookByEntity(child);
+            }
+        }
     }
 
     /*添加封装为tree 的 notebook*/
@@ -86,73 +132,76 @@ public class NotebookController {
         Notebook notebook = notebookService.getById(currentId);
         notebook.setUpdateTime(new Date());//设置更新时间
         /*1.级联更新笔记本数量*/
-        if(obj.get("pid") != null){
-            Integer newPid  = (Integer) obj.get("pid");
+        if (obj.get("pid") != null) {
+            Integer newPid = (Integer) obj.get("pid");
             Integer oldPid = (Integer) obj.get("oldPid");
             notebook.setPid(newPid);
-            boolean isUpdateNoteBookCountSucceed = updateAncestorsNoteBooks(oldPid,newPid,notebook.getNoteCount());
-            if(isUpdateNoteBookCountSucceed) {
-                /*2.更新笔记本的pid*/
-                /*获取排序的指标值*/
-                float sort = getSort(obj);
-                notebook.setSort(sort);
-            }
+            updateAncestorsNoteBooks(oldPid, newPid, notebook.getNoteCount());
+
+            /*2.更新笔记本的pid*/
+            /*获取排序的指标值*/
+            float sort = getSort(obj);
+            notebook.setSort(sort);
+
             boolean b = notebookService.updateById(notebook);
 
             //封装tree进行返回
-            if(b) return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
+            if (b) return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
         }
-        if(obj.get("title") != null){
+        if (obj.get("title") != null) {
             notebook.setTitle((String) obj.get("title"));
             boolean b = notebookService.updateById(notebook);
-            if(b) return ResultUtil.successWithData(b);
+            if (b) return ResultUtil.successWithData(b);
         }
 
         return ResultUtil.errorWithMessage("error");
     }
 
-    private boolean updateAncestorsNoteBooks(Integer oldPid, Integer newPid, int count) {
-        // 新笔记本级联 +count
-        boolean updateNewNoteBooks = updateNoteCountWrapper(newPid, count);
+    private String updateAncestorsNoteBooks(Integer oldPid, Integer newPid, int count) {
 
+        boolean updateNewNoteBooks = true;
+        boolean updateOldNotebook = true;
+
+        // 新笔记本级联 +count
+        if (newPid != null) updateNewNoteBooks = updateNoteCountWrapper(newPid, count);
         //旧笔记本级联 -count
-        boolean updateOldNotebook = updateNoteCountWrapper(oldPid, -count);
-        boolean isUpdateNoteBookCountSucceed = updateNewNoteBooks && updateOldNotebook;
-        return isUpdateNoteBookCountSucceed;
+        if (oldPid != null) updateOldNotebook = updateNoteCountWrapper(oldPid, -count);
+        return ResultUtil.successWithData(getNoteBooksTree());
     }
 
     private boolean updateNoteCountWrapper(Integer noteBookId, int count) {
         RestTemplate restTemplate = new RestTemplate();
         //1. 简单Get请求
         String rootUrl = "http://localhost:8080/admin/note/updateNoteCountWrapper";
-        String result = restTemplate.getForObject(rootUrl + "?noteBookId="+noteBookId+"&count="+count, String.class);
-       return "true".contentEquals(result);
+        String result = restTemplate.getForObject(rootUrl + "?noteBookId=" + noteBookId + "&count=" + count, String.class);
+        return "true".contentEquals(result);
     }
 
     public float getSort(HashMap obj) {
-        float preSort = -1, nextSort = -1,sort = 1;
+        float preSort = -1, nextSort = -1, sort = 1;
 
         Integer preId = (Integer) obj.get("preId");
-        if(preId != 0){
+        if (preId != 0) {
             preSort = notebookService.getById(preId).getSort();
         }
         Integer nextId = (Integer) obj.get("nextId");
-        if(nextId != 0){
+        if (nextId != 0) {
             nextSort = notebookService.getById(nextId).getSort();
         }
 
         /*中间*/
-        if(preId != 0 && nextId != 0){
-            sort = (preSort + nextSort)/2;
-        }else if(preId == 0 && nextId != 0){ /*第一*/
-            sort = nextSort/2;
-        }else if(preId != 0 && nextId == 0){  /*最后*/
+        if (preId != 0 && nextId != 0) {
+            sort = (preSort + nextSort) / 2;
+        } else if (preId == 0 && nextId != 0) { /*第一*/
+            sort = nextSort / 2;
+        } else if (preId != 0 && nextId == 0) {  /*最后*/
             sort = preSort + 1;
-        }else {  /*前后都为空 则表示拖拽到的父节点为叶子节点*/
+        } else {  /*前后都为空 则表示拖拽到的父节点为叶子节点*/
             //sort = 1;
         }
         return sort;
     }
+
     //todo 泛型优化一下？
     public void getChildren(Notebook notebook) {
         List<Notebook> son = notebookService.lambdaQuery()

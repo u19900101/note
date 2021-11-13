@@ -22,8 +22,7 @@
             <el-table-column
                     prop="title"
                     label="名称"
-                    sortable
-                    width="180">
+                    sortable>
                 <template slot-scope="scope">
                     <span class="editCell" style="width:120px;"
                           v-show="!titleOnEdit || (editId != scope.row.id)">
@@ -41,8 +40,7 @@
             <el-table-column
                     prop="noteCount"
                     label="笔记数量"
-                    sortable
-                    width="180">
+                    sortable>
             </el-table-column>
             <el-table-column
                     prop="createTime"
@@ -53,6 +51,13 @@
                     prop="updateTime"
                     label="更新日期"
                     sortable>
+            </el-table-column>
+            <el-table-column
+                    prop="delete"
+                    label="操作">
+                <template slot-scope="scope">
+                   <el-button type="danger" size="small" @click="deleteItem(scope.row.id)">删除</el-button>
+                </template>
             </el-table-column>
         </el-table>
     </div>
@@ -68,6 +73,56 @@
             }
         },
         methods: {
+            deleteItem(id){
+                console.log( 'deleteItem...',id)
+                this.$confirm('此操作将该笔记组移入到废纸篓是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    center: true
+                }).then(() => {
+                    /*2.操作数据库 将包含该 id的所有笔记都移动到废纸篓 同时删除该id对应的笔记本 */
+                    if (this.$store.state.tableData == this.$store.state.noteBooksTreePure) {
+                        this.https.deleteNotebook({id:id}).then(({data}) => {
+                            /*修改页面*/
+                            this.$store.state.noteBooks = this.$store.state.noteBooks.filter((n)=> n.id != id)
+                            this.$store.state.noteBooksTreePure = this.$store.state.noteBooksTreePure.filter((n)=> n.id != id)
+                            /*更新树*/
+                            /*1.更新 $store.state.tableData*/
+                            this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data))
+                            this.$store.state.tableData = this.$store.state.noteBooksTreePure
+
+                            this.$store.state.noteBooksTree = data.data
+                            this.tool.addNoteCount(this.$store.state.noteBooksTree)
+
+                            /*2.更新废纸篓*/
+                            this.https.getWastepaperNotes().then(({data}) => {
+                                this.$store.state.wastepaperNotesList = data.data
+                            })
+                        })
+                    }else {
+                        /*this.https.insertTag({title:value}).then(({data}) => {
+                            /!*修改页面*!/
+                            this.$store.state.tags.push(data.data)
+                            /!*给当前的列表*!/
+                            data.data.children = []
+                            this.$store.state.tagsTreePure.push(data.data)
+                            let temp = JSON.parse(JSON.stringify(data.data))
+                            temp.title += ' ('+temp.noteCount + ')'
+                            /!*手动封装子节点*!/
+                            temp.children = []
+                            this.$store.state.tagsTree.push(temp)
+                        })*/
+                    }
+                    this.$message({type: 'success', message: '成功!', duration: 1000,});
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消',
+                        duration: 1000,
+                    });
+                });
+            },
             insertItem(){
                 this.$prompt('请输入名称', '提示', {
                     confirmButtonText: '确定',
@@ -115,7 +170,7 @@
             },
             rowDblclick(row, column, event) {
                 /*处于编辑模式时双击不跳转*/
-                if (!this.titleOnEdit) {
+                if (!this.titleOnEdit && column.property != 'delete') {
                     this.$store.state.listAndNoteShow = true
                     if (this.$store.state.tableData == this.$store.state.noteBooksTreePure) {
                         this.$bus.$emit('initCurrentNoteListByName', "noteBookNameId", row.id)

@@ -30,6 +30,10 @@ export function insertNoteBook(data) {
     return vm.post('/api/admin/noteBook/insertNoteBook', data)
 }
 
+export function deleteNotebook(data) {
+    return vm.post('/api/admin/noteBook/deleteNotebook', data)
+}
+
 
 /**笔记*/
 export function getNotes() {
@@ -95,6 +99,7 @@ export default {
             updateNotebook,
             insertNoteBook,
             getNoteBooksTree,
+            deleteNotebook,
             getTags,
             updateTag,
             getNotes,

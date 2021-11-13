@@ -239,6 +239,10 @@
                         this.https.updateNotebook(obj).then(({data}) => {
                             console.log('更新笔记本成功', data)
                             /*更新tree*/
+                            /*更新列表*/
+                            this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data))
+                            this.$store.state.tableData = this.$store.state.noteBooksTreePure
+
                             this.$store.state.noteBooksTree = data.data
                             this.tool.addNoteCount(this.$store.state.noteBooksTree)
                         })
@@ -246,6 +250,10 @@
                         this.https.updateTag(obj).then(({data}) => {
                             /*更新Tag tree*/
                             console.log('更新标签成功', data)
+                            /*更新列表*/
+                            this.$store.state.tagsTreePure = JSON.parse(JSON.stringify(data.data))
+                            this.$store.state.tableData = this.$store.state.tagsTreePure
+
                             this.$store.state.tagsTree = data.data
                             this.tool.addNoteCount(this.$store.state.tagsTree)
                         })

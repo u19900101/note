@@ -57,18 +57,11 @@
                 <noteTag style="margin-left: 10px" ref="noteTag"></noteTag>
 
                 <!--恢复删除的笔记-->
-                <el-tooltip v-if="$store.state.currentNote.wastepaper" class="item"
-                            content="恢复笔记"
-                            placement="bottom">
-                    <el-button @click="recoverNote" size="small" style="margin-left: 10px;padding: 0px">
-                        <el-image
-                                style="width: 30px;height: 25px"
-                                :src="require('../assets/images/recover.png')"
-                                fit="cover">
-                        </el-image>
-                    </el-button>
-                </el-tooltip>
-
+                <el-button @click="recoverNote" size="small" type="primary" round
+                           v-if="$store.state.currentNote.wastepaper"
+                           style="margin-left: 10px;">
+                    恢复笔记
+                </el-button>
 
                 <el-button @click="clearAllWasteNotes" size="small" type="danger" round
                            v-if="$store.state.currentNote.wastepaper"
