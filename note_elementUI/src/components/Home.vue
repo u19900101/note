@@ -12,7 +12,7 @@
         </div>
 
         <!--数据加载成功后 页面展示-->
-        <el-container v-else>
+        <el-container v-else id = "home">
             <!--导航栏-->
             <el-aside class="widthSyncChild">
                 <noteNav/>
@@ -34,8 +34,6 @@
                 <noteBook_tag></noteBook_tag>
             </el-main>
         </el-container>
-
-
     </el-container>
 </template>
 <script>
@@ -44,6 +42,7 @@
     import noteList from "./NoteList";
     import noteNav from "./Nav";
     import noteBook_tag from "./NoteBook_Tag";
+
     export default {
         name: 'home',
         components: {
@@ -104,7 +103,7 @@
                             this.https.getSortWay().then(({data}) => {
                                 this.$store.state.sortWay = data.data[0];
                                 // 给笔记添加时间别名//
-                                this.tool.getDateTimes(this.$store.state.currentNoteList,this.$store.state.sortWay);
+                                this.tool.getDateTimes(this.$store.state.currentNoteList, this.$store.state.sortWay);
                                 console.log("所有数据请求完成");
                                 this.loadingState = false   //关闭loading动画
                             }).catch((err) => {
@@ -149,5 +148,14 @@
         flex-basis: auto;
         box-sizing: border-box;
         min-width: 0;
+    }
+    /*设置table表格的位置*/
+    .el-main {
+        padding: 40px 20px 0px 20px !important;
+    }
+
+    /*nav 的背景色*/
+    #home .el-aside {
+        background-color: #2a333c;
     }
 </style>

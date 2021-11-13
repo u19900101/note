@@ -2,18 +2,18 @@
     <div>
         <el-row class="toolLeft">
             <el-tooltip class="item"
-                        content= '新建'
+                        content='新建'
                         placement="bottom">
                 <el-button type="text" @click="insertItem" style="margin-left: 10px;padding: 0px">
-                    <i class="el-icon-circle-plus"  style="font-size: 25px"></i>
+                    <i class="el-icon-circle-plus" style="font-size: 25px"></i>
                 </el-button>
             </el-tooltip>
 
-            <el-input   placeholder="请输入关键字搜索"
-                        prefix-icon="el-icon-search"
-                        clearable
-                        style="margin-left: 30px"
-                        v-model="search"></el-input>
+            <el-input placeholder="请输入关键字搜索"
+                      prefix-icon="el-icon-search"
+                      clearable
+                      style="margin-left: 30px"
+                      v-model="search"></el-input>
         </el-row>
 
         <el-table
@@ -65,7 +65,7 @@
                     prop="delete"
                     label="操作">
                 <template slot-scope="scope">
-                   <el-button type="danger" size="small" @click="deleteItem(scope.row.id)">删除</el-button>
+                    <el-button type="danger" size="small" @click="deleteItem(scope.row.id)">删除</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -82,12 +82,12 @@
                 editId: -1 //当前编辑行index
             }
         },
-        computed:{
-            tables:function(){
-                let search=this.search;
-                if(search){
-                    return  this.$store.state.tableData.filter(function(dataNews){
-                        return Object.keys(dataNews).some(function(key){
+        computed: {
+            tables: function () {
+                let search = this.search;
+                if (search) {
+                    return this.$store.state.tableData.filter(function (dataNews) {
+                        return Object.keys(dataNews).some(function (key) {
                             return String(dataNews[key]).toLowerCase().indexOf(search) > -1
                         })
                     })
@@ -96,8 +96,8 @@
             }
         },
         methods: {
-            deleteItem(id){
-                console.log( 'deleteItem...',id)
+            deleteItem(id) {
+                console.log('deleteItem...', id)
                 this.$confirm('此操作将该笔记组移入到废纸篓是否继续?', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
@@ -106,7 +106,7 @@
                 }).then(() => {
                     /*2.操作数据库 将包含该 id的所有笔记都移动到废纸篓 同时删除该id对应的笔记本 */
                     if (this.$store.state.tableData == this.$store.state.noteBooksTreePure) {
-                        this.https.deleteNotebook({id:id}).then(({data}) => {
+                        this.https.deleteNotebook({id: id}).then(({data}) => {
                             this.https.getNotebooks().then(({data}) => {
                                 this.$store.state.noteBooks = data.data[0]
                                 /*默认初始化选择所有笔记*/
@@ -127,7 +127,7 @@
                     }
                     /*删除标签*/
                     else {
-                        this.https.deleteTag({id:id}).then(({data}) => {
+                        this.https.deleteTag({id: id}).then(({data}) => {
                             this.https.getTags().then(({data}) => {
                                 /* 将标签数据 封装上笔记的数量*/
                                 this.$store.state.tagsTree = data.data[0];
@@ -147,35 +147,35 @@
                     });
                 });
             },
-            insertItem(){
+            insertItem() {
                 this.$prompt('请输入名称', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     inputPattern: /[\w]+/,
                     inputErrorMessage: '不能为空'
-                }).then(({ value }) => {
+                }).then(({value}) => {
                     if (this.$store.state.tableData == this.$store.state.noteBooksTreePure) {
-                        this.https.insertNoteBook({title:value}).then(({data}) => {
+                        this.https.insertNoteBook({title: value}).then(({data}) => {
                             /*修改页面*/
                             this.$store.state.noteBooks.push(data.data)
                             /*给当前的列表*/
                             data.data.children = []
                             this.$store.state.noteBooksTreePure.push(data.data)
                             let temp = JSON.parse(JSON.stringify(data.data))
-                            temp.title += ' ('+temp.noteCount + ')'
+                            temp.title += ' (' + temp.noteCount + ')'
                             /*手动封装子节点*/
                             temp.children = []
                             this.$store.state.noteBooksTree.push(temp)
                         })
-                    }else {
-                        this.https.insertTag({title:value}).then(({data}) => {
+                    } else {
+                        this.https.insertTag({title: value}).then(({data}) => {
                             /*修改页面*/
                             this.$store.state.tags.push(data.data)
                             /*给当前的列表*/
                             data.data.children = []
                             this.$store.state.tagsTreePure.push(data.data)
                             let temp = JSON.parse(JSON.stringify(data.data))
-                            temp.title += ' ('+temp.noteCount + ')'
+                            temp.title += ' (' + temp.noteCount + ')'
                             /*手动封装子节点*/
                             temp.children = []
                             this.$store.state.tagsTree.push(temp)
@@ -207,10 +207,10 @@
             cellClick(row, column, cell, event) {
                 this.editId = row.id
                 this.titleOnEdit = column.property == 'title'
-                if(this.titleOnEdit){
-                    setTimeout(()=>{
+                if (this.titleOnEdit) {
+                    setTimeout(() => {
                         document.getElementById(row.id + 'title').focus();
-                    },100)
+                    }, 100)
                 }
             },
             /*名称的修改*/

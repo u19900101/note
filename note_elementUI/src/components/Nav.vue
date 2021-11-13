@@ -1,36 +1,38 @@
 <template>
-    <el-container class="nav">
+    <el-container>
         <!--点击逻辑
     点击上级菜单时 1.显示对应菜单的笔记(标签) 2.不展开子项目
     点击 三角符号时 收起或折叠子项 accordion -->
-        <el-aside :style="{width: navWidth + 'px'}">
-            <el-tree :data="data"
-                     ref="mytree"
-                     node-key="id"
-                     default-expand-all
-                     :expand-on-click-node=false
-                     :highlight-current="true"
-                     @node-click="handleNodeClick"
-                     @node-drag-start="handleDragStart"
-                     @node-drag-enter="handleDragEnter"
-                     @node-drag-leave="handleDragLeave"
-                     @node-drag-over="handleDragOver"
-                     @node-drag-end="handleDragEnd"
-                     @node-drop="handleDrop"
-                     @node-contextmenu=handleNodeContextmenu
-                     draggable
-                     :allow-drop="allowDrop"
-                     :allow-drag="allowDrag">
-                <!-- 自定义节点-->
-                <span class="custom-tree-node" slot-scope="{ node, data }">
+        <el-aside style="height: 500px;" :style="{width: navWidth + 'px'}">
+            <el-scrollbar class="page-scroll">
+                <el-tree :data="data"
+                         ref="mytree"
+                         node-key="id"
+                         default-expand-all
+                         :expand-on-click-node=false
+                         :highlight-current="true"
+                         @node-click="handleNodeClick"
+                         @node-drag-start="handleDragStart"
+                         @node-drag-enter="handleDragEnter"
+                         @node-drag-leave="handleDragLeave"
+                         @node-drag-over="handleDragOver"
+                         @node-drag-end="handleDragEnd"
+                         @node-drop="handleDrop"
+                         @node-contextmenu=handleNodeContextmenu
+                         draggable
+                         :allow-drop="allowDrop"
+                         :allow-drag="allowDrag">
+                    <!-- 自定义节点-->
+                    <span class="custom-tree-node" slot-scope="{ node, data }">
                     <!-- 给一级节点 设置自定义图标-->
-                    <!-- 收藏-1 笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6-->
+                        <!-- 收藏-1 笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6-->
                      <i v-if="node.level == 1" :class=icons[data.id-1]></i>
-                    <!-- 动态设置一级标题和子节点的字体大小-->
-                    <!--不能对 node在此处实行插值查看-->
+                        <!-- 动态设置一级标题和子节点的字体大小-->
+                        <!--不能对 node在此处实行插值查看-->
                     <span :style="{'font-size': node.level == 1 ? '20px':'14px'}" style="margin-left: 5px">{{ data.title }}</span>
                 </span>
-            </el-tree>
+                </el-tree>
+            </el-scrollbar>
         </el-aside>
 
         <!--导航栏宽度可拖拽组件-->

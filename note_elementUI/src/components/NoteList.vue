@@ -1,5 +1,5 @@
 <template>
-    <el-container>
+    <el-container id="noteList">
         <el-aside :style="{width: noteListWidth + 'px'}">
             <!--笔记本名称 && 笔记排序按钮-->
             <el-row>
@@ -57,7 +57,7 @@
                                     <!--标题-->
                                     <el-row>
                                         <div class='titleInList'>
-                                            标题 - {{note.title}}
+                                           {{note.title}}
                                         </div>
                                     </el-row>
                                     <!--标签 & 内容-->
@@ -65,7 +65,7 @@
                                         <!-- 给多行省略符 元素动态设置背景色-->
                                         <div class="more-line">
                                             <span style="color: #49a2de">{{getTagList(note)}}</span>
-                                            <span> 内容- {{note.content}}</span>
+                                            <span> {{note.content}}</span>
                                         </div>
                                     </el-row>
 
@@ -93,7 +93,6 @@
                             </el-row>
                         </div>
                     </el-scrollbar>
-
                 </el-aside>
             </el-container>
 
@@ -257,8 +256,8 @@
         margin-bottom: 0px !important;
     }
 
-    .el-aside {
-        background: #ffffff !important;
+    #noteList .el-aside {
+        background-color: #ffffff !important;
     }
 
     .el-container {

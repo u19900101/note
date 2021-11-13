@@ -1,8 +1,8 @@
 <template>
     <el-container>
-
+        <!--标题-->
         <el-header>
-            <!--标题-->
+
             <el-row>
                 <el-input
                         :disabled="$store.state.currentNote.wastepaper"
@@ -86,8 +86,6 @@
                 >
                 </el-input>
             </div>
-
-
         </el-main>
     </el-container>
 </template>
