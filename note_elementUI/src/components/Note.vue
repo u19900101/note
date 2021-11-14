@@ -4,7 +4,9 @@
         <el-header>
 
             <el-row>
+                <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
                 <el-input
+                        v-else
                         :disabled="$store.state.currentNote.wastepaper"
                         size="small"
                         placeholder="请输入笔记标题"
@@ -78,7 +80,9 @@
             <div @drop="handleTargetDrop"
                  @dragover="handleTargetDragOver"
                  style="height: 100%">
-                <el-input type="textarea"
+                <div v-if="!$store.state.isContentEditMode" v-html="content" @click="contentClick" style="height: 100%"></div>
+                <el-input v-else
+                          type="textarea"
                           maxlength="1000000"
                           show-word-limit
                           v-model='content'
@@ -325,9 +329,18 @@
                         duration: 1000,
                     });
                 });
-
-
-            }
+            },
+            replaceHeightLight(str){
+                return str.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, "")
+            },
+            titleClick() {
+                this.$store.state.currentNote.title = this.replaceHeightLight(this.$store.state.currentNote.title)
+                this.$store.state.isTitleEditMode = true
+            },
+            contentClick() {
+                this.$store.state.currentNote.content = this.replaceHeightLight(this.$store.state.currentNote.content)
+                this.$store.state.isContentEditMode = true
+            },
         },
 
     }

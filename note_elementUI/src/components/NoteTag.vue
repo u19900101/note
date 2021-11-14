@@ -83,8 +83,8 @@
             },
             /*创建忽略大小写的过滤器*/
             createFilter(queryString) {
-                return (restaurant) => {
-                    return (restaurant.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+                return (h) => {
+                    return (h.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
                 };
             },
 

@@ -88,6 +88,8 @@
             * */
             handleNodeClick(data, node, e) {
                 /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
+                /*关闭搜索模式*/
+                if(this.$store.state.isSearchMode) this.turnOffSearchMode()
                 if(!this.$store.state.listAndNoteShow)  this.$store.state.listAndNoteShow = true
                 switch (data.id) {
                     case 'insertNote':
@@ -156,8 +158,8 @@
                     // console.log('noteBookId is ', noteBookId);
                     /*获取所有子笔记*/
                     let parentIds = this.getChildrenIds(noteBookId, this.$store.state.noteBooksTree)
-                    // console.log('parentIds are ',parentIds)
-                    this.$store.state.currentNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
+                    this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
+                    this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
                 } else {
                     this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
                 }
@@ -383,6 +385,11 @@
                 let currentTagNode = this.getTagNodeDataById(tagId, tagTree)
                 return this.getNoteListByTagNode(currentTagNode).length
             },
+            turnOffSearchMode() {
+                this.$store.state.isSearchMode = false
+                this.$store.state.isTitleEditMode = true
+                this.$store.state.isContentEditMode = true
+            }
         },
         computed: {
             data: {

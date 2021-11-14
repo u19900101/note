@@ -28,12 +28,15 @@
 
             <!--搜索入口-->
             <el-row class="search">
-                <el-input
-                        placeholder="搜索"
+                <!--带历史记录的输入框-->
+                <el-autocomplete
                         v-model="searchValue"
+                        clearable
+                        :fetch-suggestions="querySearch"
+                        placeholder="搜索"
+                        @select="handleSelect"
                         prefix-icon="el-icon-search"
-                        clearable>
-                </el-input>
+                        style="width: 100%;"></el-autocomplete>
             </el-row>
 
             <!--笔记列表-->
@@ -56,7 +59,8 @@
                                 <el-col :span="16">
                                     <!--标题-->
                                     <el-row>
-                                        <div class='titleInList'>
+                                        <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
+                                        <div v-else class='titleInList'>
                                             {{note.title}}
                                         </div>
                                     </el-row>
@@ -65,7 +69,8 @@
                                         <!-- 给多行省略符 元素动态设置背景色-->
                                         <div class="more-line">
                                             <span style="color: #49a2de">{{getTagList(note)}}</span>
-                                            <span> {{note.content}}</span>
+                                            <span v-if="$store.state.isSearchMode" v-html="note.content"></span>
+                                            <span v-else> {{note.content}}</span>
                                         </div>
                                     </el-row>
 
@@ -78,7 +83,7 @@
                                             {{
                                             $store.state.sortWay.updateTime
                                             ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
-                                            : (note.createTimeAlias ? note.createTime:note.createTime)
+                                            : (note.createTimeAlias ? note.createTimeAlias:note.createTime)
                                             }}
                                         </span>
                                     </el-row>
@@ -127,6 +132,7 @@
                 isSortShow: false,
                 iconMouseLeave: false,  // 鼠标是否离开了图标区域
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
+                lastTime: 0, //定时器的初始值
             }
         },
 
@@ -183,11 +189,33 @@
                     console.log('成功更新列表宽度', data)
                 })
             },
-        },
-        watch: {
-            searchValue(searchValue) {
+            switchToSearchMode() {
+                this.$store.state.isSearchMode = !this.$store.state.isSearchMode
+                this.$store.state.isTitleEditMode = !this.$store.state.isTitleEditMode
+                this.$store.state.isContentEditMode = !this.$store.state.isContentEditMode
+            },
+
+            /*标签的搜索*/
+            querySearch(queryString, cb) {
+                let searchHistroy = this.$store.state.searchHistroy;
+                let results = queryString ? searchHistroy.filter(this.createFilter(queryString)) : searchHistroy;
+                // 调用 callback 返回建议列表的数据
+                cb(results);
+            },
+            /*创建忽略大小写的过滤器*/
+            createFilter(queryString) {
+                return (h) => {
+                    return (h.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+                };
+            },
+            handleSelect(item) {
+                this.searchValue = item.value
+            },
+            search(searchValue) {
                 //  1.根据内容进行全局搜索,并高亮返回  2.点击列表可进行预览 3.点击笔记 进行修改
                 console.log("搜索字段 ", searchValue);
+                // 切换到搜索模式
+                if (!this.$store.state.isSearchMode) this.switchToSearchMode()
                 let queryData = {
                     "query": {
                         "bool": {
@@ -255,42 +283,61 @@
                             console.log(searchNotes)
                             /*封装tags 便于list显示*/
                             searchNotes.forEach((s) => {
-                                if(s.tag_uid){
+                                s.tagList = []
+                                if (s.tag_uid) {
                                     let tagIds = s.tag_uid.split(",")
                                     let tagList = []
-                                    tagIds.forEach((t) =>{
-                                        if(t.length > 0 ) tagList.push(this.$store.state.tags.filter((tag) => tag.id == t)[0])
+                                    tagIds.forEach((t) => {
+                                        if (t.length > 0) tagList.push(this.$store.state.tags.filter((tag) => tag.id == t)[0])
                                     })
                                     s.tagList = tagList
                                 }
-
+                                /*封装字段*/
+                                s.createTime = s.create_time.replace("+08:00", " ").replace("T", " ")
+                                s.updateTime = s.update_time.replace("+08:00", " ").replace("T", " ")
                             })
-                            this.$store.state.searchNotesList = searchNotes
+                            /* this.$store.state.searchNotesList = searchNotes*/
+                            this.tool.getDateTimes(searchNotes, this.$store.state.sortWay);
                             console.log("搜索结果数组长度", searchNotes.length);
                             // 封装搜索结果
                             this.$store.state.currentNoteList = searchNotes
 
                             if (searchNotes.length > 0) {
                                 this.$store.state.currentNote = searchNotes[0]
-                            /*    this.$store.state.noteModule.isTitleEditMode = false
-                                this.$store.state.noteModule.isContentEditMode = false*/
                             }
                         }
                     });
                 }
                 // 字段为空时展示所有笔记
                 else {
-                    /*this.$store.state.noteModule.isSearchNoteListShow = false
+                    this.switchToSearchMode()
                     // 显示当前笔记本中的所有笔记
-                    this.$store.state.noteModule.currentIndex = 0
-                    if (this.$store.state.noteBookModule.currentNoteBook.id == 0) {
-                        this.$store.state.noteModule.currentNoteList = this.$store.state.noteModule.notes
-                        this.$store.state.noteModule.currentNote = this.$store.state.noteModule.notes[0]
-                    } else {
-                        this.$store.state.noteModule.currentNoteList = this.$store.state.noteBookModule.currentNoteBookNoteList
-                        this.$store.state.noteModule.currentNote = this.$store.state.noteBookModule.currentNoteBookNoteList[0]
-                    }*/
+                    this.$store.state.currentIndex = 0
+                    this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
+                    this.$store.state.currentNote = this.$store.state.currentNoteBookNoteList[0]
+                }
+            }
 
+        },
+        watch: {
+            /*监听用户停止输入*/
+            searchValue(searchValue) {
+                this.search(searchValue)
+                if (this.lastTime == 0) {
+                    this.lastTime = setTimeout(() => {
+                        if(searchValue) this.https.insertSearchWords({keyword: searchValue}).then(({data})=>{
+                            console.log('保存搜索字段到数据库',searchValue,data)
+                        })
+
+                    }, 2000)
+                } else {
+                    clearTimeout(this.lastTime)
+                    console.log('重新计数')
+                    this.lastTime = setTimeout(() => {
+                        if(searchValue) this.https.insertSearchWords({keyword: searchValue}).then(({data})=>{
+                            console.log('保存搜索字段到数据库',searchValue,data)
+                        })
+                    }, 2000)
                 }
             },
         }

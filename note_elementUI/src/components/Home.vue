@@ -73,6 +73,15 @@
                     this.https.getWastepaperNotes().then(({data}) => {
                         this.$store.state.wastepaperNotesList = data.data
                     })
+
+                    this.https.getSearchHistroy().then(({data}) => {
+                        let keywords = []
+                        data.data.forEach((k) => {
+                            keywords.push({value: k.keyword})
+                        })
+                        this.$store.state.searchHistroy = keywords
+                    })
+
                 }).then(() => {
                     // 2.获取笔记数据 初始化 notes
                     this.https.getNotes().then(({data}) => {

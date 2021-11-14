@@ -54,13 +54,25 @@ export function deleteNote(data) {
 export function clearAllWasteNotes() {
     return vm.post('/api/admin/note/clearAllWasteNotes')
 }
-// 使用es 搜索笔记
-export function searchNoteByWords(data) {
-    return vm.post('/es/search', data)
-}
+
 export function insertNote(data) {
     return vm.post('/api/admin/note/insert', data)
 }
+
+/**搜索笔记**/
+export function getSearchHistroy() {
+    return vm.post('/es/getSearchHistroy')
+}
+
+export function searchNoteByWords(data) {
+    return vm.post('/es/search', data)
+}
+
+export function insertSearchWords(data) {
+    return vm.post('/es/insertSearchWords', data)
+}
+
+
 
 /**标签**/
 export function getTags() {
@@ -108,8 +120,9 @@ export default {
             getNotes,
             updateNote,
             insertNote,
+            getSearchHistroy,
             searchNoteByWords,
-
+            insertSearchWords,
             getSortWay,
             updateSortWay,
 
