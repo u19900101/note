@@ -64,7 +64,7 @@
                    @on-close="handleClose2(item,index)">
                 {{ item }}
               </Tag>
-              <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd" v-show="!editTagShow">添加标签
+              <Button icon="ios-plus-empty" type="dashed" size="mini" @click="handleAdd" v-show="!editTagShow">添加标签
               </Button>
               <input type="text" class="tagValue"
                      v-show="editTagShow"

@@ -77,7 +77,7 @@
                                     <!--时间-->
                                     <el-row>
                                         <!--根据排序方式来决定显示的时间类型 note.createTime -->
-                                        <span style="font-size: small;color: #49a2de">
+                                        <span style="font-size: mini;color: #49a2de">
                                             {{$store.state.sortWay.updateTime ? '更新时间' : '创建时间'}}
                                             <!--若有别名字段就显示别名-->
                                             {{
@@ -280,7 +280,7 @@
                                     searchNotes.push(item._source)
                                 }
                             })
-                            console.log(searchNotes)
+                            // console.log(searchNotes)
                             /*封装tags 便于list显示*/
                             searchNotes.forEach((s) => {
                                 s.tagList = []
@@ -298,7 +298,7 @@
                             })
                             /* this.$store.state.searchNotesList = searchNotes*/
                             this.tool.getDateTimes(searchNotes, this.$store.state.sortWay);
-                            console.log("搜索结果数组长度", searchNotes.length);
+                            // console.log("搜索结果数组长度", searchNotes.length);
                             // 封装搜索结果
                             this.$store.state.currentNoteList = searchNotes
 
@@ -332,7 +332,7 @@
                     }, 2000)
                 } else {
                     clearTimeout(this.lastTime)
-                    console.log('重新计数')
+                    // console.log('重新计数')
                     this.lastTime = setTimeout(() => {
                         if(searchValue) this.https.insertSearchWords({keyword: searchValue}).then(({data})=>{
                             console.log('保存搜索字段到数据库',searchValue,data)
@@ -356,7 +356,7 @@
 
     /*笔记列表中的内容样式  多行截断  (超级简化版)*/
     .more-line {
-        font-size: small;
+        font-size: mini;
         display: -webkit-box !important;
         overflow: hidden;
         text-overflow: ellipsis;

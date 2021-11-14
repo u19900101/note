@@ -1,26 +1,26 @@
 <template>
     <el-container>
-        <!--标题-->
+        <!--标题 & 工具栏-->
         <el-header>
-
+            <!--标题-->
             <el-row>
                 <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
                 <el-input
                         v-else
                         :disabled="$store.state.currentNote.wastepaper"
-                        size="small"
+                        size="mini"
                         placeholder="请输入笔记标题"
                         v-model="title">
                 </el-input>
             </el-row>
-            <!--笔记本 标签 收藏 删除-->
+            <!--笔记本 标签 收藏 删除  日期 位置-->
             <el-row class="toolLeft"> <!--toolLeft 让笔记图标在div中居中-->
                 <!--笔记本和图标放一起-->
-                <div class="toolLeft">
+                <div>
                     <i class="el-icon-notebook-2"></i>
                     <!--让下拉框随着内容的变化动态的改变宽带 字体的大小是 12 英文和中文的宽度不一样 粗略的进行计算 -->
                     <el-select v-model="currentNoteBook" filterable placeholder="请选择"
-                               size="small"
+                               size="mini"
                                :disabled="$store.state.currentNote.wastepaper"
                                :style="{width: getBt(currentNoteBook.label)*6 + 70+ 'px'}">
                         <!--slice(3) 过滤掉 数据库中 所有笔记，收藏，废纸篓三项-->
@@ -39,7 +39,7 @@
                             :content="star ? '取消收藏': '收藏'"
                             placement="bottom">
                     <!--给图标单独设置大小 采用 i 设置时会影响全局-->
-                    <el-button :disabled="$store.state.currentNote.wastepaper" size="small"
+                    <el-button :disabled="$store.state.currentNote.wastepaper" size="mini"
                                style="margin-left: 10px;padding: 0px">
                         <i @click="starClick" :class="star ? 'el-icon-star-on': 'el-icon-star-off' "
                            style="font-size: 25px"></i>
@@ -50,7 +50,7 @@
                 <el-tooltip class="item"
                             :content="$store.state.currentNote.wastepaper ? '彻底删除笔记' : '移入到废纸篓'"
                             placement="bottom">
-                    <el-button size="small" style="margin-left: 10px;padding: 0px">
+                    <el-button size="mini" style="margin-left: 10px;padding: 0px">
                         <i class="el-icon-delete" @click="deleteClick" style="font-size: 25px"></i>
                     </el-button>
                 </el-tooltip>
@@ -59,18 +59,36 @@
                 <noteTag style="margin-left: 10px" ref="noteTag"></noteTag>
 
                 <!--恢复删除的笔记-->
-                <el-button @click="recoverNote" size="small" type="primary" round
+                <el-button @click="recoverNote" size="mini" type="primary" round
                            v-if="$store.state.currentNote.wastepaper"
                            style="margin-left: 10px;">
                     恢复笔记
                 </el-button>
 
-                <el-button @click="clearAllWasteNotes" size="small" type="danger" round
+                <el-button @click="clearAllWasteNotes" size="mini" type="danger" round
                            v-if="$store.state.currentNote.wastepaper"
                            style="margin-left: 10px;">
                     清空废纸篓
                 </el-button>
 
+                <!--日期 -->
+                <div class="mydate">
+                    <el-date-picker
+                            style="width: 150px;"
+                            v-model="createTime"
+                            editable
+                            size="mini"
+                            type="datetime"
+                            placeholder="选择日期时间"
+                            :default-time="createTime.split(' ')[0]">
+                    </el-date-picker>
+                </div>
+
+                <!--位置-->
+                <div style="padding-right: 10px">
+                    <i class="el-icon-location-information"></i>
+                    <a href="#">{{location}}</a>
+                </div>
 
             </el-row>
         </el-header>
@@ -153,7 +171,7 @@
             currentNoteBook: {
                 get: function () {
                     let currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == this.$store.state.currentNote.pid)[0]
-                    return { value: currentNoteBook.id,label:currentNoteBook.title}
+                    return {value: currentNoteBook.id, label: currentNoteBook.title}
                 },
                 set: function (currentNoteBook) {
                     // 更新笔记本的id  {"value": 4,"label": "数据库"}
@@ -163,12 +181,37 @@
                         id: this.$store.state.currentNote.id,
                         pid: currentNoteBook.value
                     }).then(({data}) => {
-                        console.log("移动笔记本成功",  data);
+                        console.log("移动笔记本成功", data);
                         // 进行全量更新树  级联更新自己和新笔记本 显示的笔记数量
                         // 放弃局部更新树(遍历判断树的次数更频繁)
                         this.$store.state.noteBooksTree = data.data
                         this.tool.addNoteCount(this.$store.state.noteBooksTree)
                     })
+                }
+            },
+            createTime: {
+                get: function () {
+                    return this.$store.state.currentNote.createTime
+                },
+                set: function (newValue) {
+                    this.$store.state.currentNote.createTime = newValue
+                    console.log(newValue)
+                    /* this.https.updateNote({id: this.$store.state.currentNote.id, createTime: newValue}).then(({data}) => {
+                         console.log("修改数据库成功", data);
+                     })*/
+                }
+            },
+            location: {
+                get: function () {
+                    console.log(this.$store.state.currentNote)
+                    return this.$store.state.currentNote.location
+                },
+                set: function (newValue) {
+                    this.$store.state.currentNote.location = newValue
+                    console.log(newValue)
+                    /* this.https.updateNote({id: this.$store.state.currentNote.id, createTime: newValue}).then(({data}) => {
+                         console.log("修改数据库成功", data);
+                     })*/
                 }
             },
         },
@@ -330,7 +373,7 @@
                     });
                 });
             },
-            replaceHeightLight(str){
+            replaceHeightLight(str) {
                 return str.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, "")
             },
             titleClick() {
@@ -347,6 +390,13 @@
 </script>
 
 <style>
+    .mydate .el-input--mini .el-input__inner {
+        height: 28px;
+        line-height: 28px;
+        width: 150px;
+        padding-left: 30px;
+        padding-right: 0px;
+    }
 
     /*自定义提示框的宽度*/
     .el-message {
@@ -355,9 +405,10 @@
 
     /* 让工具栏在同一行展示*/
     .toolLeft {
+        margin-top: 10px;
         display: flex;
-        justify-content: flex-start; /*主轴上靠左*/
-        /*justify-content: space-between !important;*/ /*space-between 无法实现开头和结尾对其 */
+        justify-content: flex-start; /*主轴上靠左 flex-start*/
+        /*justify-content: space-between; !*无法实现开头和结尾对其 *!*/
         align-items: center; /*侧轴上居中*/
     }
 

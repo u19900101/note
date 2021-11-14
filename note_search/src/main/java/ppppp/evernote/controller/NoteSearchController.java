@@ -49,7 +49,8 @@ public class NoteSearchController {
 
     @RequestMapping("/getSearchHistroy")
     private String getSearchHistroy(){
-        List<Search> searchList = searchService.lambdaQuery().list();
+        /*最近的十条*/
+        List<Search> searchList = searchService.lambdaQuery().orderByDesc(Search::getCreateTime).last("limit 10").list();
         return ResultUtil.successWithData(searchList);
     }
 }

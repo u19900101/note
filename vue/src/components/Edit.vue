@@ -84,7 +84,7 @@
               <div class="addtag">
                 <div class="tianjiaBQ">
                   <Tag v-for="item in count" :key="item" :name="item" closable @on-close="handleClose2">{{item}}</Tag>
-                  <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd" v-show="!tagShow">自定义标签</Button>
+                  <Button icon="ios-plus-empty" type="dashed" size="mini" @click="handleAdd" v-show="!tagShow">自定义标签</Button>
                   <input type="text" class="tagValue"
                          ref="tagValue"
                          v-model="tagVal"

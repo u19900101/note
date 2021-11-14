@@ -18,8 +18,8 @@ public class SearchApplicationTests {
     SearchService searchService;
     @Test
     public void contextLoads() {
-        List<Search> list = searchService.lambdaQuery().list();
-        System.out.println(list);
+        List<Search> searchList = searchService.lambdaQuery().orderByDesc(Search::getCreateTime).last("limit 10").list();
+        System.out.println(searchList);
     }
 
     @Test

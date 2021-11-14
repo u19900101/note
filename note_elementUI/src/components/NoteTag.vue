@@ -2,6 +2,7 @@
     <div>
         <el-tag
                 :key="tag.id"
+                size="small"
                 v-for="tag in $store.state.currentNote.tagList"
                 :closable="$store.state.currentNote.wastepaper ? false : true"
                 :disable-transitions="false"
@@ -10,7 +11,7 @@
         </el-tag>
         <!--显示可输入的框-->
         <el-autocomplete
-                size="small"
+                size="mini"
                 v-if="inputVisible"
                 ref="saveTagInput"
                 class="input-new-tag"
@@ -23,7 +24,7 @@
         ></el-autocomplete>
 
         <!--新增标签按钮-->
-        <el-button v-else :disabled="$store.state.currentNote.wastepaper" class="button-new-tag" size="small" @click="showInput">+ New Tag</el-button>
+        <el-button v-else :disabled="$store.state.currentNote.wastepaper" class="button-new-tag" size="mini" @click="showInput">+</el-button>
     </div>
 </template>
 
@@ -176,9 +177,8 @@
     }
 
     .button-new-tag {
-        width: 90px;
+
         margin-left: 10px;
-        height: 32px;
         line-height: 30px;
         padding-top: 0;
         padding-bottom: 0;

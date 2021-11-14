@@ -89,8 +89,8 @@
             handleNodeClick(data, node, e) {
                 /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
                 /*关闭搜索模式*/
-                if(this.$store.state.isSearchMode) this.turnOffSearchMode()
-                if(!this.$store.state.listAndNoteShow)  this.$store.state.listAndNoteShow = true
+                if (this.$store.state.isSearchMode) this.turnOffSearchMode()
+                if (!this.$store.state.listAndNoteShow) this.$store.state.listAndNoteShow = true
                 switch (data.id) {
                     case 'insertNote':
                         this.insertNote();
@@ -161,6 +161,7 @@
                     this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
                     this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
                 } else {
+                    this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
                     this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
                 }
                 if (this.$store.state.currentNoteList.length > 0) {
@@ -217,7 +218,7 @@
                 return {preId, currentId, nextId}
             },
             handleDragEnd(draggingNode, dropNode, dropType, ev) {
-             /*   console.log('end...' ,dropType, )*/
+                /*   console.log('end...' ,dropType, )*/
 
             },
 
@@ -230,7 +231,7 @@
                 // 区分是 笔记本节点拖动 和 标签节点拖动
                 let firstLevelTitle = this.getfirstLevelTitle(dropNode)
                 /*在树内拖拽时才进行数据更新*/
-                if(ev.clientX < this.$store.state.sortWay.navWidth){
+                if (ev.clientX < this.$store.state.sortWay.navWidth) {
                     let obj = {
                         preId,
                         currentId,
@@ -262,7 +263,7 @@
                             this.tool.addNoteCount(this.$store.state.tagsTree)
                         })
                     }
-                }else { //不在树内  手动恢复树的形状(可能出现的节点逃逸)
+                } else { //不在树内  手动恢复树的形状(可能出现的节点逃逸)
                     if (firstLevelTitle == '笔记本') {
                         /*更新tree*/
                         this.https.getNoteBooksTree().then(({data}) => {
@@ -435,9 +436,9 @@
 
         },
         mounted() {
-            this.$bus.$on('initCurrentNoteListByName',this.initCurrentNoteListByName)
-            this.$bus.$on('initTagNotesListByTagNode',this.initTagNotesListByTagNode)
-            this.$bus.$on('getTagNodeDataById',this.getTagNodeDataById)
+            this.$bus.$on('initCurrentNoteListByName', this.initCurrentNoteListByName)
+            this.$bus.$on('initTagNotesListByTagNode', this.initTagNotesListByTagNode)
+            this.$bus.$on('getTagNodeDataById', this.getTagNodeDataById)
         }
     };
 </script>

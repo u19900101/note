@@ -42,6 +42,10 @@ public class Note implements Serializable {
      */
     private String title;
 
+    private String location;
+
+    private String lnglat;
+
     /**
      * 逻辑删除状态
      */
@@ -98,5 +102,7 @@ public class Note implements Serializable {
      */
     @TableField(exist = false)
     private List<String> mediaList = new ArrayList<>();
+
+
 
 }

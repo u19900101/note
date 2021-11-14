@@ -65,7 +65,7 @@
                     prop="delete"
                     label="操作">
                 <template slot-scope="scope">
-                    <el-button type="danger" size="small" @click="deleteItem(scope.row.id)">删除</el-button>
+                    <el-button type="danger" size="mini" @click="deleteItem(scope.row.id)">删除</el-button>
                 </template>
             </el-table-column>
         </el-table>
