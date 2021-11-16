@@ -63,15 +63,15 @@ export function insertNote(data) {
 
 /**搜索笔记**/
 export function getSearchHistroy() {
-    return vm.post('/es/getSearchHistroy')
+    return vm.get('/api/es/getSearchHistroy')
 }
 
 export function searchNoteByWords(data) {
-    return vm.post('/es/search', data)
+    return vm.get('/api/es/search', data)
 }
 
 export function insertSearchWords(data) {
-    return vm.post('/es/insertSearchWords', data)
+    return vm.post('/api/es/insertSearchWords', data)
 }
 
 

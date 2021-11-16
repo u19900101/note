@@ -22,9 +22,9 @@ spring:
         - id: admin_search
           uri: lb://note-search
           predicates:
-            - Path=/es/**
-#          filters:
-#            - RewritePath=/(?<segment>.*),/$\{segment}
+            - Path=/api/es/**
+          filters:
+            - RewritePath=/api/(?<segment>.*),/$\{segment}
 
 
     #        #nginx负载均衡

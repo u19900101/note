@@ -26,17 +26,19 @@ import java.util.List;
 public class NoteSearchController {
     @Autowired
     SearchService searchService;
-    @PostMapping("/search")
+    @RequestMapping("/search")
     private String search(@RequestBody String data) throws Exception {
         System.out.println(data);
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> request = new HttpEntity<>(data, headers);
-        String res = restTemplate.postForObject("http://192.168.56.10:9200/canal_note/_search", request, String.class);
+        String res = restTemplate.postForObject("http://47.101.137.245:9200/canal_note/_search", request, String.class);
+        // String res = restTemplate.postForObject("http://192.168.56.10:9200/canal_note/_search", request, String.class);
         System.out.println(res);
         return res;
     }
+
 
     @PostMapping("/insertSearchWords")
     private String insertSearchWords(@RequestBody Search search){
