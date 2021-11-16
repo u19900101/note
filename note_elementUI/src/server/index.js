@@ -3,7 +3,9 @@ import Vue from 'vue'
 import {data} from "autoprefixer";
 
 const vm = axios.create({
-    baseURL: 'http://admin.note.com',
+    // baseURL: 'http://admin.note.com',
+    // baseURL: 'http://jingjingmemeda.ltd',
+    baseURL: 'http://47.101.137.245',
     // 解决请求参数 方法2：传递到后端事为空
     // headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 });
