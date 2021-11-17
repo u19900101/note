@@ -3,9 +3,10 @@ import Vue from 'vue'
 import {data} from "autoprefixer";
 
 const vm = axios.create({
-    baseURL: 'http://admin.note.com', //本地虚拟机 192.168.56.1
+    // baseURL: 'http://admin.note.com', //本地虚拟机 192.168.56.1
+    baseURL: 'http://192.168.56.1', //本地虚拟机 192.168.56.1
     // baseURL: 'http://jingjingmemeda.ltd',
-    // baseURL: 'http://47.101.137.245',
+    // baseURL: 'http://47.101.137.245',//线上
     // 解决请求参数 方法2：传递到后端事为空
     // headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 });
@@ -67,7 +68,7 @@ export function getSearchHistroy() {
 }
 
 export function searchNoteByWords(data) {
-    return vm.get('/api/es/search', data)
+    return vm.post('/api/es/search', data)
 }
 
 export function insertSearchWords(data) {

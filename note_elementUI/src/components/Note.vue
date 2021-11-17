@@ -195,7 +195,7 @@
                 },
                 set: function (newValue) {
                     this.$store.state.currentNote.createTime = newValue
-                    console.log(newValue)
+                    // console.log(newValue)
                     /* this.https.updateNote({id: this.$store.state.currentNote.id, createTime: newValue}).then(({data}) => {
                          console.log("修改数据库成功", data);
                      })*/
@@ -203,12 +203,12 @@
             },
             location: {
                 get: function () {
-                    console.log(this.$store.state.currentNote)
+                    // console.log(this.$store.state.currentNote)
                     return this.$store.state.currentNote.location
                 },
                 set: function (newValue) {
                     this.$store.state.currentNote.location = newValue
-                    console.log(newValue)
+                    // console.log(newValue)
                     /* this.https.updateNote({id: this.$store.state.currentNote.id, createTime: newValue}).then(({data}) => {
                          console.log("修改数据库成功", data);
                      })*/

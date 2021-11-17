@@ -26,7 +26,8 @@ import java.util.List;
 public class NoteSearchController {
     @Autowired
     SearchService searchService;
-    @RequestMapping("/search")
+
+    @PostMapping("/search")
     private String search(@RequestBody String data) throws Exception {
         System.out.println(data);
         RestTemplate restTemplate = new RestTemplate();
