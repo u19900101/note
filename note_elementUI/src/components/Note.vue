@@ -1,11 +1,12 @@
 <template>
-    <el-container>
+    <el-container style="width: 1000px">
         <!--标题 & 工具栏-->
         <el-header>
             <!--标题-->
             <el-row>
                 <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
                 <el-input
+                        style="width: 560px"
                         v-else
                         :disabled="$store.state.currentNote.wastepaper"
                         size="mini"
@@ -16,22 +17,20 @@
             <!--笔记本 标签 收藏 删除  日期 位置-->
             <el-row class="toolLeft"> <!--toolLeft 让笔记图标在div中居中-->
                 <!--笔记本和图标放一起-->
-                <div>
-                    <i class="el-icon-notebook-2"></i>
-                    <!--让下拉框随着内容的变化动态的改变宽带 字体的大小是 12 英文和中文的宽度不一样 粗略的进行计算 -->
-                    <el-select v-model="currentNoteBook" filterable placeholder="请选择"
-                               size="mini"
-                               :disabled="$store.state.currentNote.wastepaper"
-                               :style="{width: getBt(currentNoteBook.label)*6 + 70+ 'px'}">
-                        <!--slice(3) 过滤掉 数据库中 所有笔记，收藏，废纸篓三项-->
-                        <el-option
-                                v-for="item in $store.state.noteBooks.slice(3)"
-                                :key="item.id"
-                                :label="item.title"
-                                :value="{ value: item.id, label: item.title }">
-                        </el-option>
-                    </el-select>
-                </div>
+                <i class="el-icon-notebook-2"></i>
+                <!--让下拉框随着内容的变化动态的改变宽带 字体的大小是 12 英文和中文的宽度不一样 粗略的进行计算 -->
+                <el-select v-model="currentNoteBook" filterable placeholder="请选择"
+                           size="mini"
+                           :disabled="$store.state.currentNote.wastepaper"
+                           :style="{width: getBt(currentNoteBook.label)*6 + 70+ 'px'}">
+                    <!--slice(3) 过滤掉 数据库中 所有笔记，收藏，废纸篓三项-->
+                    <el-option
+                            v-for="item in $store.state.noteBooks.slice(3)"
+                            :key="item.id"
+                            :label="item.title"
+                            :value="{ value: item.id, label: item.title }">
+                    </el-option>
+                </el-select>
 
                 <!--收藏-->
                 <el-tooltip class="item"
@@ -94,11 +93,12 @@
         </el-header>
 
         <!--内容-->
-        <el-main>
+        <el-main style="width: 600px;">
             <div @drop="handleTargetDrop"
                  @dragover="handleTargetDragOver"
                  style="height: 100%">
-                <div v-if="!$store.state.isContentEditMode" v-html="content" @click="contentClick" style="height: 100%"></div>
+                <div v-if="!$store.state.isContentEditMode" v-html="content" @click="contentClick"
+                     style="height: 100%"></div>
                 <el-input v-else
                           type="textarea"
                           maxlength="1000000"
@@ -410,6 +410,7 @@
         justify-content: flex-start; /*主轴上靠左 flex-start*/
         /*justify-content: space-between; !*无法实现开头和结尾对其 *!*/
         align-items: center; /*侧轴上居中*/
+        width: 600px; /*适配手机预览*/
     }
 
 

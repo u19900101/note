@@ -150,6 +150,11 @@
                 return dynamicTags.toString()
             },
             noteClick(note, index) {
+                /*页面显示*/
+                if(this.$store.state.isSearchMode){
+                    if(this.$store.state.isTitleEditMode) this.$store.state.isTitleEditMode = false
+                    if(this.$store.state.isContentEditMode) this.$store.state.isContentEditMode = false
+                }
                 this.$store.state.currentNote = note
                 this.$store.state.currentIndex = index
             },
