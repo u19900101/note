@@ -90,7 +90,11 @@
                                 </el-col>
                                 <!--图片-->
                                 <el-col :span="8" class="innerCenter">
-                                    <el-image
+                                    <el-image v-if="note.mediaUid"
+                                            :src="require('../assets/images/'+ note.mediaUid)"
+                                            fit="cover">
+                                    </el-image>
+                                    <el-image v-else
                                             :src="require('../assets/images/gofree.jpg')"
                                             fit="cover">
                                     </el-image>

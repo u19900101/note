@@ -114,6 +114,7 @@
 
 <script>
     import noteTag from "./NoteTag"
+    let dayjs = require('dayjs');
 
     export default {
         name: "Note",
@@ -194,11 +195,15 @@
                     return this.$store.state.currentNote.createTime
                 },
                 set: function (newValue) {
-                    this.$store.state.currentNote.createTime = newValue
-                    // console.log(newValue)
-                    /* this.https.updateNote({id: this.$store.state.currentNote.id, createTime: newValue}).then(({data}) => {
-                         console.log("修改数据库成功", data);
-                     })*/
+                    let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
+                    this.$store.state.currentNote.createTime = formatTime
+                    console.log('更新笔记创建时间', this.$store.state.currentNote.title,formatTime)
+                    this.https.updateNote({
+                        id: this.$store.state.currentNote.id,
+                        createTime: newValue
+                    }).then(({data}) => {
+                        console.log("修改数据库成功", data);
+                    })
                 }
             },
             location: {

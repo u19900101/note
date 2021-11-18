@@ -107,6 +107,7 @@
             },
             updateSortWay(isReverseChanged){
                 let sortWay = {
+                    id: "1", //固定的id
                     createTime: this.currentSortWays.includes('0'),
                     updateTime: this.currentSortWays.includes('1'),
                     location: this.currentSortWays.includes('2'),

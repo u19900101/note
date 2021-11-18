@@ -141,7 +141,9 @@ public class NoteController {
             // 修改废纸篓的数量 +1
             isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() + 1));
         }
-        if(isUpdateNoteBookCountSucceed && isLogicalDelete && isWastepaperSucceed) return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
+        if(isUpdateNoteBookCountSucceed && isLogicalDelete && isWastepaperSucceed) {
+            return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
+        }
         return ResultUtil.errorWithMessage("error");
     }
 
@@ -186,7 +188,9 @@ public class NoteController {
         Notebook notebook = notebookService.getById(noteBookId);
         notebook.setNoteCount(notebook.getNoteCount() + count);
         boolean updateNoteBook = notebookService.updateById(notebook);
-        if (!updateNoteBook) throw new StopMsgException();
+        if (!updateNoteBook) {
+            throw new StopMsgException();
+        }
         if (notebook.getPid() != null) {
             updateNoteCount(notebook.getPid(), count);
         }
