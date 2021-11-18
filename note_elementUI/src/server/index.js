@@ -3,8 +3,8 @@ import Vue from 'vue'
 import {data} from "autoprefixer";
 
 const vm = axios.create({
-    // baseURL: 'http://47.101.137.245',//上线
-    baseURL: 'http://192.168.56.1', //本地
+    baseURL: 'http://47.101.137.245',//上线
+    // baseURL: 'http://192.168.56.1', //本地
     // baseURL: 'http://admin.note.com', //本地虚拟机 192.168.56.1
     // baseURL: 'http://jingjingmemeda.ltd',
     // 解决请求参数 方法2：传递到后端事为空
