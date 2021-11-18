@@ -390,7 +390,6 @@
                 this.$store.state.isContentEditMode = true
             },
         },
-
     }
 </script>
 

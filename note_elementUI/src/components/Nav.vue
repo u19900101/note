@@ -26,11 +26,20 @@
                     <span class="custom-tree-node" slot-scope="{ node, data }">
                     <!-- 给一级节点 设置自定义图标-->
                         <!-- 收藏-1 笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6-->
-                     <i v-if="node.level == 1" :class=icons[data.id-1]></i>
+                         <i v-if="node.level == 1" :class=icons[data.id-1]></i>
                         <!-- 动态设置一级标题和子节点的字体大小-->
                         <!--不能对 node在此处实行插值查看-->
-                    <span :style="{'font-size': node.level == 1 ? '20px':'14px'}" style="margin-left: 5px">{{ data.title }}</span>
-                </span>
+                        <!--右键修改笔记本名称   -->
+                         <div v-if=data.isEdit @click.stop class="editNoteBookName">
+                              <input v-focus
+                                     v-model=data.title
+                                     @blur.stop="NodeBlur(node, data)"
+                                     @keyup.enter="NodeBlur(node, data)"
+                                     size="small"
+                              ></input>
+                         </div>
+                         <span v-else :style="{'font-size': node.level == 1 ? '20px':'14px'}" style="margin-left: 5px">{{ data.title }}</span>
+                    </span>
                 </el-tree>
             </el-scrollbar>
         </el-aside>
@@ -55,6 +64,7 @@
         },
         data() {
             return {
+                noteCountTemp: '', //保存 修改笔记本名称时的笔记数量
                 navWidth: this.$store.state.sortWay.navWidth, // 导航栏的初始宽度
                 navMax: 800,
                 navMin: 150,
@@ -82,6 +92,43 @@
             * event、传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
             handleNodeContextmenu(e, data, node) {
                 console.log('右键点击了节点', node.data.title)
+                /*响应式的设置属性*/
+                this.noteCountTemp = data.title.split(" ")[1]
+                this.$set(data, 'title', data.title.split(" ")[0])
+                this.$set(data, 'isEdit', true)
+            },
+
+            NodeBlur(node, data) {
+                if (data.isEdit) {
+                    this.$set(data, 'isEdit', false)
+                    let title = data.title
+                    let currentId = data.id
+                    this.$set(data, 'title', title + " " + this.noteCountTemp)
+
+                    /*名称修改*/
+                    /*区分是 点击的是笔记本 还是 标签*/
+                    let firstLevelTitle = this.getfirstLevelTitle(node)
+
+                    if (firstLevelTitle == '笔记本') {
+                        this.https.updateNotebook({currentId: currentId, title:title}).then(({data}) => {
+                            console.log('更新笔记本名称成功', data)
+                            /*更新tree*/
+                            let currentNoteBook = this.getTagNodeDataById(currentId, this.$store.state.noteBooksTree)
+                            currentNoteBook.title = currentNoteBook.title.replace(currentNoteBook.title.split(" ")[0], title)
+                            /*更新noteBooks*/
+                            this.$store.state.noteBooks.filter((n) => n.id == currentId)[0].title = title
+                        })
+                    } else { /*标签名称修改*/
+                        this.https.updateTag({currentId: currentId, title: title}).then(({data}) => {
+                            /*更新Tag tree*/
+                            console.log('更新标签名称成功', data)
+                            let currentTag = this.getTagNodeDataById(currentId, this.$store.state.tagsTree)
+                            currentTag.title = currentTag.title.replace(currentTag.title.split(" ")[0], title)
+                            /*更新tags*/
+                            this.$store.state.tags.filter((n) => n.id == data.id)[0].title = title
+                        })
+                    }
+                }
             },
             /*
             * 传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。
@@ -379,7 +426,7 @@
             getTagNodeDataById(tagId, tagTreeData) {
                 for (let t of tagTreeData) {
                     if (t.id == tagId) return t
-                    if (t.children.length > 0) this.getTagNodeDataById(tagId, t.children)
+                    if (t.children.length > 0) return this.getTagNodeDataById(tagId, t.children)
                 }
             },
             getNodeCountByTagId(tagId, tagTree) {
@@ -439,6 +486,14 @@
             this.$bus.$on('initCurrentNoteListByName', this.initCurrentNoteListByName)
             this.$bus.$on('initTagNotesListByTagNode', this.initTagNotesListByTagNode)
             this.$bus.$on('getTagNodeDataById', this.getTagNodeDataById)
+        },
+        //注册一个局部的自定义指令 v-focus
+        directives: {
+            focus: {
+                inserted: function (el) {
+                    el.focus();
+                }
+            }
         }
     };
 </script>
@@ -483,6 +538,11 @@
     /* 二级节点的高度*/
     .el-tree-node__children .el-tree-node__content {
         height: 23px !important;
+    }
+
+    .editNoteBookName .el-input__inner {
+        background-color: #2a333c;
+        color: #ffffff;
     }
 
 </style>

@@ -175,7 +175,7 @@ export default {
     }
 
   },
-  // todo  ??
+
   directives: {
     focus: {
       inserted: function (el) {
