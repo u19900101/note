@@ -61,21 +61,19 @@ def getFiled(targetArr):
     createTime,updateTime,location,lng_lat = ["","","",""]
     tagList = []
     for i in targetArr:
-        if(i.find("创建时间") != -1):
+        if i.startswith("| **"):
+            count += 1
+        if i.startswith("| **创建时间"):
             createTime = pattern.findall(i)[0].replace("*", "").strip()
-            count += 1
-        elif(i.find("更新时间") != -1):
+        elif i.startswith("| **更新时间"):
             updateTime = pattern.findall(i)[0].replace("*", "").strip()
-            count += 1
-        elif(i.find("位置") != -1):
+        elif i.startswith("| **位置"):
             locationLink = re.compile(r'http.*\)').findall(i)[0].replace(")", "").strip()
             lng_lat = re.compile(r'q=.*').findall(locationLink)[0].replace("q=", "").split(",")
             location = get_locationName(eval(lng_lat[1]), eval(lng_lat[0])).strip()
             lng_lat = lng_lat[1] + ',' + lng_lat[0]
-            count += 1
-        elif(i.find("标签") != -1):
+        elif i.startswith("| **标签"):
             tagList = [x.replace("*", "").strip() for x in re.compile(r'\*.*?\*').findall(i.strip())[2:]]
-            count += 1
 
 
     return createTime,updateTime, location, lng_lat, tagList, count
@@ -90,7 +88,7 @@ def md_sql(fileArr):
     # 1.钓鱼，钓到了大鲶鱼，下池塘捞线捞漂，
     title = fileArr[0].strip()
     # 在第 1-4行进行查找
-    createTime,updateTime, location, lng_lat, tagList, count = getFiled(fileArr[1:5])
+    createTime,updateTime, location, lng_lat, tagList, count = getFiled(fileArr[1:6])
     content = ''.join(fileArr[count:])
     # print('title is ', title)
     # print('createTime is ', createTime)
@@ -119,15 +117,15 @@ def getTag_uid(tagList):
 
 # htmlPath = "1.html"
 # md_sql(htmlToMd(htmlPath))
-# dir = "D:\MyJava\mylifeImg\others\读研期间\\"
-dir = "temp\\"
+dir = "D:\MyJava\mylifeImg\others\读研期间\\"
+# dir = "temp\\"
 for i in os.listdir(dir):
-    print(i)
     if i.endswith(".html"):
+        # print(i)
         title, createTime, updateTime, location, lng_lat, tagList, content = md_sql(htmlToMd(dir,i))
         # # 1.封装 tag 写进tag表中
         tag_uid = getTag_uid(tagList)
-        print(title, tagList,tag_uid, createTime, updateTime, location, lng_lat,  content[:10])
+        # print(title, tagList,tag_uid, createTime, updateTime, location, lng_lat,  content[:10])
         # # 写入 note表中
         insertNote(title,tag_uid, createTime, updateTime, location, lng_lat,  str(content))
 # 关闭数据库连接

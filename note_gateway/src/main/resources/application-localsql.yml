@@ -1,0 +1,36 @@
+server:
+  port: 88
+spring:
+  application:
+    name: note-gateway
+  cloud:
+    nacos:
+      server-addr: 192.168.56.10:8848
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: admin_route
+#          因为gateway 无法解析下划线, 所以一定记着，微服务下给服务起实例名不要带下划线
+          uri: lb://note-admin
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - RewritePath=/api/(?<segment>.*),/$\{segment}
+#        es 搜索
+        - id: admin_search
+          uri: lb://note-search
+          predicates:
+            - Path=/api/es/**
+          filters:
+            - RewritePath=/api/(?<segment>.*),/$\{segment}
+
+
+    #        #nginx负载均衡
+#        - id: admin_host_route
+#          uri: lb://note_admin
+#          predicates:
+#            - Host=admin.note.com
+
+

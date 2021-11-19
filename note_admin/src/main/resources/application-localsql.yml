@@ -1,0 +1,29 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: note-admin
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
+    driver-class-name: com.mysql.jdbc.Driver              # mysql驱动包
+#    &characterEncoding=utf8mb4
+    url: jdbc:mysql://192.168.56.10:3306/canal_test?useUnicode=true&serverTimezone=UTC&zeroDateTimeBehavior=convertToNull
+    username: root
+    password: root
+  cloud:
+    nacos:
+      server-addr: 192.168.56.10:8848
+## 该配置节点为独立的节点，有很多同学容易将这个配置放在spring的节点下，导致配置无法被识别
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml  #注意：一定要对应mapper映射xml文件的所在路径
+  type-aliases-package: ppppp.evernote.mapper # 注意：对应实体类的路径
+# 配置主键自增策略   按照数据库的来
+  global-config:
+    db-config:
+      id-type: auto
+# 控制nacos日志级别  与 log4j小有冲突
+logging:
+  level:
+    com.alibaba.nacos.client.naming: WARN
+    com.alibaba.nacos.client.config.impl: WARN
+
