@@ -1,8 +1,9 @@
 from markdownify import markdownify as md
-import linecache
 import re
 import requests
 import os
+
+from HtmlToMd.pyMyql import isTagExist, insertTag, insertNote, closeConn
 
 
 def gen_video_tag(s):
@@ -17,10 +18,9 @@ def video_match(matched):
     return value
 
 
-def htmlToMd(htmlPath):
+def htmlToMd(dir,htmlPath):
     mdFilePath = htmlPath.replace(".html", ".md")
-    result = []
-    with open(htmlPath, 'r', encoding='UTF-8') as f:
+    with open(dir + htmlPath, 'r', encoding='UTF-8') as f:
         res = ''
         htmlpage = f.read()
         # 处理html格式文件中的内容
@@ -36,7 +36,7 @@ def htmlToMd(htmlPath):
         result = res[6:]
         # # 4.去掉第一行和第二行
         result.insert(0,res[2])
-    with open(mdFilePath, 'w', encoding='UTF-8') as f:
+    with open(dir + mdFilePath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(result))
     return result
 
@@ -89,18 +89,16 @@ def md_sql(fileArr):
     # | **标签：** | *周总结* |
     # 1.钓鱼，钓到了大鲶鱼，下池塘捞线捞漂，
     title = fileArr[0].strip()
-
     # 在第 1-4行进行查找
     createTime,updateTime, location, lng_lat, tagList, count = getFiled(fileArr[1:5])
     content = ''.join(fileArr[count:])
-
-    print('title is ', title)
-    print('createTime is ', createTime)
-    print('updateTime is ', updateTime)
-    print('location is ', location)
-    print('lng_lat is ', lng_lat)
-    print('tagList is ', tagList)
-    print('content is ', content)
+    # print('title is ', title)
+    # print('createTime is ', createTime)
+    # print('updateTime is ', updateTime)
+    # print('location is ', location)
+    # print('lng_lat is ', lng_lat)
+    # print('tagList is ', tagList)
+    # print('content is ', content)
     return title, createTime, updateTime, location, lng_lat, tagList, content
 
 
@@ -108,13 +106,31 @@ def html_sql(htmlPath):
     htmlToMd(htmlPath)
     return md_sql(htmlPath.replace(".html", ".md"))
 
+def getTag_uid(tagList):
+    tag_uid = ''
+    if len(tagList) > 0:
+        for tagName in tagList[0].split(","):
+            resId = isTagExist(tagName.strip())
+            if resId == -1:
+                resId = insertTag(tagName.strip())
+            tag_uid += str(resId) + ','
+    return tag_uid
 
-htmlPath = "1.html"
 
-# html_sql("1.md")
-md_sql(htmlToMd(htmlPath))
-for i in os.listdir("."):
-    if (i.endswith(".html")):
-        # htmlToMd(i)
-        # html_sql(i)
-        md_sql(htmlToMd(i))
+# htmlPath = "1.html"
+# md_sql(htmlToMd(htmlPath))
+# dir = "D:\MyJava\mylifeImg\others\读研期间\\"
+dir = "temp\\"
+for i in os.listdir(dir):
+    print(i)
+    if i.endswith(".html"):
+        title, createTime, updateTime, location, lng_lat, tagList, content = md_sql(htmlToMd(dir,i))
+        # # 1.封装 tag 写进tag表中
+        tag_uid = getTag_uid(tagList)
+        print(title, tagList,tag_uid, createTime, updateTime, location, lng_lat,  content[:10])
+        # # 写入 note表中
+        insertNote(title,tag_uid, createTime, updateTime, location, lng_lat,  str(content))
+# 关闭数据库连接
+closeConn()
+
+
