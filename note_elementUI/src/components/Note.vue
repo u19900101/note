@@ -5,8 +5,8 @@
             <!--标题-->
             <el-row>
                 <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
+                <!-- style="width: 560px" -->
                 <el-input
-                        style="width: 560px"
                         v-else
                         :disabled="$store.state.currentNote.wastepaper"
                         size="mini"
@@ -92,8 +92,8 @@
             </el-row>
         </el-header>
 
-        <!--内容-->
-        <el-main style="width: 600px;">
+        <!--内容--> <!--style="width: 600px;"-->
+        <el-main >
             <div @drop="handleTargetDrop"
                  @dragover="handleTargetDragOver"
                  style="height: 100%">
@@ -414,7 +414,8 @@
         justify-content: flex-start; /*主轴上靠左 flex-start*/
         /*justify-content: space-between; !*无法实现开头和结尾对其 *!*/
         align-items: center; /*侧轴上居中*/
-        width: 600px; /*适配手机预览*/
+        /*width: 600px; !*适配手机预览*!*/
+        width: 100%;
     }
 
 
