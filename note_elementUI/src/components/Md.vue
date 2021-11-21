@@ -10,10 +10,12 @@
         data() {
             return {
                 instance: null,
+                init: 1 //初始化
             };
         },
         methods: {
             initEditor() {
+                let vm = this
                 this.instance = window.editormd("editormdid", {
                     height: 500,
                     emoji: true,
@@ -42,27 +44,31 @@
                     imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp", "mp4"],
                     imageUploadURL: "./static/php/upload.php",
                     onload: function () {
-                        // console.log('onload', this);
-                        // this.fullscreen();
-
-                        //  this.unwatch();
-                        // this.previewing();//全屏预览
-                        // this.previewing();//全屏预览
+                        //手动操作让其达到全屏预览
+                        this.watch()
                         this.previewed();//首先对上一次的清屏
                         this.previewing();//全屏预览
-                        //this.unwatch();
-                        // this.watch().fullscreen();
-
-                        //this.setMarkdown("#PHP");
-                        //this.width("100%");
-                        //this.height(480);
-                        //this.resize("100%", 640);
+                    },
+                    onchange() {
+                        // 解决初次加载时执行change事件
+                        // console.log('onchange...', vm.init)
+                        if ( vm.init> 2) {
+                            vm.https.updateNote({
+                                id: vm.$store.state.currentNote.id,
+                                content: this.getMarkdown()
+                            }).then(({data}) => {
+                                console.log("修改数据库成功", data);
+                            })
+                        }
+                        vm.init += 1
                     }
                 });
-            }
+            },
         },
-        watch:{
-            '$store.state.currentNote.content'(){
+        watch: {
+            '$store.state.currentNote'() {
+                // console.log('this.init = true')
+                this.init = 1
                 this.initEditor();
             }
         },
