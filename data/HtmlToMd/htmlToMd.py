@@ -2,9 +2,18 @@ from markdownify import markdownify as md
 import re
 import requests
 import os
-
+import time
 from HtmlToMd.pyMyql import isTagExist, insertTag, insertNote, closeConn
-
+WEBSITE = "http://lpgogo.top/"
+def d8_to_utc(d8_time):
+    d8_time = time.strptime(d8_time, "%Y/%m/%d %H:%M")
+    #3.将时间数组转换为时间戳
+    d8_time = time.mktime(d8_time)
+    #4.将时间戳转换为东八区的时间戳
+    utc_time =  d8_time - 8*60*60
+    #5.将时间戳进行格式化即可
+    utc_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(utc_time))
+    return utc_time
 # 查找所有 ![](NAME)
 def addHttp(httpname,content):
     for i in re.compile(r'!\[\]\(.*?\)').findall(content):
@@ -22,7 +31,10 @@ def video_match(matched):
     value = matched.group('value')
     value = re.sub('(?P<value>\[.*\])', "\n", value)
     if value.endswith(".mp4)"):
-        value = value.replace("(", "<video src=\"").replace(")", "\"></video>")
+        matchObj = re.search( r'\((.*)\).*', value)
+        # 加上网址前缀
+        if matchObj.group(1):
+            value = "<video controls preload=\"auto\" src=\"" + WEBSITE + matchObj.group(1)+ "\"></video>"
     return value
 
 
@@ -73,8 +85,10 @@ def getFiled(targetArr):
             count += 1
         if i.startswith("| **创建时间"):
             createTime = pattern.findall(i)[0].replace("*", "").strip()
+            createTime = d8_to_utc(createTime)
         elif i.startswith("| **更新时间"):
             updateTime = pattern.findall(i)[0].replace("*", "").strip()
+            updateTime = d8_to_utc(updateTime)
         elif i.startswith("| **位置"):
             locationLink = re.compile(r'http.*\)').findall(i)[0].replace(")", "").strip()
             lng_lat = re.compile(r'q=.*').findall(locationLink)[0].replace("q=", "").split(",")
@@ -97,14 +111,7 @@ def md_sql(fileArr):
     title = fileArr[0].strip()
     # 在第 1-4行进行查找
     createTime,updateTime, location, lng_lat, tagList, count = getFiled(fileArr[1:6])
-    content = addHttp("http://lpgogo.top/",''.join(fileArr[count:]))
-    # print('title is ', title)
-    # print('createTime is ', createTime)
-    # print('updateTime is ', updateTime)
-    # print('location is ', location)
-    # print('lng_lat is ', lng_lat)
-    # print('tagList is ', tagList)
-    # print('content is ', content)
+    content = addHttp(WEBSITE,''.join(fileArr[count:]))
     return title, createTime, updateTime, location, lng_lat, tagList, content
 
 
@@ -122,19 +129,16 @@ def getTag_uid(tagList):
             tag_uid += str(resId) + ','
     return tag_uid
 
-
-# htmlPath = "1.html"
-# md_sql(htmlToMd(htmlPath))
 dir = "D:\MyJava\mylifeImg\others\读研期间\\"
 # dir = "temp\\"
 for i in os.listdir(dir):
     if i.endswith(".html"):
         # print(i)
         title, createTime, updateTime, location, lng_lat, tagList, content = md_sql(htmlToMd(dir,i))
-        # # 1.封装 tag 写进tag表中
+        # 1.封装 tag 写进tag表中
         tag_uid = getTag_uid(tagList)
         # print(title, tagList,tag_uid, createTime, updateTime, location, lng_lat,  content[:10])
-        # # 写入 note表中
+        # 写入 note表中
         insertNote(title,tag_uid, createTime, updateTime, location, lng_lat,  str(content))
 # 关闭数据库连接
 closeConn()
