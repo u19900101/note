@@ -73,7 +73,8 @@
                 defaultProps: {
                     children: 'children',
                     label: 'title'
-                }
+                },
+                lastTime: 0, // 定时器的初始值
             };
         },
         methods: {
@@ -84,9 +85,20 @@
                     this.navWidth = this.navWidth > this.navMin ? this.navMax : this.navMin
                 }
                 /*将导航栏的宽度写进数据库*/
-                this.https.updateSortWay({id: 1, navWidth: this.navWidth}).then(({data}) => {
-                    console.log(data)
-                })
+
+                if (this.lastTime == 0) {
+                    this.exeWidthChange(this.navWidth)
+                } else {
+                    clearTimeout(this.lastTime)
+                    this.exeWidthChange(this.navWidth)
+                }
+            },
+            exeWidthChange(navWidth){
+                this.lastTime = setTimeout(() => {
+                    this.https.updateSortWay({id: 1, navWidth: navWidth}).then(({data}) => {
+                        console.log(data)
+                    })
+                }, 2000)
             },
             /*
             * event、传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/

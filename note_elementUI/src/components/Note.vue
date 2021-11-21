@@ -91,9 +91,9 @@
 
             </el-row>
         </el-header>
-
+        <md :content='content' style="margin-top: 48px;width: 100%"></md>
         <!--内容--> <!--style="width: 600px;"-->
-        <el-main >
+      <!--  <el-main >
             <div @drop="handleTargetDrop"
                  @dragover="handleTargetDragOver"
                  style="height: 100%">
@@ -108,18 +108,20 @@
                 >
                 </el-input>
             </div>
-        </el-main>
+        </el-main>-->
     </el-container>
 </template>
 
 <script>
     import noteTag from "./NoteTag"
+    import md from "./Md"
     let dayjs = require('dayjs');
 
     export default {
         name: "Note",
         components: {
             noteTag,
+            md
         },
 
         computed: {

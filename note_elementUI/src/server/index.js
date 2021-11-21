@@ -102,7 +102,7 @@ export function deleteTag(data) {
 export function getSortWay() {
     return vm.get('/api/admin/sortWay/allSortWay')
 }
-/** ps 导航栏和笔记列表的宽度 */
+/** 导航栏和笔记列表的宽度 */
 export function updateSortWay(data) {
     return vm.post('/api/admin/sortWay/updateSortWay', data)
 }

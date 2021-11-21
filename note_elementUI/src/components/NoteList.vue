@@ -137,6 +137,7 @@
                 iconMouseLeave: false,  // 鼠标是否离开了图标区域
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 lastTime: 0, //定时器的初始值
+                widthLastTime: 0,
             }
         },
 
@@ -194,9 +195,19 @@
                 if (this.noteListWidth < this.navMin || this.noteListWidth > this.navMax) {
                     this.noteListWidth = this.noteListWidth > this.navMin ? this.navMax : this.navMin
                 }
-                this.https.updateSortWay({id: 1, listWidth: this.noteListWidth}).then(({data}) => {
-                    console.log('成功更新列表宽度', data)
-                })
+                if (this.widthLastTime == 0) {
+                    this.exeWidthChange(this.noteListWidth)
+                } else {
+                    clearTimeout(this.widthLastTime)
+                    this.exeWidthChange(this.noteListWidth)
+                }
+            },
+            exeWidthChange(navWidth){
+                this.widthLastTime = setTimeout(() => {
+                    this.https.updateSortWay({id: 1, navWidth: navWidth}).then(({data}) => {
+                        console.log(data)
+                    })
+                }, 2000)
             },
             switchToSearchMode() {
                 this.$store.state.isSearchMode = !this.$store.state.isSearchMode
@@ -325,28 +336,24 @@
                     this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
                     this.$store.state.currentNote = this.$store.state.currentNoteBookNoteList[0]
                 }
+            },
+            exefunc(searchValue){
+                this.lastTime = setTimeout(() => {
+                    if(searchValue) this.https.insertSearchWords({keyword: searchValue}).then(({data})=>{
+                        console.log('保存搜索字段到数据库',searchValue,data)
+                    })
+                }, 2000)
             }
-
         },
         watch: {
             /*监听用户停止输入*/
             searchValue(searchValue) {
                 this.search(searchValue)
                 if (this.lastTime == 0) {
-                    this.lastTime = setTimeout(() => {
-                        if(searchValue) this.https.insertSearchWords({keyword: searchValue}).then(({data})=>{
-                            console.log('保存搜索字段到数据库',searchValue,data)
-                        })
-
-                    }, 2000)
+                    this.exefunc(searchValue)
                 } else {
                     clearTimeout(this.lastTime)
-                    // console.log('重新计数')
-                    this.lastTime = setTimeout(() => {
-                        if(searchValue) this.https.insertSearchWords({keyword: searchValue}).then(({data})=>{
-                            console.log('保存搜索字段到数据库',searchValue,data)
-                        })
-                    }, 2000)
+                    this.exefunc(searchValue)
                 }
             },
         }

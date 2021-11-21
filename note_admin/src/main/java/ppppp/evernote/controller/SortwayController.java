@@ -27,7 +27,7 @@ public class SortwayController {
     }
     /*ps 更新 导航栏和笔记列表栏的宽度*/
     @PostMapping("/updateSortWay")
-    public String updateTag(@RequestBody Sortway sortway) {
+    public String updateSortWay(@RequestBody Sortway sortway) {
         boolean b = sortWayService.updateById(sortway);
         return ResultUtil.successWithData(b);
     }
