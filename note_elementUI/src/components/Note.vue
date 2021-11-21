@@ -91,7 +91,7 @@
 
             </el-row>
         </el-header>
-        <md :content='content' style="margin-top: 48px;width: 100%"></md>
+        <md style="margin-top: 48px;width: 100%"></md>
         <!--内容--> <!--style="width: 600px;"-->
       <!--  <el-main >
             <div @drop="handleTargetDrop"

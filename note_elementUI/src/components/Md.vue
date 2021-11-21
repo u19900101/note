@@ -1,25 +1,16 @@
 <template>
     <div id="editormdid">
-        <textarea v-model="content"></textarea>
+        <textarea v-model="$store.state.currentNote.content"></textarea>
     </div>
 </template>
 
 <script>
     export default {
         name: 'Editor',
-        props: {
-            content:{
-                type: String,
-                default: ''
-            }
-        },
         data() {
             return {
                 instance: null,
             };
-        },
-        mounted() {
-            this.initEditor();
         },
         methods: {
             initEditor() {
@@ -69,6 +60,14 @@
                     }
                 });
             }
+        },
+        watch:{
+            '$store.state.currentNote.content'(){
+                this.initEditor();
+            }
+        },
+        mounted() {
+            this.initEditor();
         },
     };
 </script>

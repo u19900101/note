@@ -202,9 +202,9 @@
                     this.exeWidthChange(this.noteListWidth)
                 }
             },
-            exeWidthChange(navWidth){
+            exeWidthChange(listWidth){
                 this.widthLastTime = setTimeout(() => {
-                    this.https.updateSortWay({id: 1, navWidth: navWidth}).then(({data}) => {
+                    this.https.updateSortWay({id: 1, listWidth: listWidth}).then(({data}) => {
                         console.log(data)
                     })
                 }, 2000)
