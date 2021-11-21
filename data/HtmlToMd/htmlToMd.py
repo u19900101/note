@@ -5,7 +5,15 @@ import os
 
 from HtmlToMd.pyMyql import isTagExist, insertTag, insertNote, closeConn
 
-
+# 查找所有 ![](NAME)
+def addHttp(httpname,content):
+    for i in re.compile(r'!\[\]\(.*?\)').findall(content):
+        # 提取 (NAME) 中的 NAME
+        matchObj = re.search( r'\((.*)\).*', i)
+        # 加上网址前缀
+        if matchObj.group(1):
+            content = content.replace(matchObj.group(1),httpname + matchObj.group(1))
+    return content
 def gen_video_tag(s):
     return re.sub('(?P<value>\[.*?mp4\))', video_match, s)
 
@@ -36,8 +44,8 @@ def htmlToMd(dir,htmlPath):
         result = res[6:]
         # # 4.去掉第一行和第二行
         result.insert(0,res[2])
-    with open(dir + mdFilePath, 'w', encoding='UTF-8') as f:
-        f.write('\n'.join(result))
+    # with open(dir + mdFilePath, 'w', encoding='UTF-8') as f:
+    #     f.write('\n'.join(result))
     return result
 
 
@@ -89,7 +97,7 @@ def md_sql(fileArr):
     title = fileArr[0].strip()
     # 在第 1-4行进行查找
     createTime,updateTime, location, lng_lat, tagList, count = getFiled(fileArr[1:6])
-    content = ''.join(fileArr[count:])
+    content = addHttp("http://lpgogo.top/",''.join(fileArr[count:]))
     # print('title is ', title)
     # print('createTime is ', createTime)
     # print('updateTime is ', updateTime)
