@@ -112,6 +112,8 @@ def md_sql(fileArr):
     # 在第 1-4行进行查找
     createTime,updateTime, location, lng_lat, tagList, count = getFiled(fileArr[1:6])
     content = addHttp(WEBSITE,''.join(fileArr[count:]))
+    # 给内容加上标题
+    content = "# " + title + "\n\n" + content
     return title, createTime, updateTime, location, lng_lat, tagList, content
 
 
@@ -137,7 +139,7 @@ for i in os.listdir(dir):
         title, createTime, updateTime, location, lng_lat, tagList, content = md_sql(htmlToMd(dir,i))
         # 1.封装 tag 写进tag表中
         tag_uid = getTag_uid(tagList)
-        # print(title, tagList,tag_uid, createTime, updateTime, location, lng_lat,  content[:10])
+        # print(title, content) # tagList,tag_uid, createTime, updateTime, location, lng_lat,
         # 写入 note表中
         insertNote(title,tag_uid, createTime, updateTime, location, lng_lat,  str(content))
 # 关闭数据库连接

@@ -3,9 +3,9 @@
         <!--标题 & 工具栏-->
         <el-header>
             <!--标题-->
-            <el-row>
+           <!-- <el-row>
                 <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
-                <!-- style="width: 560px" -->
+                &lt;!&ndash; style="width: 560px" &ndash;&gt;
                 <el-input
                         v-else
                         :disabled="$store.state.currentNote.wastepaper"
@@ -13,7 +13,7 @@
                         placeholder="请输入笔记标题"
                         v-model="title">
                 </el-input>
-            </el-row>
+            </el-row>-->
             <!--笔记本 标签 收藏 删除  日期 位置-->
             <el-row class="toolLeft"> <!--toolLeft 让笔记图标在div中居中-->
                 <!--笔记本和图标放一起-->

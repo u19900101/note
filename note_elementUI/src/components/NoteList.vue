@@ -70,7 +70,7 @@
                                         <div class="more-line">
                                             <span style="color: #49a2de">{{getTagList(note)}}</span>
                                             <span v-if="$store.state.isSearchMode" v-html="note.content"></span>
-                                            <span v-else> {{note.content}}</span>
+                                            <span v-else> {{note.content.replace("# " + note.title + "\n\n","")}}</span>
                                         </div>
                                     </el-row>
 
