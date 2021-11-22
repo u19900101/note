@@ -3,7 +3,7 @@
         <!--点击逻辑
     点击上级菜单时 1.显示对应菜单的笔记(标签) 2.不展开子项目
     点击 三角符号时 收起或折叠子项 accordion -->
-        <el-aside style="height: 500px;" :style="{width: navWidth + 'px'}">
+        <el-aside style="height: 729px;" :style="{width: navWidth + 'px'}">
             <el-scrollbar class="page-scroll">
                 <el-tree :data="data"
                          ref="mytree"

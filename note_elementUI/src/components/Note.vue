@@ -91,7 +91,11 @@
 
             </el-row>
         </el-header>
-        <md style="margin-top: 48px;width: 100%"></md>
+
+        <el-main >
+            <vmd></vmd>
+        </el-main>
+
         <!--内容--> <!--style="width: 600px;"-->
       <!--  <el-main >
             <div @drop="handleTargetDrop"
@@ -114,14 +118,14 @@
 
 <script>
     import noteTag from "./NoteTag"
-    import md from "./Md"
+    import vmd from "./Vmd"
     let dayjs = require('dayjs');
 
     export default {
         name: "Note",
         components: {
             noteTag,
-            md
+            vmd
         },
 
         computed: {

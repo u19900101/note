@@ -41,7 +41,7 @@
 
             <!--笔记列表-->
             <el-container>
-                <el-aside style="height: 500px;" :style="{width: noteListWidth + 'px'}">
+                <el-aside style="height: 729px;" :style="{width: noteListWidth + 'px'}">
                     <el-scrollbar class="page-scroll">
                         <div v-for="(note,index) in $store.state.currentNoteList">
                             <!-- type="flex" 为了让图片居中 -->
