@@ -88,6 +88,13 @@
 <!--            <artifactId>p6spy</artifactId>-->
 <!--            <version>3.9.1</version>-->
 <!--        </dependency>-->
+        <!--sftp文件上传-->
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.54</version>
+        </dependency>
+
 
 
 

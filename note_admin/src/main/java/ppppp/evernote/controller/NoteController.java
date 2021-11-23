@@ -17,10 +17,9 @@ import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.service.SortWayService;
 import ppppp.evernote.service.TagService;
 import ppppp.evernote.util.ResultUtil;
+import ppppp.evernote.util.ftp.FTPUtil;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static ppppp.evernote.util.RequestUtils.sendPostRequest;
@@ -207,14 +206,16 @@ public class NoteController {
             }
 
             String fileName = file.getOriginalFilename();
-            String filePath = "C:\\Users\\Administrator\\Desktop\\temp\\";
-            File dest = new File(filePath + fileName);
+            // String filePath = "C:\\Users\\Administrator\\Desktop\\temp\\";
+            // File dest = new File(filePath + fileName);
             try {
-                file.transferTo(dest);
+                // file.transferTo(dest); // 保存到本地
+                byte[] bytes = file.getBytes();
+                FTPUtil.sshSftp(bytes, file.getOriginalFilename());
                 temp.put("fileName", fileName);
                 temp.put("url", "http://lpgogo.top/" + fileName);
                 item.add(temp);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 System.out.println("bug");
                 map.put("uploaded", -1);
                 map.put("errorMessage", "上传失败...");
