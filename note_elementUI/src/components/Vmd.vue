@@ -120,6 +120,7 @@
                     },
                 },
             })
+            this.contentEditor.setTheme(vm.editortheme ? "light": "dark",vm.contentTheme ? "light": "dark")
         },
         methods: {
             onloadCallback(oEvent) {
@@ -149,7 +150,8 @@
         watch: {
             '$store.state.currentNote'() {
                 this.contentEditor.setValue(this.$store.state.currentNote.content)
-                this.contentEditor.setTheme("light","dark","dark")
+                //清空撤销和重做记录栈
+                this.contentEditor.clearStack()
             }
         },
     }
