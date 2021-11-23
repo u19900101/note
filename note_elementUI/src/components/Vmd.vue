@@ -30,7 +30,6 @@
                         click () {
                             vm.editortheme = !vm.editortheme
                             vm.contentEditor.setTheme(vm.editortheme ? "light": "dark")
-                            let kk = vm.editortheme
                             vm.https.updateSortWay({
                                 id: "1", //固定的id
                                 editortheme: vm.editortheme
@@ -55,24 +54,25 @@
                                 console.log("保存主题成功",data)
                             })
                         },
-                    }
+                    },
+                    'upload',
                     ],
                 toolbarConfig: {
                     pin: true, //pin	是否固定工具栏	false
                     // hide: true, //是否隐藏工具栏	false
                 },
                 counter: {enable: true, type: 'text'}, //'markdown', 'text'
-                preview: {
-                    theme:
-                        {list : { dark: "Dark", light: "Light"}} //, dark light  const v = this.contentEditor  v.setTheme("dark","dark","dark")
-                },
                 cache: {
                     enable: false
                 },
                 after: () => {
                     this.contentEditor.setValue(this.$store.state.currentNote.content)
-                    this.contentEditor.setTheme("dark","dark","dark")
+                    /*设置主题*/
+                    this.contentEditor.setTheme(this.$store.state.sortWay.editortheme ?"light": "dark",
+                        this.$store.state.sortWay.contenttheme ? "light": "dark",
+                        "dark")
                 },
+                /*监听输入框发生变化时保存修改*/
                 input(content) {
                     vm.$store.state.currentNote.content = content
                     // 没有标题,默认提取前10个字符为标题'
@@ -92,10 +92,61 @@
                     vm.https.updateNote(note).then(({data}) => {
                         console.log("修改数据库成功", data);
                     })
-                }
+                },
+                upload: {
+                    accept: 'image/*,.mp3, .wav, .rar',
+                    max: 1024 * 1024 * 1024,
+                    multiple: true, //上传文件是否为多个
+
+                   /* token: 'test',
+                    url: 'http://lpgogo.top/api/admin/note/uploadFile',
+                    linkToImgUrl: '/api/upload/fetch',
+                    // fieldName	上传字段名称	'file[]'
+                    filename (name) {
+                        return name.replace(/[^(a-zA-Z0-9\u4e00-\u9fa5\.)]/g, '').
+                        replace(/[\?\\/:|<>\*\[\]\(\)\$%\{\}@~]/g, '').
+                        replace('/\\s/g', '')
+                    },*/
+
+                    handler(file) {  //自定义上传，当发生错误时返回错误信息
+                        let formData = new FormData()
+                        for (let i in file) {
+                            formData.append('file[]', file[i])
+                        }
+                        let request = new XMLHttpRequest()
+                        // 图片上传路径
+                        request.open('POST', "http://lpgogo.top/api/admin/note/uploadFile")
+                        request.onload = vm.onloadCallback
+                        request.send(formData)
+                    },
+                },
             })
         },
-        methods: {},
+        methods: {
+            onloadCallback(oEvent) {
+                const currentTarget = oEvent.currentTarget
+                if (currentTarget.status !== 200) {
+                    return this.$message({
+                        type: 'error',
+                        message: currentTarget.status + ' ' + currentTarget.statusText
+                    })
+                }
+                let resp = JSON.parse(currentTarget.response)
+                let imgMdStr = ''
+                if (resp.uploaded !== 1) {
+                    return this.$message({
+                        type: 'error',
+                        message: resp.errorMessage
+                    })
+                }
+                if (resp.uploaded === 1) {
+                    for (let i of resp.item){
+                        imgMdStr += `![${i.fileName}](${i.url})`
+                    }
+                }
+                this.contentEditor.insertValue(imgMdStr)
+            },
+        },
         watch: {
             '$store.state.currentNote'() {
                 this.contentEditor.setValue(this.$store.state.currentNote.content)

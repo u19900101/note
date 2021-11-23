@@ -2,11 +2,12 @@ package ppppp.evernote.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
-
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ppppp.evernote.entity.Note;
 import ppppp.evernote.entity.Notebook;
 import ppppp.evernote.entity.Sortway;
@@ -17,9 +18,10 @@ import ppppp.evernote.service.SortWayService;
 import ppppp.evernote.service.TagService;
 import ppppp.evernote.util.ResultUtil;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 import static ppppp.evernote.util.RequestUtils.sendPostRequest;
 
@@ -66,7 +68,7 @@ public class NoteController {
     public String updateNote(@RequestBody Note note) {
         boolean isUpdateNoteBookCountSucceed = true;
         boolean isWastepaperSucceed = true;
-        int oldPid =  noteService.getById(note.getId()).getPid();
+        int oldPid = noteService.getById(note.getId()).getPid();
         // 设置修改时间为当前时间
         note.setUpdateTime(new Date());
         // 更新 笔记
@@ -106,8 +108,6 @@ public class NoteController {
         return ResultUtil.successWithData(b && isUpdateNoteBookCountSucceed && isWastepaperSucceed);
     }
 
-
-
     /* 包含 1.状态修改 2.逻辑删除 */
     @PostMapping("/deleteNote")
     public String deleteNote(@RequestBody Note note) {
@@ -141,7 +141,7 @@ public class NoteController {
             // 修改废纸篓的数量 +1
             isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() + 1));
         }
-        if(isUpdateNoteBookCountSucceed && isLogicalDelete && isWastepaperSucceed) {
+        if (isUpdateNoteBookCountSucceed && isLogicalDelete && isWastepaperSucceed) {
             return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
         }
         return ResultUtil.errorWithMessage("error");
@@ -151,10 +151,11 @@ public class NoteController {
     @PostMapping("/clearAllWasteNotes")
     public String clearAllWasteNotes() {
         QueryWrapper<Note> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("wastepaper",1);
+        queryWrapper.eq("wastepaper", 1);
         boolean removeAll = noteService.remove(queryWrapper);
         return ResultUtil.successWithData(removeAll);
     }
+
     // 新建笔记
     @PostMapping("/insert")
     public String insertNote(@RequestBody Note note) {
@@ -181,6 +182,49 @@ public class NoteController {
             isSucceed = false;
         }
         return isSucceed;
+    }
+
+    /*文件上传*/
+    /*@PostMapping("/uploadFile")
+    public String uploadFile( MultipartFile file) {
+
+        System.out.println(file);
+        return "";
+    }*/
+    @PostMapping("/uploadFile")
+    public Map<String, Object> uploadFile(HttpServletRequest request) {
+
+        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+        List<MultipartFile> fileList =  multiRequest.getFiles("file[]");
+        ArrayList<Map<String, Object>> item = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        for (MultipartFile file : fileList) {
+            Map<String, Object> temp = new HashMap<>();
+            if (file.isEmpty()) {
+                map.put("uploaded", -1);
+                map.put("errorMessage", "上传失败...");
+                return map;
+            }
+
+            String fileName = file.getOriginalFilename();
+            String filePath = "C:\\Users\\Administrator\\Desktop\\temp\\";
+            File dest = new File(filePath + fileName);
+            try {
+                file.transferTo(dest);
+                temp.put("fileName", fileName);
+                temp.put("url", "http://lpgogo.top/" + fileName);
+                item.add(temp);
+            } catch (IOException e) {
+                System.out.println("bug");
+                map.put("uploaded", -1);
+                map.put("errorMessage", "上传失败...");
+                return map;
+            }
+        }
+
+        map.put("uploaded", 1); //"上传成功"
+        map.put("item",item);
+        return map;
     }
 
     /*级联更新所在笔记本以及所有的父笔记本*/
