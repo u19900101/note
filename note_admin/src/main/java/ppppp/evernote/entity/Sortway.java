@@ -27,4 +27,7 @@ public class Sortway implements Serializable {
     private Integer navWidth;
     private Integer listWidth;
 
+    /*主题样式*/
+    private Boolean editortheme;
+    private Boolean contenttheme;
 }
