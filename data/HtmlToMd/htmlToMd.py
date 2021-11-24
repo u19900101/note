@@ -14,21 +14,8 @@ def d8_to_utc(d8_time):
     #5.将时间戳进行格式化即可
     utc_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(utc_time))
     return utc_time
-# 查找所有 ![](NAME)
-# 缩放图片  将 ![](NAME)   转化为 \n<img src="http://lpgogo.top/a4.jpg" alt = "FILENAME.TYPE" style="zoom:30%;">\n
-def addHttp(httpname,content):
-    for i in re.compile(r'!\[\]\(.*?\)').findall(content):
-        # 提取 (NAME) 中的 NAME
-        matchObj = re.search( r'\((.*)\).*', i)
-        # 加上网址前缀
-        if matchObj.group(1):
-            filename  = re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', matchObj.group(1))).replace('_"点击下载"','')
-            content = content.replace(i,'\n<img src="' + httpname +  filename + '" alt = "' +filename + '" style="zoom:30%;"/>\n\n')
-    return content
 def gen_video_tag(s):
     return re.sub('(?P<value>\[.*?mp4\))', video_match, s)
-
-
 def video_match(matched):
     value = matched.group('value')
     value = re.sub('(?P<value>\[.*\])', "\n", value)
@@ -38,8 +25,6 @@ def video_match(matched):
         if matchObj.group(1):
             value = "<video controls preload=\"auto\" src=\"" + WEBSITE + matchObj.group(1)+ "\"></video>"
     return value
-
-
 def htmlToMd(dir,htmlPath):
     with open(dir + htmlPath, 'r', encoding='UTF-8') as f:
         res = ''
@@ -58,8 +43,6 @@ def htmlToMd(dir,htmlPath):
         # # 4.去掉第一行和第二行
         result.insert(0,res[2])
     return result
-
-
 def get_locationName(lng, lat):
     key = 'GjG3XAdmywz7CyETWqHwIuEC6ZExY6QT'
     r = requests.get(url='http://api.map.baidu.com/geocoder/v2/',
@@ -72,8 +55,6 @@ def get_locationName(lng, lat):
     street = result['result']['addressComponent']['street']
     street_number = result['result']['addressComponent']['street_number']
     return city + " " + district + " " + street + " " + street_number
-
-
 def getFiled(targetArr):
     pattern = re.compile(r'\*\d+.*\*')  # 查找数字
     count = 1  #记录查找到的行数，用于输出content的位置
@@ -98,8 +79,6 @@ def getFiled(targetArr):
 
 
     return createTime,updateTime, location, lng_lat, tagList, count
-
-
 def md_sql(fileArr):
     # 周总结
     # | **创建时间：** | *2015/9/1 19:03* |
@@ -111,16 +90,14 @@ def md_sql(fileArr):
     # 在第 1-4行进行查找
     createTime,updateTime, location, lng_lat, tagList, count = getFiled(fileArr[1:6])
     content = addHttp(WEBSITE,''.join(fileArr[count:]))
+    content = content[:len(content)-2]  # 去掉末尾的特殊自符 �
 
     # 给写进数据库的内容加上标题
     content = "# " + title + "\n\n" + content
     return title, createTime, updateTime, location, lng_lat, tagList, content
-
-
 def html_sql(htmlPath):
     htmlToMd(htmlPath)
     return md_sql(htmlPath.replace(".html", ".md"))
-
 def getTag_uid(tagList):
     tag_uid = ''
     if len(tagList) > 0:
@@ -130,10 +107,20 @@ def getTag_uid(tagList):
                 resId = insertTag(tagName.strip())
             tag_uid += str(resId) + ','
     return tag_uid
-
+# 查找所有 ![](NAME)
+# 缩放图片  将 ![](NAME)   转化为 \n<img src="http://lpgogo.top/a4.jpg" alt = "FILENAME.TYPE" style="zoom:30%;">\
+def addHttp(httpname,content):
+    for i in re.compile(r'!\[\]\(.*?\)').findall(content):
+        # 提取 (NAME) 中的 NAME
+        matchObj = re.search( r'\((.*)\).*', i)
+        # 加上网址前缀
+        if matchObj.group(1):
+            filename  = re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', matchObj.group(1))).replace('_"点击下载"','')
+            content = content.replace(i,'\n\n<img src="' + httpname +  filename + '" alt = "' +filename + '" style="zoom:30%;"/>\n\n')
+    return content
 dir = "D:\MyJava\mylifeImg\others\读研期间\\"
-# dir = "temp\\"
-for i in os.listdir(dir)[10:]:
+# dir = "temp\\" [:10]
+for i in os.listdir(dir):
     if i.endswith(".html"):
         # print(i)
         title, createTime, updateTime, location, lng_lat, tagList, content = md_sql(htmlToMd(dir,i))
@@ -141,7 +128,6 @@ for i in os.listdir(dir)[10:]:
         #     f.write(createTime + "\n" + updateTime+ "\n" +location+ "\n" +lng_lat+ "\n" +str(tagList)+ "\n" +content)
         # 1.封装 tag 写进tag表中
         tag_uid = getTag_uid(tagList)
-        # print(title, content) # tagList,tag_uid, createTime, updateTime, location, lng_lat,
         # 写入 note表中
         insertNote(title,tag_uid, createTime, updateTime, location, lng_lat,  str(content))
 # 关闭数据库连接
