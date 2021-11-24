@@ -4,7 +4,7 @@ import requests
 import os
 import time
 from HtmlToMd.pyMyql import isTagExist, insertTag, insertNote, closeConn
-WEBSITE = "http://lpgogo.top/"
+WEBSITE = "http://lpgogo.top/img/"
 def d8_to_utc(d8_time):
     d8_time = time.strptime(d8_time, "%Y/%m/%d %H:%M")
     #3.将时间数组转换为时间戳
@@ -15,13 +15,15 @@ def d8_to_utc(d8_time):
     utc_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(utc_time))
     return utc_time
 # 查找所有 ![](NAME)
+# 缩放图片  将 ![](NAME)   转化为 \n<img src="http://lpgogo.top/a4.jpg" alt = "FILENAME.TYPE" style="zoom:30%;">\n
 def addHttp(httpname,content):
     for i in re.compile(r'!\[\]\(.*?\)').findall(content):
         # 提取 (NAME) 中的 NAME
         matchObj = re.search( r'\((.*)\).*', i)
         # 加上网址前缀
         if matchObj.group(1):
-            content = content.replace(matchObj.group(1),httpname + matchObj.group(1))
+            filename  = re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', matchObj.group(1))).replace('_"点击下载"','')
+            content = content.replace(i,'\n<img src="' + httpname +  filename + '" alt = "' +filename + '" style="zoom:30%;"/>\n')
     return content
 def gen_video_tag(s):
     return re.sub('(?P<value>\[.*?mp4\))', video_match, s)
@@ -39,7 +41,6 @@ def video_match(matched):
 
 
 def htmlToMd(dir,htmlPath):
-    mdFilePath = htmlPath.replace(".html", ".md")
     with open(dir + htmlPath, 'r', encoding='UTF-8') as f:
         res = ''
         htmlpage = f.read()
@@ -56,8 +57,6 @@ def htmlToMd(dir,htmlPath):
         result = res[6:]
         # # 4.去掉第一行和第二行
         result.insert(0,res[2])
-    # with open(dir + mdFilePath, 'w', encoding='UTF-8') as f:
-    #     f.write('\n'.join(result))
     return result
 
 
@@ -112,7 +111,8 @@ def md_sql(fileArr):
     # 在第 1-4行进行查找
     createTime,updateTime, location, lng_lat, tagList, count = getFiled(fileArr[1:6])
     content = addHttp(WEBSITE,''.join(fileArr[count:]))
-    # 给内容加上标题
+
+    # 给写进数据库的内容加上标题
     content = "# " + title + "\n\n" + content
     return title, createTime, updateTime, location, lng_lat, tagList, content
 
@@ -133,10 +133,12 @@ def getTag_uid(tagList):
 
 dir = "D:\MyJava\mylifeImg\others\读研期间\\"
 # dir = "temp\\"
-for i in os.listdir(dir):
+for i in os.listdir(dir)[10:]:
     if i.endswith(".html"):
         # print(i)
         title, createTime, updateTime, location, lng_lat, tagList, content = md_sql(htmlToMd(dir,i))
+        # with open(dir + i.replace(".html",".md"), 'w', encoding='UTF-8') as f:
+        #     f.write(createTime + "\n" + updateTime+ "\n" +location+ "\n" +lng_lat+ "\n" +str(tagList)+ "\n" +content)
         # 1.封装 tag 写进tag表中
         tag_uid = getTag_uid(tagList)
         # print(title, content) # tagList,tag_uid, createTime, updateTime, location, lng_lat,
