@@ -23,11 +23,12 @@ def video_match(matched):
         matchObj = re.search( r'\((.*)\).*', value)
         # 加上网址前缀
         if matchObj.group(1):
-            value = "<video controls preload=\"auto\" src=\"" + WEBSITE + matchObj.group(1)+ "\"></video>"
+            filename =  re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', matchObj.group(1)))
+            value = "\n\n<video controls preload=\"auto\" src=\"" + WEBSITE + filename + "\"></video>\n\n"
     return value
 def htmlToMd(dir,htmlPath):
     with open(dir + htmlPath, 'r', encoding='UTF-8') as f:
-        res = ''
+
         htmlpage = f.read()
         # 处理html格式文件中的内容
         text = md(htmlpage)
@@ -35,13 +36,10 @@ def htmlToMd(dir,htmlPath):
         # 1.去除多余的换行
         text = re.sub(r'(\n)+', "\n", re.sub(r' +\n', '\n', text))
         text = text.replace("\xa0", " ")
-        # 5.二次转化视频标签
-        text = gen_video_tag(text)
-        res += text
-        res = res.split("\n")
-        result = res[6:]
+        text = text.split("\n")
+        result = text[6:]
         # # 4.去掉第一行和第二行
-        result.insert(0,res[2])
+        result.insert(0,text[2])
     return result
 def get_locationName(lng, lat):
     key = 'GjG3XAdmywz7CyETWqHwIuEC6ZExY6QT'
@@ -90,7 +88,9 @@ def md_sql(fileArr):
     # 在第 1-4行进行查找
     createTime,updateTime, location, lng_lat, tagList, count = getFiled(fileArr[1:6])
     content = addHttp(WEBSITE,''.join(fileArr[count:]))
-    content = content[:len(content)-2]  # 去掉末尾的特殊自符 �
+    # 5.二次转化视频标签
+    content = gen_video_tag(content)
+    content = content[:len(content)-2]  # 去掉末尾的特殊字符 �
 
     # 给写进数据库的内容加上标题
     content = "# " + title + "\n\n" + content
@@ -119,7 +119,7 @@ def addHttp(httpname,content):
             content = content.replace(i,'\n\n<img src="' + httpname +  filename + '" alt = "' +filename + '" style="zoom:30%;"/>\n\n')
     return content
 dir = "D:\MyJava\mylifeImg\others\读研期间\\"
-# dir = "temp\\" [:10]
+# dir = "temp\\"
 for i in os.listdir(dir):
     if i.endswith(".html"):
         # print(i)
@@ -127,9 +127,8 @@ for i in os.listdir(dir):
         # with open(dir + i.replace(".html",".md"), 'w', encoding='UTF-8') as f:
         #     f.write(createTime + "\n" + updateTime+ "\n" +location+ "\n" +lng_lat+ "\n" +str(tagList)+ "\n" +content)
         # 1.封装 tag 写进tag表中
-        tag_uid = getTag_uid(tagList)
         # 写入 note表中
-        insertNote(title,tag_uid, createTime, updateTime, location, lng_lat,  str(content))
+        insertNote(title,getTag_uid(tagList), createTime, updateTime, location, lng_lat,  str(content))
 # 关闭数据库连接
 closeConn()
 
