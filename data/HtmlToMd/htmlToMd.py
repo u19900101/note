@@ -23,7 +23,7 @@ def addHttp(httpname,content):
         # 加上网址前缀
         if matchObj.group(1):
             filename  = re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', matchObj.group(1))).replace('_"点击下载"','')
-            content = content.replace(i,'\n<img src="' + httpname +  filename + '" alt = "' +filename + '" style="zoom:30%;"/>\n')
+            content = content.replace(i,'\n<img src="' + httpname +  filename + '" alt = "' +filename + '" style="zoom:30%;"/>\n\n')
     return content
 def gen_video_tag(s):
     return re.sub('(?P<value>\[.*?mp4\))', video_match, s)

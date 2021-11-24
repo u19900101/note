@@ -213,7 +213,7 @@ public class NoteController {
                 byte[] bytes = file.getBytes();
                 FTPUtil.sshSftp(bytes, file.getOriginalFilename());
                 temp.put("fileName", fileName);
-                temp.put("url", "http://lpgogo.top/" + fileName);
+                temp.put("url", "http://lpgogo.top/img/" + fileName);
                 item.add(temp);
             } catch (Exception e) {
                 System.out.println("bug");
