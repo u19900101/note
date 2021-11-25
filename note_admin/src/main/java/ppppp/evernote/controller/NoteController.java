@@ -184,12 +184,6 @@ public class NoteController {
     }
 
     /*文件上传*/
-    /*@PostMapping("/uploadFile")
-    public String uploadFile( MultipartFile file) {
-
-        System.out.println(file);
-        return "";
-    }*/
     @PostMapping("/uploadFile")
     public Map<String, Object> uploadFile(HttpServletRequest request) {
 
@@ -265,9 +259,9 @@ public class NoteController {
 
         // 默认均为日期逆序为正常排序
         if (sortway.getCreateTime()) {
-            noteList = noteService.lambdaQuery().eq(Note::getWastepaper, false).orderByDesc(Note::getCreateTime).list();
+            noteList = noteService.lambdaQuery().eq(Note::getWastepaper, false).orderByDesc(Note::getCreateTime).last("limit 10").list();
         } else if (sortway.getUpdateTime()) {
-            noteList = noteService.lambdaQuery().eq(Note::getWastepaper, false).orderByDesc(Note::getUpdateTime).list();
+            noteList = noteService.lambdaQuery().eq(Note::getWastepaper, false).orderByDesc(Note::getUpdateTime).last("limit 10").list();
         }
         //逆序
         if (sortway.getReverse()) Collections.reverse(noteList);

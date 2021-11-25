@@ -58,7 +58,7 @@
                     'upload',
                     ],
                 upload: {
-                    accept: 'image/*,.mp3, .wav, .rar,.mp4,.mkv,',
+                    accept: 'image/*,.mp3, .wav, .rar,video/*,audio/*,text/*',
                     max: 1024 * 1024 * 1024,
                     multiple: true, //上传文件是否为多个
                     handler(file) {  //自定义上传，当发生错误时返回错误信息
@@ -131,8 +131,16 @@
                 if (resp.uploaded === 1) {
                     for (let i of resp.item){
                         // imgMdStr += `![${i.fileName}](${i.url})`
-                        // 缩放图片
-                        imgMdStr += `\n\n&lt;img src="${i.url}" alt = "${i.fileName}" style="zoom:30%;"/&gt\n\n`
+                        let reg_img=/.+\.(jpg|jpeg|gif|bmp|png)$/;
+                        let reg_video=/.+\.(avi|wmv|mpeg|mp4|m4v|mov|asf|flv|f4v|rmvb|rm|3gp|vob)$/;
+                        if(reg_img.test(i.fileName)){  // 缩放图片
+                            imgMdStr += `\n\n&lt;img src="${i.url}" alt = "${i.fileName}" style="zoom:30%;"/&gt\n\n`
+                        }else if(reg_video.test(i.fileName)){  // 上传视频文件
+                            imgMdStr += `\n\n&lt;video controls preload="auto" src="${i.url}">${i.fileName}&lt;/video>\n\n`
+                        }else{    // 其他格式文件，可以提供下载
+
+
+                        }
                     }
                 }
                 this.contentEditor.insertValue(imgMdStr);
