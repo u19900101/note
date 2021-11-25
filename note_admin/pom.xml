@@ -28,12 +28,7 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
             <version>2.1.1.RELEASE</version>
         </dependency>
-        <!--        配置中心 作配置管理-->
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>-->
-<!--            <version>2.1.1.RELEASE</version>-->
-<!--        </dependency>-->
+
         <!--给mybatis单元测试用-->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
@@ -82,12 +77,6 @@
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
-<!--        mybaisplus 3.2版本以上，移除了PerformanceInterceptor sql性能分析插件，使用第三方sql执行分析插件-->
-<!--        <dependency>-->
-<!--            <groupId>p6spy</groupId>-->
-<!--            <artifactId>p6spy</artifactId>-->
-<!--            <version>3.9.1</version>-->
-<!--        </dependency>-->
         <!--sftp文件上传-->
         <dependency>
             <groupId>com.jcraft</groupId>
@@ -95,7 +84,34 @@
             <version>0.1.54</version>
         </dependency>
 
+        <!-- java 调用 python-->
+        <dependency>
+            <groupId>org.python</groupId>
+            <artifactId>jython-standalone</artifactId>
+            <version>2.7.0</version>
+        </dependency>
 
+        <!-- 引入opencv-->
+        <dependency>
+            <groupId>com.acts</groupId>
+            <artifactId>opencv</artifactId>
+            <version>4.51</version>
+        </dependency>
+
+
+        <!--获取视频文件-->
+        <dependency>
+            <groupId>it.sauronsoftware</groupId>
+            <artifactId>jave</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+
+        <!--获取照片的exif-->
+        <dependency>
+            <groupId>com.drewnoakes</groupId>
+            <artifactId>metadata-extractor</artifactId>
+            <version>2.7.2</version>
+        </dependency>
 
 
         <dependency>
@@ -138,6 +154,12 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.8.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>7.3.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

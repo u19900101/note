@@ -8,10 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import ppppp.evernote.entity.Note;
-import ppppp.evernote.entity.Notebook;
-import ppppp.evernote.entity.Sortway;
-import ppppp.evernote.entity.Tag;
+import ppppp.evernote.entity.*;
 import ppppp.evernote.service.NoteService;
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.service.SortWayService;
@@ -20,8 +17,10 @@ import ppppp.evernote.util.ResultUtil;
 import ppppp.evernote.util.ftp.FTPUtil;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.util.*;
 
+import static ppppp.evernote.util.MyUtils.creatDir;
 import static ppppp.evernote.util.RequestUtils.sendPostRequest;
 
 /**
@@ -184,11 +183,83 @@ public class NoteController {
     }
 
     /*文件上传*/
+
+    public Map<String, Object> uploadFileAndInsert(HttpServletRequest request) throws Exception {
+
+        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+        List<MultipartFile> fileList = multiRequest.getFiles("file");
+        ArrayList<Map<String, Object>> item = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        for (MultipartFile file : fileList) {
+            Map<String, Object> temp = new HashMap<>();
+            if (file.isEmpty()) {
+                map.put("uploaded", -1);
+                map.put("errorMessage", "上传失败...");
+                return map;
+            }
+            // 保存到数据库 得到唯一的id  上传的文件名称格式  2021-11-25-fileName-id.type
+            String fileName = insertFile(file);
+            // 上传到服务器
+            try {
+                byte[] bytes = file.getBytes();
+                FTPUtil.sshSftp(bytes, fileName);
+                temp.put("fileName", fileName);
+                temp.put("url", "http://lpgogo.top/img/" + fileName);
+                item.add(temp);
+            } catch (Exception e) {
+                System.out.println("bug");
+                map.put("uploaded", -1);
+                map.put("errorMessage", "上传失败...");
+                return map;
+            }
+        }
+        map.put("uploaded", 1); //"上传成功"
+        map.put("item", item);
+        return map;
+    }
+
+
+    @PostMapping("/uploadFileAndInsert")
+    public void T_(HttpServletRequest request) throws Exception {
+        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+        List<MultipartFile> fileList = multiRequest.getFiles("file");
+        ArrayList<Map<String, Object>> item = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        for (MultipartFile multipartFile : fileList) {
+            String s = insertFile(multipartFile);
+        }
+
+    }
+
+    // 获取文件的信息 保存到数据库 返回文件唯一的名称  2021-11-25-fileName-id.type
+    private String insertFile(MultipartFile multipartFile) throws Exception {
+
+        String path = "C:\\Users\\Administrator\\Desktop\\temp\\1kkkk\\";
+        creatDir(path);
+        File file = new File(path, multipartFile.getOriginalFilename());
+        multipartFile.transferTo(file);
+        Picture imgInfo = PictureService.getImgInfo(file);
+        System.out.println(
+                "creatime: " + imgInfo.getPcreatime() +
+                " latlng: " + imgInfo.getGpsLatitude() + imgInfo.getGpsLatitude() +
+                " name: " + imgInfo.getPname() +
+                " width_h: "  + imgInfo.getPwidth() + "," + imgInfo.getPheight() +
+                " size: "     + imgInfo.getPsize());
+        // 操作完上的文件 需要删除在根目录下生成的文件
+        if (file.delete()) {
+            // System.out.println("删除成功");
+        } else {
+            // System.out.println("删除失败");
+        }
+        return "";
+    }
+
+
     @PostMapping("/uploadFile")
     public Map<String, Object> uploadFile(HttpServletRequest request) {
 
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
-        List<MultipartFile> fileList =  multiRequest.getFiles("file[]");
+        List<MultipartFile> fileList = multiRequest.getFiles("file");
         ArrayList<Map<String, Object>> item = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         for (MultipartFile file : fileList) {
@@ -218,7 +289,7 @@ public class NoteController {
         }
 
         map.put("uploaded", 1); //"上传成功"
-        map.put("item",item);
+        map.put("item", item);
         return map;
     }
 

@@ -16,8 +16,8 @@ const state = {
 
     /**笔记本**/
     noteBooks: [],  //所有笔记本列表
-    noteBooksTree:[],// 树形封装
-    noteBooksTreePure:[],// 树形封装
+    noteBooksTree: [],// 树形封装
+    noteBooksTreePure: [],// 树形封装
     currentNoteBook: {
         title: '所有笔记', // 当前笔记本的名称，也有可能是当前 tag的名称
         id: 0             // 当前笔记本的id，搜索笔记时有用
@@ -25,17 +25,17 @@ const state = {
 
 
     /**笔记**/
-    notes:[], // 所有的笔记列表
+    notes: [], // 所有的笔记列表
     currentNoteList: [], // 当前的所有笔记
     currentNoteBookNoteList: [], // 当前的笔记本中所有笔记
-    currentNote:{
+    currentNote: {
         noteId: '', //编辑的Id
         title: '',  //标题
         content: '', //内容
         pid: '', // noteContent对象的pid
         wastepaper: false
     }, //组件展示的数据对象
-    currentIndex:0,  // 笔记在当前列表中的index值  用于删除时，快速定位，更新列表
+    currentIndex: 0,  // 笔记在当前列表中的index值  用于删除时，快速定位，更新列表
     currentNoteBookName: '',
 
     /*************搜索*************/
@@ -49,18 +49,22 @@ const state = {
     starNotesList: [],
 
     /*************标签*************/
-    tags:[],     //所有标签列表
-    tagsTree:[], //标签树
-    tagsTreePure:[], //标签树
+    tags: [],     //所有标签列表
+    tagsTree: [], //标签树
+    tagsTreePure: [], //标签树
     /*************排序*************/
-    sortWay:{},
+    sortWay: {},
 
     /*************废纸篓*************/
-    wastepaperNotesList:[],
+    wastepaperNotesList: [],
+
+    /*************文件*************/
+    fileMode: false,  //文件模式视图控制
+    fileList: [],
 
     /*************页面显示控制*************/
     listAndNoteShow: true,  //显示列表区和笔记区
-    tableData:[],           //封装笔记本和标签展示区
+    tableData: [],           //封装笔记本和标签展示区
 }
 
 //创建并暴露store

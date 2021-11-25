@@ -2,13 +2,12 @@
     <el-container>
         <!--点击逻辑
     点击上级菜单时 1.显示对应菜单的笔记(标签) 2.不展开子项目
-    点击 三角符号时 收起或折叠子项 accordion -->
+    点击 三角符号时 收起或折叠子项 accordion   default-expand-all-->
         <el-aside style="height: 729px;" :style="{width: navWidth + 'px'}">
             <el-scrollbar class="page-scroll">
                 <el-tree :data="data"
                          ref="mytree"
                          node-key="id"
-                         default-expand-all
                          :expand-on-click-node=false
                          :highlight-current="true"
                          @node-click="handleNodeClick"
@@ -150,6 +149,8 @@
                 /*关闭搜索模式*/
                 if (this.$store.state.isSearchMode) this.turnOffSearchMode()
                 if (!this.$store.state.listAndNoteShow) this.$store.state.listAndNoteShow = true
+                /*默认文件视图模式关闭*/
+                if (this.$store.state.fileMode) this.$store.state.fileMode = false
                 switch (data.id) {
                     case 'insertNote':
                         this.insertNote();
@@ -171,6 +172,11 @@
                     case 'wastePaper':
                         this.initCurrentNoteListByName("wastepaperNotesList", 2);
                         break; /*'废纸篓' */
+                    case 'images':
+                        this.$store.state.fileMode = true
+                        this.$store.state.currentNoteList = []
+                        this.initCurrentNoteListByName("fileList", 8);
+                        break; /* 文件 */
                     default:
                         /*区分是 点击的是笔记本 还是 标签*/
                         let firstLevelTitle = this.getfirstLevelTitle(node)
@@ -213,13 +219,14 @@
             },
             /*初始化笔记列表和笔记本*/
             initCurrentNoteListByName(currentNoteBookName, noteBookId) {
+                //笔记本
                 if (currentNoteBookName == "noteBookNameId") {
                     // console.log('noteBookId is ', noteBookId);
                     /*获取所有子笔记*/
                     let parentIds = this.getChildrenIds(noteBookId, this.$store.state.noteBooksTree)
                     this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
                     this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
-                } else {
+                } else { //其他一级标题  如 wastepaperNotesList
                     this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
                     this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
                 }
@@ -483,6 +490,11 @@
                         {
                             id: 'wastePaper',
                             title: '废纸篓 (' + this.$store.state.wastepaperNotesList.length + ')'
+                        },
+                        /*图片和视频*/
+                        {
+                            id: 'images',
+                            title: '图片和视频 (' + "kkk" + ')'
                         },
                     ]
                 },

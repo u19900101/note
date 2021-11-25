@@ -1,43 +1,62 @@
 <template>
     <el-container id="noteList">
         <el-aside :style="{width: noteListWidth + 'px'}">
-            <!--笔记本名称 && 笔记排序按钮-->
-            <el-row>
-                <!--笔记本名称-->
-                <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
-                    <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span></el-col>
-                <el-col :span="8" style="text-align: right;">
-                    <div class="sortButton">
-                        <el-button round
-                                   @click="sortClick(-1)"
-                                   @mouseleave.native="iconMouseLeave = true"
-                                   @mouseenter.native="iconMouseLeave = false">
-                            <i class="el-icon-sort"></i>
-                        </el-button>
-                    </div>
-                </el-col>
-            </el-row>
+            <!--笔记本名称 && 笔记排序按钮 搜索-->
+            <div v-if="!$store.state.fileMode">
+                <el-row>
+                    <!--笔记本名称-->
+                    <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
+                        <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span></el-col>
+                    <el-col :span="8" style="text-align: right;">
+                        <div class="sortButton">
+                            <el-button round
+                                       @click="sortClick(-1)"
+                                       @mouseleave.native="iconMouseLeave = true"
+                                       @mouseenter.native="iconMouseLeave = false">
+                                <i class="el-icon-sort"></i>
+                            </el-button>
+                        </div>
+                    </el-col>
+                </el-row>
 
-            <!--笔记排序 级联面板-->
-            <cascader :isSortShow="isSortShow"
-                      @sortClick="sortClick"
-                      @mouseleave.native="sortPanelMouseLeave = true"
-                      @mouseenter.native="sortPanelMouseLeave = false"
-                      :style="{'margin-left': (noteListWidth-30) + 'px'}">
-            </cascader>
+                <!--笔记排序 级联面板-->
+                <cascader :isSortShow="isSortShow"
+                          @sortClick="sortClick"
+                          @mouseleave.native="sortPanelMouseLeave = true"
+                          @mouseenter.native="sortPanelMouseLeave = false"
+                          :style="{'margin-left': (noteListWidth-30) + 'px'}">
+                </cascader>
 
-            <!--搜索入口-->
-            <el-row class="search">
-                <!--带历史记录的输入框-->
-                <el-autocomplete
-                        v-model="searchValue"
-                        clearable
-                        :fetch-suggestions="querySearch"
-                        placeholder="搜索"
-                        @select="handleSelect"
-                        prefix-icon="el-icon-search"
-                        style="width: 100%;"></el-autocomplete>
-            </el-row>
+                <!--搜索入口-->
+                <el-row class="search">
+                    <!--带历史记录的输入框-->
+                    <el-autocomplete
+                            v-model="searchValue"
+                            clearable
+                            :fetch-suggestions="querySearch"
+                            placeholder="搜索"
+                            @select="handleSelect"
+                            prefix-icon="el-icon-search"
+                            style="width: 100%;"></el-autocomplete>
+                </el-row>
+            </div>
+            <div v-else> <!-- class="upload-demo"  drag-->
+                <el-upload
+
+                        list-type="picture-card"
+                        :on-preview="handlePictureCardPreview"
+                        :on-remove="handleRemove"
+                        action="http://lpgogo.top/api/admin/note/uploadFileAndInsert"
+                        multiple>
+                    <i class="el-icon-upload"></i>
+                    <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                    <!--<div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>-->
+                </el-upload>
+                <el-button>年</el-button>
+                <el-button>月</el-button>
+                <el-button>日</el-button>
+            </div>
+
 
             <!--笔记列表-->
             <el-container>
@@ -138,10 +157,19 @@
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 lastTime: 0, //定时器的初始值
                 widthLastTime: 0,
+                dialogImageUrl: '',
+                dialogVisible: false,
             }
         },
 
         methods: {
+            handleRemove(file, fileList) {
+                console.log(file, fileList);
+            },
+            handlePictureCardPreview(file) {
+                this.dialogImageUrl = file.url;
+                this.dialogVisible = true;
+            },
             /*控制列表颜色*/
             getBgColor(index) {
                 /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/

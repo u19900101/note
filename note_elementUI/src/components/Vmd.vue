@@ -64,7 +64,7 @@
                     handler(file) {  //自定义上传，当发生错误时返回错误信息
                         let formData = new FormData()
                         for (let i in file) {
-                            formData.append('file[]', file[i])
+                            formData.append('file', file[i])
                         }
                         let request = new XMLHttpRequest()
                         // 图片上传路径
@@ -121,7 +121,7 @@
                     })
                 }
                 let resp = JSON.parse(currentTarget.response)
-                let imgMdStr = ''
+                let mdStr = ''
                 if (resp.uploaded !== 1) {
                     return this.$message({
                         type: 'error',
@@ -134,16 +134,15 @@
                         let reg_img=/.+\.(jpg|jpeg|gif|bmp|png)$/;
                         let reg_video=/.+\.(avi|wmv|mpeg|mp4|m4v|mov|asf|flv|f4v|rmvb|rm|3gp|vob)$/;
                         if(reg_img.test(i.fileName)){  // 缩放图片
-                            imgMdStr += `\n\n&lt;img src="${i.url}" alt = "${i.fileName}" style="zoom:30%;"/&gt\n\n`
+                            mdStr += `\n\n&lt;img src="${i.url}" alt = "${i.fileName}" style="zoom:30%;"/&gt\n\n`
                         }else if(reg_video.test(i.fileName)){  // 上传视频文件
-                            imgMdStr += `\n\n&lt;video controls preload="auto" src="${i.url}">${i.fileName}&lt;/video>\n\n`
+                            mdStr += `\n\n&lt;video controls preload="auto" src="${i.url}">${i.fileName}&lt;/video>\n\n`
                         }else{    // 其他格式文件，可以提供下载
-
-
+                            mdStr += `[${i.fileName}](${i.url})`
                         }
                     }
                 }
-                this.contentEditor.insertValue(imgMdStr);
+                this.contentEditor.insertValue(mdStr);
             },
         },
         watch: {
