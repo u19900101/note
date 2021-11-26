@@ -6,7 +6,8 @@
                 <el-row>
                     <!--笔记本名称-->
                     <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
-                        <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span></el-col>
+                        <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
+                    </el-col>
                     <el-col :span="8" style="text-align: right;">
                         <div class="sortButton">
                             <el-button round
@@ -40,18 +41,52 @@
                             style="width: 100%;"></el-autocomplete>
                 </el-row>
             </div>
-            <div v-else> <!-- class="upload-demo"  drag-->
-                <el-upload
-
+            <div v-else> <!-- class="upload-demo"  drag  :auto-upload="false" -->
+                <!--<el-upload
                         list-type="picture-card"
                         :on-preview="handlePictureCardPreview"
                         :on-remove="handleRemove"
                         action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
                         multiple>
                     <i class="el-icon-upload"></i>
+
                     <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                    <!--<div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>-->
-                </el-upload>
+
+                    &lt;!&ndash;<div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>&ndash;&gt;
+                </el-upload>-->
+                <!-- :auto-upload="false" -->
+                 <el-upload
+                         action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
+                         list-type="picture-card"
+                         multiple
+                         >
+                     <i slot="default" class="el-icon-plus"></i>
+                     <div slot="file" slot-scope="{file}">
+                         <img class="el-upload-list__item-thumbnail"
+                              :src="file.url" alt="">
+                         <span class="el-upload-list__item-actions">
+                         <span class="el-upload-list__item-preview"
+                               @click="handlePictureCardPreview(file)">
+                             <i class="el-icon-zoom-in"></i>
+                         </span>
+                      <!--   <span v-if="!disabled"
+                                 class="el-upload-list__item-delete"
+                                 @click="handleDownload(file)" >
+                           <i class="el-icon-download"></i>
+                         </span>-->
+                         <span v-if="!disabled"
+                                 class="el-upload-list__item-delete"
+                                 @click="handleRemove(file)" >
+                           <i class="el-icon-delete"></i>
+                         </span>
+                       </span>
+                     </div>
+                 </el-upload>
+                 <el-dialog :visible.sync="dialogVisible">
+                     <img width="100%" :src="dialogImageUrl" alt="">
+                 </el-dialog>
+
+
                 <el-button>年</el-button>
                 <el-button>月</el-button>
                 <el-button>日</el-button>
@@ -110,12 +145,12 @@
                                 <!--图片-->
                                 <el-col :span="8" class="innerCenter">
                                     <el-image v-if="note.mediaUid"
-                                            :src="require('../assets/images/'+ note.mediaUid)"
-                                            fit="cover">
+                                              :src="require('../assets/images/'+ note.mediaUid)"
+                                              fit="cover">
                                     </el-image>
                                     <el-image v-else
-                                            :src="require('../assets/images/gofree.jpg')"
-                                            fit="cover">
+                                              :src="require('../assets/images/gofree.jpg')"
+                                              fit="cover">
                                     </el-image>
                                 </el-col>
                             </el-row>
@@ -163,12 +198,16 @@
         },
 
         methods: {
-            handleRemove(file, fileList) {
-                console.log(file, fileList);
+            /*文件上传*/
+            handleRemove(file) {
+                console.log('handleDownload', file);
             },
             handlePictureCardPreview(file) {
                 this.dialogImageUrl = file.url;
                 this.dialogVisible = true;
+            },
+            handleDownload(file) {
+                console.log('handleDownload', file);
             },
             /*控制列表颜色*/
             getBgColor(index) {
@@ -184,9 +223,9 @@
             },
             noteClick(note, index) {
                 /*页面显示*/
-                if(this.$store.state.isSearchMode){
-                    if(this.$store.state.isTitleEditMode) this.$store.state.isTitleEditMode = false
-                    if(this.$store.state.isContentEditMode) this.$store.state.isContentEditMode = false
+                if (this.$store.state.isSearchMode) {
+                    if (this.$store.state.isTitleEditMode) this.$store.state.isTitleEditMode = false
+                    if (this.$store.state.isContentEditMode) this.$store.state.isContentEditMode = false
                 }
                 this.$store.state.currentNote = note
                 this.$store.state.currentIndex = index
@@ -230,7 +269,7 @@
                     this.exeWidthChange(this.noteListWidth)
                 }
             },
-            exeWidthChange(listWidth){
+            exeWidthChange(listWidth) {
                 this.widthLastTime = setTimeout(() => {
                     this.https.updateSortWay({id: 1, listWidth: listWidth}).then(({data}) => {
                         console.log(data)
@@ -365,14 +404,15 @@
                     this.$store.state.currentNote = this.$store.state.currentNoteBookNoteList[0]
                 }
             },
-            exefunc(searchValue){
+            exefunc(searchValue) {
                 this.lastTime = setTimeout(() => {
-                    if(searchValue) this.https.insertSearchWords({keyword: searchValue}).then(({data})=>{
-                        console.log('保存搜索字段到数据库',searchValue,data)
+                    if (searchValue) this.https.insertSearchWords({keyword: searchValue}).then(({data}) => {
+                        console.log('保存搜索字段到数据库', searchValue, data)
                     })
                 }, 2000)
             }
-        },
+        }
+        ,
         watch: {
             /*监听用户停止输入*/
             searchValue(searchValue) {
@@ -383,7 +423,8 @@
                     clearTimeout(this.lastTime)
                     this.exefunc(searchValue)
                 }
-            },
+            }
+            ,
         }
     }
 </script>

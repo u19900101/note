@@ -12,12 +12,10 @@ import ppppp.evernote.entity.Picture;
 import ppppp.evernote.service.PictureService;
 import ppppp.evernote.util.MyUtils;
 import ppppp.evernote.util.ftp.FTPUtil;
+import ppppp.evernote.util.ftp.sftp;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -35,7 +33,7 @@ public class PictureController {
     @Autowired
     PictureService pictureService;
     /*文件上传*/
-    public Map<String, Object> uploadFileAndInsert(HttpServletRequest request) throws Exception {
+    /*public Map<String, Object> uploadFileAndInsert(HttpServletRequest request) throws Exception {
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
         List<MultipartFile> fileList = multiRequest.getFiles("file");
         ArrayList<Map<String, Object>> item = new ArrayList<>();
@@ -69,14 +67,40 @@ public class PictureController {
         map.put("uploaded", 1); //"上传成功"
         map.put("item", item);
         return map;
-    }
-
+    }*/
+    private static ThreadLocal<sftp> sftpLocal = new ThreadLocal<sftp>();
     @PostMapping("/uploadFileAndInsert")
     public void T_(HttpServletRequest request) throws Exception {
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
         List<MultipartFile> fileList = multiRequest.getFiles("file");
+        InputStream inputStream = fileList.get(0).getInputStream();
+        String fileName = fileList.get(0).getOriginalFilename();
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
+                    sftp.uploadFile("/mydata/nginx/html/img", "/test", inputStream, fileName);
+                    sftp.release();
+                    System.out.println(fileName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+
+        // execUpload((MultipartHttpServletRequest) request);
+
+
+    }
+
+    private void execUpload(MultipartHttpServletRequest request) throws Exception {
+        MultipartHttpServletRequest multiRequest = request;
+        List<MultipartFile> fileList = multiRequest.getFiles("file");
         ArrayList<Map<String, Object>> item = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
+
+        // ArrayList<Picture> pictureArrayList = FTPUtil.upload(fileList);
         for (MultipartFile multipartFile : fileList) {
             Picture picture = getPictureInfo(multipartFile);
             String uploadDir = new SimpleDateFormat("yyyy-MM-dd").format(picture.getCreateTime());
@@ -88,13 +112,13 @@ public class PictureController {
             String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
             picture.setUrl(imgUrl);
             // 保存文件信息到数据库
-            boolean save = pictureService.save(picture);
+            // boolean save = pictureService.save(picture);
         }
-
     }
 
+
     // 获取文件的信息 保存到数据库 返回文件唯一的名称  2021-11-25-fileName-id.type
-    private Picture getPictureInfo(MultipartFile multipartFile) throws Exception {
+    public static Picture getPictureInfo(MultipartFile multipartFile) throws Exception {
         long size = multipartFile.getSize();
         // 得到照片的信息 0.照片的名称(规范时间信息)  1.坐标 2.拍摄时间(没有就为当前时间) 3.宽高
         Picture imgInfo = getImgInfo(multipartFile.getInputStream(),multipartFile.getOriginalFilename());
@@ -103,7 +127,7 @@ public class PictureController {
     }
 
 
-    @PostMapping("/uploadFile")
+   /* @PostMapping("/uploadFile")
     public Map<String, Object> uploadFile(HttpServletRequest request) {
 
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
@@ -139,7 +163,7 @@ public class PictureController {
         map.put("uploaded", 1); //"上传成功"
         map.put("item", item);
         return map;
-    }
+    }*/
 
     // 1.获取照片的拍摄时间 经度 纬度信息  宽高
     public static Picture getImgInfo(InputStream file, String fileName) throws Exception {

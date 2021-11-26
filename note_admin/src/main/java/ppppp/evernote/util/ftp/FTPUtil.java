@@ -3,13 +3,15 @@ package ppppp.evernote.util.ftp;
 import com.jcraft.jsch.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+import ppppp.evernote.entity.Picture;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.OutputStream;
-import java.util.Properties;
-import java.util.UUID;
-import java.util.Vector;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static ppppp.evernote.controller.PictureController.getPictureInfo;
 
 /**
  * @author pppppp
@@ -18,104 +20,40 @@ import java.util.Vector;
 @Component
 public class FTPUtil {
     private static String host;
-
     @Value(value = "${ftp-centos.host}")
     public void setHost(String hostName) {
         host = hostName;
     }
-
     private static Integer port;
-
     @Value(value = "${ftp-centos.port}")
     public void setPort(Integer portName) {
         port = portName;
     }
-
     private static String user;
-
     @Value(value = "${ftp-centos.user}")
     public void setUser(String userName) {
         user = userName;
     }
-
     private static String password;
-
     @Value(value = "${ftp-centos.password}")
     public void setPassword(String passwordName) {
         password = passwordName;
     }
-
     private static String basePath;
-
     @Value(value = "${ftp-centos.basePath}")
     public void setBasePath(String basePath) {
         FTPUtil.basePath = basePath;
     }
-
     private static ChannelSftp sftp;
-
-    public static void sshSftp(byte[] bytes, String fileName) throws Exception {
-        Session session = null;
-        Channel channel = null;
-        JSch jsch = new JSch();
-        if (port <= 0) {
-            //连接服务器，采用默认端口
-            session = jsch.getSession(user, host);
-        } else {
-            //采用指定的端口连接服务器
-            session = jsch.getSession(user, host, port);
-        }
-
-        //如果服务器连接不上，则抛出异常
-        if (session == null) {
-            throw new Exception("session is null");
-        }
-        //设置登陆主机的密码
-        session.setPassword(password);
-        //设置第一次登陆的时候提示，可选值：(ask | yes | no)
-        session.setConfig("StrictHostKeyChecking", "no");
-        //设置登陆超时时间
-        session.connect(30000);
-        OutputStream outstream = null;
-        try {
-            //创建sftp通信通道
-            channel = (Channel) session.openChannel("sftp");
-            channel.connect(1000);
-            ChannelSftp sftp = (ChannelSftp) channel;
-            //进入服务器指定的文件夹
-            sftp.cd(basePath);
-            outstream = sftp.put(fileName);
-            outstream.write(bytes);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            //关流操作
-            if (outstream != null) {
-                outstream.flush();
-                outstream.close();
-            }
-            if (session != null) {
-                session.disconnect();
-            }
-            if (channel != null) {
-                channel.disconnect();
-            }
-        }
-    }
 
     /**
      * sftp连接
      */
-    public static void connect(String username, String host, int port, String password) throws Exception {
+    public static void connect() throws Exception {
         try {
-            if (sftp != null) {
-                // System.out.println("sftp is not null");
-            }
-
             JSch jsch = new JSch();
-            jsch.getSession(username, host, port);
-            Session sshSession = jsch.getSession(username, host, port);
+            jsch.getSession(user, host, port);
+            Session sshSession = jsch.getSession(user, host, port);
             System.out.println("Session created.");
             sshSession.setPassword(password);
             Properties sshConfig = new Properties();
@@ -128,6 +66,7 @@ public class FTPUtil {
             channel.connect();
             sftp = (ChannelSftp) channel;
             System.out.println("success Connected to " + host + ".");
+
         } catch (Exception e) {
             throw new Exception("连接:[" + host + "]ftp服务器异常");
         }
@@ -136,11 +75,11 @@ public class FTPUtil {
     /**
      * sftp断开连接
      */
-    public void disconnect() {
-        if (this.sftp != null) {
-            if (this.sftp.isConnected()) {
-                this.sftp.disconnect();
-            } else if (this.sftp.isClosed()) {
+    public static void disconnect() {
+        if (sftp != null) {
+            if (sftp.isConnected()) {
+                sftp.disconnect();
+            } else if (sftp.isClosed()) {
                 System.out.println("sftp is closed already");
             }
         }
@@ -150,14 +89,32 @@ public class FTPUtil {
     /**
      * 上传文件流 本地文件路径 remotePath 服务器路径
      */
+    public static ArrayList<Picture> upload(List<MultipartFile> fileList) throws Exception {
+        ArrayList<Picture> pictureArrayList = new ArrayList<>();
+        connect();
+        for (MultipartFile multipartFile : fileList) {
+            Picture picture = getPictureInfo(multipartFile);
+            String uploadDir = new SimpleDateFormat("yyyy-MM-dd").format(picture.getCreateTime());
+            String fileName = upload((FileInputStream) multipartFile.getInputStream(), uploadDir, picture.getTitle());
+            // 若重名，则重新命名文件
+            if(!fileName.equals(picture.getTitle())){
+                picture.setTitle(fileName);
+            }
+            String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
+            picture.setUrl(imgUrl);
+            // 保存文件信息到数据库
+            // boolean save = pictureService.save(picture);
+            pictureArrayList.add(picture);
+        }
+        disconnect();
+        return pictureArrayList;
+    }
 
     public static String upload(FileInputStream fileInputStream, String remotDir, String fileName) throws Exception {
         try {
-            // System.out.println("localFile : " + file.getAbsolutePath());
-            // 建立连接
-            connect(user, host, port, password);
+            System.out.println();
             try {
-                createDir(basePath + remotDir, sftp);
+                createDir(basePath + remotDir + "/", sftp);
             } catch (Exception e) {
                 throw new Exception("创建路径失败：" + basePath + remotDir);
             }
@@ -177,6 +134,7 @@ public class FTPUtil {
             }
             sftp.cd(basePath + remotDir);
             sftp.put(fileInputStream, fileName);
+            System.out.println(fileName + "  上传成功");
             return fileName;
         } catch (FileNotFoundException e) {
             throw new Exception("上传文件没有找到");
