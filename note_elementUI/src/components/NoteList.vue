@@ -46,7 +46,7 @@
                         list-type="picture-card"
                         :on-preview="handlePictureCardPreview"
                         :on-remove="handleRemove"
-                        action="http://lpgogo.top/api/admin/note/uploadFileAndInsert"
+                        action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
                         multiple>
                     <i class="el-icon-upload"></i>
                     <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>

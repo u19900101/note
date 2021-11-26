@@ -22,4 +22,9 @@ public class RequestUtils {
         ResponseEntity<String> response = client.exchange(url, method, requestEntity, String.class);
         return response.getBody();
     }
+
+    public static String sendGetRequest(String url) {
+        RestTemplate client = new RestTemplate();
+        return client.getForObject(url, String.class);
+    }
 }

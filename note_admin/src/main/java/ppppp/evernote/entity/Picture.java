@@ -1,31 +1,68 @@
 package ppppp.evernote.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Data
-public class Picture {
-    private String path;
+@EqualsAndHashCode(callSuper = false)
+@Accessors(chain = true)
+public class Picture implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    private String pid;
+    // 主键
+    @TableField()
+    private Integer id;
 
-    private String pname;
+    // 照片指纹
+    private String imguuid;
 
-    private Date pcreatime;
 
-    private String gpsLongitude;
+    //名称
+    private String title;
 
-    private String gpsLatitude;
+    //位置
+    private String location;
 
-    private Integer pwidth;
+    //宽高
+    private String widthH;
 
-    private Integer pheight;
+    //经纬度
+    private String lnglat;
 
+    // 逻辑删除状态
+    @TableLogic // 逻辑删除字段 ，1-删除，0-未删除
+    private Boolean status;
+
+    //废纸篓
+    private Boolean wastepaper;
+
+    //创建时间
+    private Date createTime;
+
+    //更新时间
+    private Date updateTime;
+
+    // 标签uid
+    private String tagUid;
+
+    //收藏
+    private Boolean star;
+
+    //网络地址
+    private String url;
+
+    // 字节大小
     private Long psize;
-
-    private String plabel;
-
-    private String pdesc;
+    @TableField(exist = false)
+    // 解决初始化赋值时为null
+    private List<Tag> tagList = new ArrayList<>();
 
 }
