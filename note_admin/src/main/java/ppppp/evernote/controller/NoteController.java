@@ -17,10 +17,9 @@ import ppppp.evernote.util.ResultUtil;
 import ppppp.evernote.util.ftp.FTPUtil;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static ppppp.evernote.util.MyUtils.creatDir;
 import static ppppp.evernote.util.RequestUtils.sendPostRequest;
 
 /**
@@ -183,25 +182,26 @@ public class NoteController {
     }
 
     /*文件上传*/
-
     public Map<String, Object> uploadFileAndInsert(HttpServletRequest request) throws Exception {
-
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
         List<MultipartFile> fileList = multiRequest.getFiles("file");
         ArrayList<Map<String, Object>> item = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
-        for (MultipartFile file : fileList) {
-            Map<String, Object> temp = new HashMap<>();
-            if (file.isEmpty()) {
+        for (MultipartFile multipartFile : fileList) {
+
+            if (multipartFile.isEmpty()) {
                 map.put("uploaded", -1);
                 map.put("errorMessage", "上传失败...");
                 return map;
             }
             // 保存到数据库 得到唯一的id  上传的文件名称格式  2021-11-25-fileName-id.type
-            String fileName = insertFile(file);
+            // String fileName = insertFile(multipartFile);
+
             // 上传到服务器
             try {
-                byte[] bytes = file.getBytes();
+                Map<String, Object> temp = new HashMap<>();
+                byte[] bytes = multipartFile.getBytes();
+                String fileName = multipartFile.getName();
                 FTPUtil.sshSftp(bytes, fileName);
                 temp.put("fileName", fileName);
                 temp.put("url", "http://lpgogo.top/img/" + fileName);
@@ -218,7 +218,6 @@ public class NoteController {
         return map;
     }
 
-
     @PostMapping("/uploadFileAndInsert")
     public void T_(HttpServletRequest request) throws Exception {
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
@@ -226,32 +225,20 @@ public class NoteController {
         ArrayList<Map<String, Object>> item = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         for (MultipartFile multipartFile : fileList) {
-            String s = insertFile(multipartFile);
+            Picture picture = getPictureInfo(multipartFile);
+            String uploadDir = new SimpleDateFormat("yyyy-MM-dd").format(picture.getPcreatime());
+            FTPUtil.sshSftp(multipartFile.getBytes(), uploadDir + "/" + picture.getPname());
         }
 
     }
 
     // 获取文件的信息 保存到数据库 返回文件唯一的名称  2021-11-25-fileName-id.type
-    private String insertFile(MultipartFile multipartFile) throws Exception {
-
-        String path = "C:\\Users\\Administrator\\Desktop\\temp\\1kkkk\\";
-        creatDir(path);
-        File file = new File(path, multipartFile.getOriginalFilename());
-        multipartFile.transferTo(file);
-        Picture imgInfo = PictureService.getImgInfo(file);
-        System.out.println(
-                "creatime: " + imgInfo.getPcreatime() +
-                " latlng: " + imgInfo.getGpsLatitude() + imgInfo.getGpsLatitude() +
-                " name: " + imgInfo.getPname() +
-                " width_h: "  + imgInfo.getPwidth() + "," + imgInfo.getPheight() +
-                " size: "     + imgInfo.getPsize());
-        // 操作完上的文件 需要删除在根目录下生成的文件
-        if (file.delete()) {
-            // System.out.println("删除成功");
-        } else {
-            // System.out.println("删除失败");
-        }
-        return "";
+    private Picture getPictureInfo(MultipartFile multipartFile) throws Exception {
+        long size = multipartFile.getSize();
+        // 得到照片的信息 0.照片的名称(规范时间信息)  1.坐标 2.拍摄时间(没有就为当前时间) 3.宽高
+        Picture imgInfo = PictureService.getImgInfo(multipartFile.getInputStream(),multipartFile.getOriginalFilename());
+        imgInfo.setPsize(size);
+        return imgInfo;
     }
 
 

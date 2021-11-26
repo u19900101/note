@@ -6,12 +6,10 @@ import ppppp.evernote.entity.Picture;
 import ppppp.evernote.util.MyUtils;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -22,42 +20,36 @@ import java.util.*;
 @Service
 public class PictureService {
 
-    // 1.获取照片的时间 经度 纬度信息
-    public static Picture getImgInfo(File file) throws Exception {
+    // 1.获取照片的拍摄时间 经度 纬度信息  宽高
+    public static Picture getImgInfo(InputStream file,String fileName) throws Exception {
 
-        String fileName = file.getName();
-        String parentName = file.getParent();
         Picture pic = new Picture();
-        pic.setPsize(Double.valueOf(new DecimalFormat("0.00").format(Double.valueOf(file.length())/1024.0/1024.0)));
         //如果你对图片的格式有限制，可以直接使用对应格式的Reader如：JPEGImageReader
         ImageMetadataReader.readMetadata(file)
                 .getDirectories().forEach(v ->
                 v.getTags().forEach(t -> {
-                    // System.out.println(t.getTagName() + " ： " + t.getDescription());
                     switch (t.getTagName()) {
-                        //                    经度
+                        // 经度
                         case "GPS Longitude":
-                            String lon = t.getDescription().replace(" ","").replace("\"","")
-                                    .replace("°","_").replace("'","_");
-                            pic.setGpsLongitude(lon);
+                            pic.setGpsLongitude(toX(t.getDescription()));
                             break;
-                        //                        纬度
+                        //  纬度
                         case "GPS Latitude":
-                            String lat = t.getDescription().replace(" ","").replace("\"","")
-                                    .replace("°","_").replace("'","_");
-                            pic.setGpsLatitude(lat);
+                            pic.setGpsLatitude(toX(t.getDescription()));
                             break;
-                        //                        拍摄时间
+                        // 拍摄时间
                         // 解决有的照片中有两个 Date/Time Original 但是格式不一样
                         case "Date/Time Original":
-
                             // 修改格式
-                            // 2016-08-16T09:33:17
-                            //2016:08:16 09:33:17  location: 100_33_11.27,36_33_34.23
+                            // 2016:08:16 09:33:17
+                            // 2016-08-16T09:33:17 location: 100_33_11.27,36_33_34.23
                             String time = t.getDescription();
-                            String[] s = time.split(" ");
-                            String replace = s[0].replace(":", "-");
-                            pic.setPcreatime(replace+"T"+ s[1]);
+                            try {
+                                Date date=new SimpleDateFormat("yyyy:MM:dd hh:mm:ss").parse(time);
+                                pic.setPcreatime(date);
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
                             break;
                         //    获取照片的尺寸 便于照片去重判断
                         case "Image Height":
@@ -71,39 +63,38 @@ public class PictureService {
                     }
                 })
         );
-        // 若照片名称中含有时间信息  则将其作为照片的拍摄时间
-        // 只有当照片名称中包含时间信息时  才对照片重命名
-        String isContainCreate_time = MyUtils.nameToCreateTime(file.getName());
-        if(isContainCreate_time!=null){
+
+
+        String isContainCreate_time = MyUtils.nameToCreateTime(fileName);
+        if(isContainCreate_time!=null){  // 照片名称中含有时间信息   才对照片重命名 则将其作为照片的拍摄时间
             if(pic.getPcreatime() == null){
-                pic.setPcreatime(isContainCreate_time);
-                //2016-08-16T09:33:17   2016_08_16T09_33_17
-                fileName = isContainCreate_time.replace("-", "_").replace(":", "_")+fileName.substring(fileName.lastIndexOf("."));
+                pic.setPcreatime(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(isContainCreate_time));
+                fileName = isContainCreate_time.replace(" ","_")+fileName.substring(fileName.lastIndexOf("."));
             }
             // 照片名称中包含时间 信息  但是 照片本身也有时间信息  则以 照片本身的时间信息命名
             else {
-                fileName = pic.getPcreatime().replace("-", "_").replace(":", "_")+fileName.substring(fileName.lastIndexOf("."));
-            }
-            // 现在temp 中rename  再移动到指定文件夹
-            // 保证fileName不重复
-            // fileName = MyUtils.createNewName(file.getParentFile().list(), fileName);
-            boolean rename = file.renameTo(new File(parentName, fileName));
-            if(rename){
-                System.out.println("重命名照片成功:"+file.getName()+"---->>>"+fileName);
-            }else {
-                fileName = file.getName();
+                // fileName = pic.getPcreatime().replace("-", "_").replace(":", "_")+fileName.substring(fileName.lastIndexOf("."));
             }
         }
         // 照片本身不包含时间信息
         if(pic.getPcreatime()==null){
             //照片不包含时间信息的 移入导入时间的文件夹
-            String create_time = LocalDateTime.now().toString().split("\\.")[0];
-            pic.setPcreatime(create_time);
+            // String create_time = LocalDateTime.now().toString().split("\\.")[0];
+            pic.setPcreatime(new Date());
         }
         pic.setPname(fileName);
         // String picStrId = MyUtils.createPicIdByAbsPath(fileAbspath);
         pic.setPid("picStrId");
         return pic;
+    }
+
+    // 将 度分秒 转化为小数坐标
+    private static String toX(String description) {
+        String[] l = description.split(" ");
+        float d = Float.valueOf(l[0].substring(0,l[0].length()-1));
+        float f = Float.valueOf(l[1].substring(0,l[1].length()-1));
+        float m = Float.valueOf(l[2].substring(0,l[2].length()-1));
+        return String.valueOf(d + f / 60 + m / 3600);
     }
 
 
@@ -258,7 +249,8 @@ public class PictureService {
         for (Picture picture : pictures) {
             // 有拍摄时间 信息的就按月分组
             if(picture.getPcreatime()!=null){
-                String month = picture.getPcreatime().substring(0, 7);
+                // String month = picture.getPcreatime().substring(0, 7);
+                String month = "";
                 if(!map.containsKey(month)){
                     ArrayList<Picture> pictureArrayList = new ArrayList<>();
                     pictureArrayList.add(picture);

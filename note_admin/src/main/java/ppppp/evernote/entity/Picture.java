@@ -2,6 +2,8 @@ package ppppp.evernote.entity;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class Picture {
     private String path;
@@ -10,7 +12,7 @@ public class Picture {
 
     private String pname;
 
-    private String pcreatime;
+    private Date pcreatime;
 
     private String gpsLongitude;
 
@@ -20,7 +22,7 @@ public class Picture {
 
     private Integer pheight;
 
-    private Double psize;
+    private Long psize;
 
     private String plabel;
 

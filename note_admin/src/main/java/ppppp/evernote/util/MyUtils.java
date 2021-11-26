@@ -330,7 +330,8 @@ public class MyUtils {
 
     @Test
     public void T(){
-        System.out.println(nameToCreateTime("hdImg_a8464b03b3d71c7dc5a843a0d33e53831604568858570.eg.android.AlipayGphone"));
+        // System.out.println(nameToCreateTime("hdImg_a8464b03b3d71c7dc5a843a0d33e53831604568858570.eg.android.AlipayGphone"));
+        System.out.println(nameToCreateTime("wx_camera_1538653088966.jpg"));
     }
     public static String nameToCreateTime(String name){
         Pattern p = Pattern.compile("[0-9]{13}");
@@ -342,7 +343,8 @@ public class MyUtils {
             if(timeStamp>System.currentTimeMillis()){
                 return null;
             }
-            return longToDateStr(timeStamp).split("\\.")[0];
+            LocalDateTime localDateTime = Instant.ofEpochMilli(timeStamp).atZone(ZoneOffset.ofHours(8)).toLocalDateTime();
+            return localDateTime.toString().split("\\.")[0].replace("T"," ");
         }
 
         Pattern p2 = Pattern.compile("[0-9]{8}_[0-9]{6}");
@@ -350,7 +352,7 @@ public class MyUtils {
         if (m2.find()) {
             String s = m2.group().replace("_", "");
             return s.substring(0,4)+"-"+s.substring(4,6)+"-"+s.substring(6,8)
-                    +"T"+s.substring(8,10)+":"+s.substring(10,12)+":"+s.substring(12,14);
+                    +" "+s.substring(8,10)+":"+s.substring(10,12)+":"+s.substring(12,14);
         }
         return null;
 }
