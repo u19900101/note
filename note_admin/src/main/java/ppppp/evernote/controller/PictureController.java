@@ -2,12 +2,14 @@ package ppppp.evernote.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.drew.imaging.ImageMetadataReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ppppp.evernote.entity.Picture;
+import ppppp.evernote.service.PictureService;
 import ppppp.evernote.util.MyUtils;
 import ppppp.evernote.util.ftp.FTPUtil;
 
@@ -29,6 +31,9 @@ import static ppppp.evernote.util.RequestUtils.sendGetRequest;
 @RequestMapping("/admin/file")
 public class PictureController {
 
+
+    @Autowired
+    PictureService pictureService;
     /*文件上传*/
     public Map<String, Object> uploadFileAndInsert(HttpServletRequest request) throws Exception {
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
@@ -80,10 +85,10 @@ public class PictureController {
             if(!fileName.equals(picture.getTitle())){
                 picture.setTitle(fileName);
             }
-
-
-
-
+            String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
+            picture.setUrl(imgUrl);
+            // 保存文件信息到数据库
+            boolean save = pictureService.save(picture);
         }
 
     }
@@ -93,7 +98,7 @@ public class PictureController {
         long size = multipartFile.getSize();
         // 得到照片的信息 0.照片的名称(规范时间信息)  1.坐标 2.拍摄时间(没有就为当前时间) 3.宽高
         Picture imgInfo = getImgInfo(multipartFile.getInputStream(),multipartFile.getOriginalFilename());
-        imgInfo.setPsize(size);
+        imgInfo.setSize(size);
         return imgInfo;
     }
 
