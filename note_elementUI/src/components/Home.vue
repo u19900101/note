@@ -24,7 +24,8 @@
                     <noteList/>
                 </el-aside>
                 <!--笔记内容-->
-                <note v-if="$store.state.currentNoteList.length > 0 "></note>
+                <!-- && -->
+                <note v-if="$store.state.fileMode || $store.state.currentNoteList.length > 0"></note>
                 <div v-else style="text-align: center;width: 100%;">
                     <h1>空空如也 </h1>
                 </div>

@@ -8,11 +8,14 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
+import net.coobird.thumbnailator.Thumbnails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Date;
 import java.util.UUID;
 import java.util.Vector;
@@ -190,11 +193,13 @@ public class sftp {
     /**
      * 上传文件(cd目录一定要注意，层层cd 直接cd一个全路径是不起作用的)
      * @param remotDir 上传ftp的目录
-     * @param input     本地文件InputStream
+     * @param multipartFile
      * @return
      */
-    public static String uploadFile(String basePath, String remotDir, InputStream input, String fileName) {
+    public static String uploadFile(String basePath, String remotDir, MultipartFile multipartFile, String fileName) {
         //创建目录
+        String tempImage = "C:\\Users\\Administrator\\Desktop\\temp.jpg";
+        File tempFile = new File(tempImage);
         try {
             sftpLocal.get().channel.cd(basePath);
             createDir(remotDir);
@@ -212,11 +217,18 @@ public class sftp {
                     i = 1;
                 }
             }
-
-            sftpLocal.get().channel.put(input, fileName);
+            //上传原图文件
+            sftpLocal.get().channel.put(multipartFile.getInputStream(), fileName);
+           // 上传缩略图 用于列表
+            Thumbnails.of(multipartFile.getInputStream()).width(400).toFile(tempImage);
+            sftpLocal.get().channel.put(new FileInputStream(tempFile), fileName.split("\\.")[0] + "_thumbnails." + fileName.split("\\.")[1]);
+            System.out.println("缩略图上传成功");
+            fileName = "error";
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage() + e.getMessage() + e.toString());
             return "error";
+        }finally {
+            tempFile.delete();
         }
         return fileName;
     }

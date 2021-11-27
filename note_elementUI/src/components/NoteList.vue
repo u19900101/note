@@ -182,9 +182,10 @@
                                         </a>
                                     </el-row>
                                     <!--缩略图-->
-                                    <el-row  class="imgItem">
+                                    <el-row class="imgItem">
                                         <div v-for="img in note.images">
-                                            <el-image style="margin-left:10px;width: 100px;height: 100px" :src="img.url" fit="cover">
+                                            <el-image style="margin-left:10px;width: 100px;height: 100px"
+                                                      :src="getThumbnails(img.url,img.title)" fit="cover">
                                             </el-image>
                                         </div>
                                     </el-row>
@@ -241,7 +242,11 @@
                 let dayImages = this.tool.groupImages(timeType, imageList)
                 this.$store.state.currentNoteList = dayImages
             },
+            getThumbnails(url, title) {
 
+                let kk = url.replace(title, title.split(".")[0] + "_thumbnails." + title.split(".")[1])
+                return kk
+            },
             /*控制列表颜色*/
             getBgColor(index) {
                 /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/
@@ -468,13 +473,14 @@
 
 <style>
     /*图片布局样式*/
-    .imgItem{
+    .imgItem {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
         /*justify-content: flex-start; */
 
     }
+
     /*笔记列表中图片 居中 */
     .innerCenter {
         /*background: aqua;*/

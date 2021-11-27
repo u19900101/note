@@ -71,14 +71,12 @@ public class PictureController {
         Picture picture = getPictureInfo(multipartFile);
         String uploadDir = new SimpleDateFormat("yyyy-MM-dd").format(picture.getCreateTime());
 
-        InputStream inputStream = multipartFile.getInputStream();
-        String fileName = multipartFile.getOriginalFilename();
         new Thread() {
             @Override
             public void run() {
                 try {
                     sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
-                    String fileName = sftp.uploadFile("/mydata/nginx/html/img", "/"+ uploadDir, inputStream,  picture.getTitle());
+                    String fileName = sftp.uploadFile("/mydata/nginx/html/img", "/"+ uploadDir, multipartFile,  picture.getTitle());
                     sftp.release();
                     if(!fileName.equals("error")){
                         System.out.println("上传成功 " + fileName);
