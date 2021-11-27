@@ -93,26 +93,55 @@
         </el-header>
 
         <el-main >
-            <vmd></vmd>
-        </el-main>
+            <vmd v-if="!$store.state.fileMode"></vmd>
 
-        <!--内容--> <!--style="width: 600px;"-->
-      <!--  <el-main >
-            <div @drop="handleTargetDrop"
-                 @dragover="handleTargetDragOver"
-                 style="height: 100%">
-                <div v-if="!$store.state.isContentEditMode" v-html="content" @click="contentClick"
-                     style="height: 100%"></div>
-                <el-input v-else
-                          type="textarea"
-                          maxlength="1000000"
-                          show-word-limit
-                          v-model='content'
-                          :disabled="$store.state.currentNote.wastepaper"
+            <div v-else>
+                <!--上传图标-->
+                <el-upload
+                        action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
+                        list-type="picture-card"
+                        multiple
                 >
-                </el-input>
+                    <i slot="default" class="el-icon-plus"></i>
+                    <div slot="file" slot-scope="{file}">
+                        <img class="el-upload-list__item-thumbnail"
+                             :src="file.url" alt="">
+                        <span class="el-upload-list__item-actions">
+                         <span class="el-upload-list__item-preview"
+                               @click="handlePictureCardPreview(file)">
+                             <i class="el-icon-zoom-in"></i>
+                         </span>
+                         <span v-if="!disabled"
+                               class="el-upload-list__item-delete"
+                               @click="handleRemove(file)">
+                           <i class="el-icon-delete"></i>
+                         </span>
+                       </span>
+                    </div>
+                </el-upload>
+                <el-dialog :visible.sync="dialogVisible">
+                    <img width="100%" :src="dialogImageUrl" alt="">
+                </el-dialog>
+
+                <!--内容--> <!--style="width: 600px;"-->
+                <!--  <el-main >
+                      <div @drop="handleTargetDrop"
+                           @dragover="handleTargetDragOver"
+                           style="height: 100%">
+                          <div v-if="!$store.state.isContentEditMode" v-html="content" @click="contentClick"
+                               style="height: 100%"></div>
+                          <el-input v-else
+                                    type="textarea"
+                                    maxlength="1000000"
+                                    show-word-limit
+                                    v-model='content'
+                                    :disabled="$store.state.currentNote.wastepaper"
+                          >
+                          </el-input>
+                      </div>
+                  </el-main>-->
             </div>
-        </el-main>-->
+        </el-main>
     </el-container>
 </template>
 

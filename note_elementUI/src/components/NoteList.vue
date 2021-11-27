@@ -40,124 +40,162 @@
                             prefix-icon="el-icon-search"
                             style="width: 100%;"></el-autocomplete>
                 </el-row>
-            </div>
-            <div v-else> <!-- class="upload-demo"  drag  :auto-upload="false" -->
-                <!--<el-upload
-                        list-type="picture-card"
-                        :on-preview="handlePictureCardPreview"
-                        :on-remove="handleRemove"
-                        action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
-                        multiple>
-                    <i class="el-icon-upload"></i>
-
-                    <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-
-                    &lt;!&ndash;<div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>&ndash;&gt;
-                </el-upload>-->
-                <!-- :auto-upload="false" -->
-                 <el-upload
-                         action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
-                         list-type="picture-card"
-                         multiple
-                         >
-                     <i slot="default" class="el-icon-plus"></i>
-                     <div slot="file" slot-scope="{file}">
-                         <img class="el-upload-list__item-thumbnail"
-                              :src="file.url" alt="">
-                         <span class="el-upload-list__item-actions">
-                         <span class="el-upload-list__item-preview"
-                               @click="handlePictureCardPreview(file)">
-                             <i class="el-icon-zoom-in"></i>
-                         </span>
-                      <!--   <span v-if="!disabled"
-                                 class="el-upload-list__item-delete"
-                                 @click="handleDownload(file)" >
-                           <i class="el-icon-download"></i>
-                         </span>-->
-                         <span v-if="!disabled"
-                                 class="el-upload-list__item-delete"
-                                 @click="handleRemove(file)" >
-                           <i class="el-icon-delete"></i>
-                         </span>
-                       </span>
-                     </div>
-                 </el-upload>
-                 <el-dialog :visible.sync="dialogVisible">
-                     <img width="100%" :src="dialogImageUrl" alt="">
-                 </el-dialog>
-
-
-                <el-button>年</el-button>
-                <el-button>月</el-button>
-                <el-button>日</el-button>
-            </div>
-
-
-            <!--笔记列表-->
-            <el-container>
-                <el-aside style="height: 729px;" :style="{width: noteListWidth + 'px'}">
-                    <el-scrollbar class="page-scroll">
-                        <div v-for="(note,index) in $store.state.currentNoteList">
-                            <!-- type="flex" 为了让图片居中 -->
-                            <!--列表区  标题  标签  内容-->
-                            <el-row @click.native="noteClick(note,index)"
-                                    @mousedown.native="$store.state.currentIndex = index"
-                                    @mouseenter.native="enterIndex = index"
-                                    :id="index"
-                                    :style="{  backgroundColor:getBgColor(index),
+                <!--笔记列表-->
+                <el-container>
+                    <el-aside style="height: 729px;" :style="{width: noteListWidth + 'px'}">
+                        <el-scrollbar class="page-scroll">
+                            <div v-for="(note,index) in $store.state.currentNoteList">
+                                <!-- type="flex" 为了让图片居中 -->
+                                <!--列表区  标题  标签  内容-->
+                                <el-row @click.native="noteClick(note,index)"
+                                        @mousedown.native="$store.state.currentIndex = index"
+                                        @mouseenter.native="enterIndex = index"
+                                        :id="index"
+                                        :style="{  backgroundColor:getBgColor(index),
                                              border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'
                                     }"
-                                    style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
-                                    type="flex">
+                                        style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
+                                        type="flex">
 
-                                <el-col :span="16">
-                                    <!--标题-->
-                                    <el-row>
-                                        <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
-                                        <div v-else class='titleInList'>
-                                            {{note.title}}
-                                        </div>
-                                    </el-row>
-                                    <!--标签 & 内容-->
-                                    <el-row>
-                                        <!-- 给多行省略符 元素动态设置背景色-->
-                                        <div class="more-line">
-                                            <span style="color: #49a2de">{{getTagList(note)}}</span>
-                                            <span v-if="$store.state.isSearchMode" v-html="note.content"></span>
-                                            <span v-else> {{note.content.replace("# " + note.title + "\n\n","")}}</span>
-                                        </div>
-                                    </el-row>
+                                    <el-col :span="16">
+                                        <!--标题-->
+                                        <el-row>
+                                            <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
+                                            <div v-else class='titleInList'>
+                                                {{note.title}}
+                                            </div>
+                                        </el-row>
+                                        <!--标签 & 内容-->
+                                        <el-row>
+                                            <!-- 给多行省略符 元素动态设置背景色-->
+                                            <div class="more-line">
+                                                <span style="color: #49a2de">{{getTagList(note)}}</span>
+                                                <span v-if="$store.state.isSearchMode" v-html="note.content"></span>
+                                                <span v-else> {{note.content.replace("# " + note.title + "\n\n","")}}</span>
+                                            </div>
+                                        </el-row>
 
-                                    <!--时间-->
-                                    <el-row>
-                                        <!--根据排序方式来决定显示的时间类型 note.createTime -->
-                                        <span style="font-size: mini;color: #49a2de">
+                                        <!--时间-->
+                                        <el-row>
+                                            <!--根据排序方式来决定显示的时间类型 note.createTime -->
+                                            <span style="font-size: mini;color: #49a2de">
                                             {{$store.state.sortWay.updateTime ? '更新时间' : '创建时间'}}
-                                            <!--若有别名字段就显示别名-->
+                                                <!--若有别名字段就显示别名-->
                                             {{
                                             $store.state.sortWay.updateTime
                                             ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
                                             : (note.createTimeAlias ? note.createTimeAlias:note.createTime)
                                             }}
                                         </span>
-                                    </el-row>
-                                </el-col>
-                                <!--图片-->
-                                <el-col :span="8" class="innerCenter">
-                                    <el-image v-if="note.mediaUid"
-                                              :src="require('../assets/images/'+ note.mediaUid)"
-                                              fit="cover">
-                                    </el-image>
-                                    <el-image v-else
-                                              :src="require('../assets/images/gofree.jpg')"
-                                              fit="cover">
-                                    </el-image>
-                                </el-col>
-                            </el-row>
+                                        </el-row>
+                                    </el-col>
+                                    <!--图片-->
+                                    <el-col :span="8" class="innerCenter">
+                                        <el-image v-if="note.mediaUid"
+                                                  :src="require('../assets/images/'+ note.mediaUid)"
+                                                  fit="cover">
+                                        </el-image>
+                                        <el-image v-else
+                                                  :src="require('../assets/images/gofree.jpg')"
+                                                  fit="cover">
+                                        </el-image>
+                                    </el-col>
+                                </el-row>
+                            </div>
+                        </el-scrollbar>
+                    </el-aside>
+                </el-container>
+            </div>
+            <!--文件-->
+            <div v-else>
+                <el-button>年</el-button>
+                <el-button>月</el-button>
+                <el-button>日</el-button>
+                <el-row>
+                    <!--笔记本名称-->
+                    <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
+                        <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
+                    </el-col>
+                    <el-col :span="8" style="text-align: right;">
+                        <div class="sortButton">
+                            <el-button round
+                                       @click="sortClick(-1)"
+                                       @mouseleave.native="iconMouseLeave = true"
+                                       @mouseenter.native="iconMouseLeave = false">
+                                <i class="el-icon-sort"></i>
+                            </el-button>
                         </div>
-                    </el-scrollbar>
-                </el-aside>
-            </el-container>
+                    </el-col>
+                </el-row>
+                <!--笔记排序 级联面板-->
+                <cascader :isSortShow="isSortShow"
+                          @sortClick="sortClick"
+                          @mouseleave.native="sortPanelMouseLeave = true"
+                          @mouseenter.native="sortPanelMouseLeave = false"
+                          :style="{'margin-left': (noteListWidth-30) + 'px'}">
+                </cascader>
+                <!--文件列表-->
+                <el-container>
+                    <el-aside style="height: 729px;" :style="{width: noteListWidth + 'px'}">
+                        <el-scrollbar class="page-scroll">
+                            <div v-for="(note,index) in $store.state.currentNoteList">
+                                <!--列表区  标题  标签  内容-->
+                                <el-row @click.native="fileClick(note,index)"
+                                        @mousedown.native="$store.state.currentIndex = index"
+                                        @mouseenter.native="enterIndex = index"
+                                        :id="index"
+                                        :style="{  backgroundColor:getBgColor(index),
+                                                   border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'
+                                          }"
+                                        style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
+                                        type="flex">
+
+                                    <el-col :span="16">
+                                        <!--标签-->
+                                        <el-row>
+                                            <!-- 给多行省略符 元素动态设置背景色-->
+                                            <div class="more-line">
+                                                <span style="color: #49a2de">{{getTagList(note)}}</span>
+                                            </div>
+                                        </el-row>
+
+                                        <!--时间-->
+                                        <el-row>
+                                            <!--根据排序方式来决定显示的时间类型 note.createTime -->
+                                            <span style="font-size: mini;color: #49a2de">
+                                                  {{ $store.state.sortWay.updateTime
+                                                  ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
+                                                  : (note.createTimeAlias ? note.createTimeAlias:note.createTime)
+                                                  }}
+                                              </span>
+                                        </el-row>
+
+                                        <!--位置-->
+                                        <el-row>
+                                            <!--30.614422,114.301961-->
+                                            <!--百度地图-->
+                                            <!-- <a :href="'http://api.map.baidu.com/geocoder?location=' + note.lnglat + '&coord_type=gcj02&output=html&src=webapp.baidu.openAPIdemo'"
+                                                     style="font-size: mini;color:#49a2de"> {{ note.location}}</a>-->
+
+                                            <a :href="'http://maps.google.com/maps?z=6&q=' + note.lnglat"
+                                               style="font-size: mini;color:#49a2de">
+                                                <i v-if="note.lnglat" class="el-icon-location"></i>
+                                                {{ note.location}}
+                                            </a>
+                                        </el-row>
+                                    </el-col>
+                                    <!--缩略图-->
+                                    <el-col :span="8" class="innerCenter"> <!-- :src="require(note.url)"-->
+                                        <el-image :src="note.url" fit="cover">
+                                        </el-image>
+                                    </el-col>
+                                </el-row>
+                            </div>
+                        </el-scrollbar>
+                    </el-aside>
+                </el-container>
+            </div>
+
 
         </el-aside>
         <!--拉动线-->
@@ -229,6 +267,10 @@
                 }
                 this.$store.state.currentNote = note
                 this.$store.state.currentIndex = index
+            },
+            fileClick(note, index) {
+                /*页面显示*/
+
             },
             // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
             mouseDown() {

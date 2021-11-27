@@ -174,7 +174,7 @@
                         break; /*'废纸篓' */
                     case 'images':
                         this.$store.state.fileMode = true
-                        this.$store.state.currentNoteList = []
+                        // this.$store.state.currentNoteList =  this.$store.state.fileList
                         this.initCurrentNoteListByName("fileList", 8);
                         break; /* 文件 */
                     default:
@@ -494,7 +494,7 @@
                         /*图片和视频*/
                         {
                             id: 'images',
-                            title: '图片和视频 (' + "kkk" + ')'
+                            title: '图片和视频 (' + this.$store.state.fileList.length + ')'
                         },
                     ]
                 },

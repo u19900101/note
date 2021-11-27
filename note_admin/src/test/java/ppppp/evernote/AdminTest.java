@@ -1,26 +1,26 @@
 package ppppp.evernote;
 
+import com.alibaba.fastjson.JSON;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import ppppp.evernote.entity.Note;
 import ppppp.evernote.entity.Notebook;
+import ppppp.evernote.entity.Picture;
 import ppppp.evernote.entity.Tag;
 import ppppp.evernote.mapper.NoteMapper;
-import ppppp.evernote.mapper.TagMapper;
 import ppppp.evernote.service.NoteService;
 import ppppp.evernote.service.NotebookService;
+import ppppp.evernote.service.PictureService;
 import ppppp.evernote.service.TagService;
 import ppppp.evernote.util.ResultUtil;
 
 import java.util.Date;
 import java.util.List;
+
+import static ppppp.evernote.util.RequestUtils.sendGetRequest;
 
 
 @RunWith(SpringRunner.class)
@@ -30,8 +30,45 @@ public class AdminTest {
     private NoteMapper noteMapper;
 
     @Autowired
-    private TagMapper tagMapper;
+    private PictureService pictureService;
 
+    @Test  /*lambdaQuery 会查询出逻辑删除*/
+    public void 交换pic经纬度(){
+        List<Picture> all = pictureService.lambdaQuery().list();
+        for (Picture picture : all) {
+            if(picture.getLnglat() != null){
+                String[] split = picture.getLnglat().split(",");
+                if(split.length > 0 ){
+                    System.out.println("kkk");
+                    picture.setLnglat(split[1] + "," + split[0]);
+                    pictureService.updateById(picture);
+                }
+            }
+
+        }
+    }
+
+    @Test  /*lambdaQuery 会查询出逻辑删除*/
+    public void 更新地址(){
+        List<Picture> all = pictureService.lambdaQuery().list();
+        for (Picture picture : all) {
+            if((picture.getLocation() == null || picture.getLocation().length() == 0) && picture.getLnglat() != null){
+                    picture.setLocation(getLocation(picture.getLnglat()));
+                    pictureService.updateById(picture);
+            }
+
+        }
+    }
+    //经纬度转地址
+    public static String getLocation(String lnglat){
+        String key = "GjG3XAdmywz7CyETWqHwIuEC6ZExY6QT";
+        String url="http://api.map.baidu.com/geocoder/v2/?ak="+key+"&output=json&coordtype=bd09ll&location="+lnglat;
+        String res=sendGetRequest(url);
+
+        //获取详细地址
+        String addressLocation= JSON.parseObject(res).getJSONObject("result").getString("formatted_address");
+        return addressLocation;
+    }
 
     @Test  /*lambdaQuery 会查询出逻辑删除*/
     public void T_delete(){

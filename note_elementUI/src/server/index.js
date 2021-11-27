@@ -108,7 +108,21 @@ export function updateSortWay(data) {
 }
 
 
+/*文件*/
+export function getFiles() {
+    return vm.get('/api/admin/file/allFiles')
+}
+/*export function getWastepaperNotes() {
+    return vm.get('/api/admin/note/getWastepaperNotes')
+}
+// 更新笔记的标题和内容
+export function updateNote(data) {
+    return vm.post('/api/admin/note/update', data)
+}
 
+export function deleteNote(data) {
+    return vm.post('/api/admin/note/deleteNote', data)
+}*/
 
 export default {
     install(Vue) {
@@ -136,6 +150,8 @@ export default {
             insertTag,
             deleteTag,
             getTagsTree,
+            /*file*/
+            getFiles,
         }
     }
 }

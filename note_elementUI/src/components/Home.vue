@@ -83,6 +83,16 @@
                         this.$store.state.searchHistroy = keywords
                     })
 
+                    /*图片数据*/
+                    this.https.getFiles().then(({data}) => {
+                        let images = data.data
+                        this.$store.state.fileList = data.data; // 进入的笔记本列表数据
+                        // this.$store.state.currentNoteBookNoteList = this.$store.state.notes;
+                        //
+                        // this.$store.state.starNotesList = this.$store.state.notes.filter((note) => note.star == true)
+
+                    })
+
                 }).then(() => {
                     // 2.获取笔记数据 初始化 notes
                     this.https.getNotes().then(({data}) => {

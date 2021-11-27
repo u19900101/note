@@ -9,13 +9,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ppppp.evernote.entity.Picture;
+import ppppp.evernote.entity.Sortway;
 import ppppp.evernote.service.PictureService;
+import ppppp.evernote.service.SortWayService;
 import ppppp.evernote.util.MyUtils;
-import ppppp.evernote.util.ftp.FTPUtil;
+import ppppp.evernote.util.ResultUtil;
 import ppppp.evernote.util.ftp.sftp;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -28,70 +32,71 @@ import static ppppp.evernote.util.RequestUtils.sendGetRequest;
 @RestController
 @RequestMapping("/admin/file")
 public class PictureController {
-
+    private static ThreadLocal<sftp> sftpLocal = new ThreadLocal<sftp>();
 
     @Autowired
     PictureService pictureService;
+    @Autowired
+    SortWayService sortWayService;
     /*文件上传*/
-    /*public Map<String, Object> uploadFileAndInsert(HttpServletRequest request) throws Exception {
-        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
-        List<MultipartFile> fileList = multiRequest.getFiles("file");
-        ArrayList<Map<String, Object>> item = new ArrayList<>();
-        Map<String, Object> map = new HashMap<>();
-        for (MultipartFile multipartFile : fileList) {
 
-            if (multipartFile.isEmpty()) {
-                map.put("uploaded", -1);
-                map.put("errorMessage", "上传失败...");
-                return map;
-            }
-            // 保存到数据库 得到唯一的id  上传的文件名称格式  2021-11-25-fileName-id.type
-            // String fileName = insertFile(multipartFile);
+    @RequestMapping("/allFiles")
+    public String getAllNotes() {
+        List<Picture> pictureListList = getSortWayNotes();
+        // fillNoteList(noteList);
+        return ResultUtil.successWithData(pictureListList);
+    }
+    private List<Picture> getSortWayNotes() {
+        // 根据sortway中的排序字段进行查询
+        Sortway sortway = sortWayService.getById(1);
+        List<Picture> pictureList = null;
 
-            // 上传到服务器
-            try {
-                Map<String, Object> temp = new HashMap<>();
-                byte[] bytes = multipartFile.getBytes();
-                String fileName = multipartFile.getName();
-                FTPUtil.sshSftp(bytes, fileName);
-                temp.put("fileName", fileName);
-                temp.put("url", "http://lpgogo.top/img/" + fileName);
-                item.add(temp);
-            } catch (Exception e) {
-                System.out.println("bug");
-                map.put("uploaded", -1);
-                map.put("errorMessage", "上传失败...");
-                return map;
-            }
+        // 默认均为日期逆序为正常排序
+        if (sortway.getCreateTime()) {
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getCreateTime).list(); /*last("limit 10").*/
+        } else if (sortway.getUpdateTime()) {
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getUpdateTime).list();
         }
-        map.put("uploaded", 1); //"上传成功"
-        map.put("item", item);
-        return map;
-    }*/
-    private static ThreadLocal<sftp> sftpLocal = new ThreadLocal<sftp>();
+        //逆序
+        if (sortway.getReverse()) {
+            Collections.reverse(pictureList);
+        }
+        return pictureList;
+    }
+    /*每张照片都发送一次请求上传*/
     @PostMapping("/uploadFileAndInsert")
-    public void T_(HttpServletRequest request) throws Exception {
+    public void uploadFileAndInsert(HttpServletRequest request) throws Exception {
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
-        List<MultipartFile> fileList = multiRequest.getFiles("file");
-        InputStream inputStream = fileList.get(0).getInputStream();
-        String fileName = fileList.get(0).getOriginalFilename();
+        MultipartFile multipartFile = multiRequest.getFile("file");
+        Picture picture = getPictureInfo(multipartFile);
+        String uploadDir = new SimpleDateFormat("yyyy-MM-dd").format(picture.getCreateTime());
+
+        InputStream inputStream = multipartFile.getInputStream();
+        String fileName = multipartFile.getOriginalFilename();
         new Thread() {
             @Override
             public void run() {
                 try {
                     sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
-                    sftp.uploadFile("/mydata/nginx/html/img", "/test", inputStream, fileName);
+                    String fileName = sftp.uploadFile("/mydata/nginx/html/img", "/"+ uploadDir, inputStream,  picture.getTitle());
                     sftp.release();
-                    System.out.println(fileName);
+                    if(!fileName.equals("error")){
+                        System.out.println("上传成功 " + fileName);
+
+                        // 若重名，则重新命名文件
+                        if(!fileName.equals(picture.getTitle())){
+                            picture.setTitle(fileName);
+                        }
+                        String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
+                        picture.setUrl(imgUrl);
+                        // 保存文件信息到数据库
+                        boolean save = pictureService.save(picture);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }.start();
-
-        // execUpload((MultipartHttpServletRequest) request);
-
-
     }
 
     private void execUpload(MultipartHttpServletRequest request) throws Exception {
@@ -102,17 +107,7 @@ public class PictureController {
 
         // ArrayList<Picture> pictureArrayList = FTPUtil.upload(fileList);
         for (MultipartFile multipartFile : fileList) {
-            Picture picture = getPictureInfo(multipartFile);
-            String uploadDir = new SimpleDateFormat("yyyy-MM-dd").format(picture.getCreateTime());
-            String fileName = FTPUtil.upload((FileInputStream) multipartFile.getInputStream(), uploadDir, picture.getTitle());
-            // 若重名，则重新命名文件
-            if(!fileName.equals(picture.getTitle())){
-                picture.setTitle(fileName);
-            }
-            String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
-            picture.setUrl(imgUrl);
-            // 保存文件信息到数据库
-            // boolean save = pictureService.save(picture);
+
         }
     }
 
@@ -180,7 +175,7 @@ public class PictureController {
                             break;
                         // 经度
                         case "GPS Longitude":
-                            pic.setLnglat(toX(t.getDescription()) + "," + pic.getLnglat());
+                            pic.setLnglat(pic.getLnglat() + "," + toX(t.getDescription()));
                             break;
                         // 拍摄时间
                         // 解决有的照片中有两个 Date/Time Original 但是格式不一样
@@ -236,9 +231,8 @@ public class PictureController {
 
     //经纬度转地址
     public static String getLocation(String lnglat){
-        String location = lnglat.split(",")[1] + "," + lnglat.split(",")[0];
         String key = "GjG3XAdmywz7CyETWqHwIuEC6ZExY6QT";
-        String url="http://api.map.baidu.com/geocoder/v2/?ak="+key+"&output=json&coordtype=bd09ll&location="+location;
+        String url="http://api.map.baidu.com/geocoder/v2/?ak="+key+"&output=json&coordtype=bd09ll&location="+lnglat;
         String res=sendGetRequest(url);
 
         //获取详细地址

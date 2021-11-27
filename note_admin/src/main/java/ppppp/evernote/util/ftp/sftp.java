@@ -14,6 +14,8 @@ import org.springframework.util.StringUtils;
 
 import java.io.InputStream;
 import java.util.Date;
+import java.util.UUID;
+import java.util.Vector;
 
 
 public class sftp {
@@ -187,23 +189,36 @@ public class sftp {
 
     /**
      * 上传文件(cd目录一定要注意，层层cd 直接cd一个全路径是不起作用的)
-     *
-     * @param directory 上传ftp的目录
+     * @param remotDir 上传ftp的目录
      * @param input     本地文件InputStream
+     * @return
      */
-    public static boolean uploadFile(String basePath, String directory, InputStream input, String fileName) {
+    public static String uploadFile(String basePath, String remotDir, InputStream input, String fileName) {
         //创建目录
         try {
             sftpLocal.get().channel.cd(basePath);
+            createDir(remotDir);
 
-            createDir(directory);
+            //列出服务器指定的文件列表
+            Vector ls = sftpLocal.get().channel.ls(basePath + remotDir);
+
+            // 判断文件是否重名  i=2 是排除 两个文件 . 和 ..
+            for (int i = 2; i < ls.size(); i++) {
+                ChannelSftp.LsEntry l = (ChannelSftp.LsEntry) ls.get(i);
+                if(l.getFilename().equals(fileName)){
+                    System.out.println("重名鸟...");
+                    String[] s = fileName.split("\\.");
+                    fileName = s[0] + "_"+ UUID.randomUUID().toString().substring(0,2) + "." + s[1];
+                    i = 1;
+                }
+            }
 
             sftpLocal.get().channel.put(input, fileName);
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage() + e.getMessage() + e.toString());
-            return false;
+            return "error";
         }
-        return true;
+        return fileName;
     }
 
 }

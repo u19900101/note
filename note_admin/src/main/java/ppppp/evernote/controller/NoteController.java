@@ -225,7 +225,9 @@ public class NoteController {
             noteList = noteService.lambdaQuery().eq(Note::getWastepaper, false).orderByDesc(Note::getUpdateTime).last("limit 10").list();
         }
         //逆序
-        if (sortway.getReverse()) Collections.reverse(noteList);
+        if (sortway.getReverse()) {
+            Collections.reverse(noteList);
+        }
         return noteList;
     }
 
