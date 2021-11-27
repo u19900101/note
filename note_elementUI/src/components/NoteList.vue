@@ -108,9 +108,9 @@
             </div>
             <!--文件-->
             <div v-else>
-                <el-button>年</el-button>
-                <el-button>月</el-button>
-                <el-button @click="showImageByDay">日</el-button>
+                <el-button @click="showImageByTimeType('year')">年</el-button>
+                <el-button @click="showImageByTimeType('month')">月</el-button>
+                <el-button @click="showImageByTimeType('day')">日</el-button>
 
                 <el-row>
                     <!--笔记本名称-->
@@ -148,48 +148,47 @@
                                         :style="{  backgroundColor:getBgColor(index),
                                                    border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'
                                           }"
-                                        style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
-                                        type="flex">
+                                        style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;">
 
-                                    <el-col :span="16">
-                                        <!--标签-->
-                                        <el-row>
-                                            <!-- 给多行省略符 元素动态设置背景色-->
-                                            <div class="more-line">
-                                                <span style="color: #49a2de">{{getTagList(note)}}</span>
-                                            </div>
-                                        </el-row>
+                                    <!--标签-->
+                                    <el-row>
+                                        <!-- 给多行省略符 元素动态设置背景色-->
+                                        <div class="more-line">
+                                            <span style="color: #49a2de">标签kkk<!--{{getTagList(note)}}--></span>
+                                        </div>
+                                    </el-row>
 
-                                        <!--时间-->
-                                        <el-row>
-                                            <!--根据排序方式来决定显示的时间类型 note.createTime -->
-                                            <span style="font-size: mini;color: #49a2de">
+                                    <!--时间-->
+                                    <el-row>
+                                        <!--根据排序方式来决定显示的时间类型 note.createTime -->
+                                        <span style="font-size: mini;color: #49a2de">
                                                   {{ $store.state.sortWay.updateTime
                                                   ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
                                                   : (note.createTimeAlias ? note.createTimeAlias:note.createTime)
                                                   }}
                                               </span>
-                                        </el-row>
+                                    </el-row>
 
-                                        <!--位置-->
-                                        <el-row>
-                                            <!--30.614422,114.301961-->
-                                            <!--百度地图-->
-                                            <!-- <a :href="'http://api.map.baidu.com/geocoder?location=' + note.lnglat + '&coord_type=gcj02&output=html&src=webapp.baidu.openAPIdemo'"
-                                                     style="font-size: mini;color:#49a2de"> {{ note.location}}</a>-->
-
-                                            <a :href="'http://maps.google.com/maps?z=6&q=' + note.lnglat"
-                                               style="font-size: mini;color:#49a2de">
-                                                <i v-if="note.lnglat" class="el-icon-location"></i>
-                                                {{ note.location}}
-                                            </a>
-                                        </el-row>
-                                    </el-col>
+                                    <!--位置-->
+                                    <el-row>
+                                        <!--30.614422,114.301961-->
+                                        <!--百度地图-->
+                                        <!-- <a :href="'http://api.map.baidu.com/geocoder?location=' + note.lnglat + '&coord_type=gcj02&output=html&src=webapp.baidu.openAPIdemo'"
+                                                 style="font-size: mini;color:#49a2de"> {{ note.location}}</a>-->
+                                        <a :href="'http://maps.google.com/maps?z=6&q=' + note.lnglat"
+                                           style="font-size: mini;color:#49a2de">
+                                            <i v-if="note.location" class="el-icon-location"></i>
+                                            {{ note.location}}
+                                        </a>
+                                    </el-row>
                                     <!--缩略图-->
-                                    <el-col :span="8" class="innerCenter"> <!-- :src="require(note.url)"-->
-                                        <el-image :src="note.url" fit="cover">
-                                        </el-image>
-                                    </el-col>
+                                    <el-row  class="imgItem">
+                                        <div v-for="img in note.images">
+                                            <el-image style="margin-left:10px;width: 100px;height: 100px" :src="img.url" fit="cover">
+                                            </el-image>
+                                        </div>
+                                    </el-row>
+
                                 </el-row>
                             </div>
                         </el-scrollbar>
@@ -237,13 +236,12 @@
 
         methods: {
             /*照片日视图*/
-            showImageByDay(){
+            showImageByTimeType(timeType) {
                 let imageList = this.$store.state.fileList
-                imageList.forEach((i) => {
-                    console.log(i.createTime.split(" ")[0])
-                })
-
+                let dayImages = this.tool.groupImages(timeType, imageList)
+                this.$store.state.currentNoteList = dayImages
             },
+
             /*控制列表颜色*/
             getBgColor(index) {
                 /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/
@@ -469,7 +467,14 @@
 </script>
 
 <style>
+    /*图片布局样式*/
+    .imgItem{
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        /*justify-content: flex-start; */
 
+    }
     /*笔记列表中图片 居中 */
     .innerCenter {
         /*background: aqua;*/

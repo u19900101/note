@@ -8,7 +8,8 @@ export default {
             getDateTimes,
             sortWay,
             addNoteCount,
-            removeNoteCount
+            removeNoteCount,
+            groupImages
         }
     }
 }
@@ -62,7 +63,53 @@ export function getDateTimes(data,sortWay){
         }
     });
 }
+function groupImages(groupType, imageData) { // day,month,year
+    let map = {}
+    let timeLen  //默认按天聚合
+    let locationReg;
+    switch (groupType) {
+        case "day":
+            timeLen = 10;
+            locationReg = /市(.+区)|省(.+县)/
+            break
+        case "month":
+            timeLen = 7;
+            locationReg = /省(.+?市)/;
+            break
+        case "year":
+            timeLen = 4;
+            locationReg = /(.+省)/;
+            break
+    }
+    imageData.forEach((i) => {
+        let key = i.createTime.split(" ")[0].substring(0, timeLen)
+        if (map[key] == null) {
+            map[key] = [i]
+        } else {
+            map[key].push(i)
+        }
+    })
 
+    //组装新数组
+    let relDatas = []
+    for (let i in map) {
+        let location = ""
+        map[i].forEach((i) => {
+            // 按天，只提取区  月 提取市   年 提取省
+            if (i.location) {
+                let myArray = locationReg.exec(i.location);
+                let newLoction = ""
+                if (myArray) newLoction = myArray[1] ? myArray[1] : myArray[2]
+                if (newLoction && location.indexOf(newLoction) == -1) {
+                    location = location == "" ? newLoction : location + "," + newLoction
+                }
+            }
+
+        })
+        relDatas.push({createTime: i, location: location, images: map[i]})
+    }
+    return relDatas
+}
 /* 递归获取el-tree的一级节点id*/
 function getfirstLevelId(node) {
     if (node.level != 1) {

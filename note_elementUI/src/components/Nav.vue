@@ -227,8 +227,13 @@
                     this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
                     this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
                 } else { //其他一级标题  如 wastepaperNotesList
-                    this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
-                    this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
+                    if(noteBookId == 8){
+                        this.$store.state.currentNoteList = this.tool.groupImages("day", this.$store.state.fileList)
+                    }else {
+                        this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
+                        this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
+                    }
+
                 }
                 if (this.$store.state.currentNoteList.length > 0) {
                     this.$store.state.currentNote = this.$store.state.currentNoteList[0]
