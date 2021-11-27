@@ -110,7 +110,8 @@
             <div v-else>
                 <el-button>年</el-button>
                 <el-button>月</el-button>
-                <el-button>日</el-button>
+                <el-button @click="showImageByDay">日</el-button>
+
                 <el-row>
                     <!--笔记本名称-->
                     <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
@@ -230,22 +231,18 @@
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 lastTime: 0, //定时器的初始值
                 widthLastTime: 0,
-                dialogImageUrl: '',
-                dialogVisible: false,
+
             }
         },
 
         methods: {
-            /*文件上传*/
-            handleRemove(file) {
-                console.log('handleDownload', file);
-            },
-            handlePictureCardPreview(file) {
-                this.dialogImageUrl = file.url;
-                this.dialogVisible = true;
-            },
-            handleDownload(file) {
-                console.log('handleDownload', file);
+            /*照片日视图*/
+            showImageByDay(){
+                let imageList = this.$store.state.fileList
+                imageList.forEach((i) => {
+                    console.log(i.createTime.split(" ")[0])
+                })
+
             },
             /*控制列表颜色*/
             getBgColor(index) {

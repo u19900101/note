@@ -1,7 +1,7 @@
 <template>
     <el-container style="width: 1000px">
         <!--标题 & 工具栏-->
-        <el-header>
+        <el-header v-if="!$store.state.fileMode">
             <!--标题-->
            <!-- <el-row>
                 <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
@@ -156,6 +156,12 @@
             noteTag,
             vmd
         },
+        data(){
+            return{
+                dialogImageUrl: '',
+                dialogVisible: false,
+            }
+        },
 
         computed: {
             title: {
@@ -256,6 +262,17 @@
             },
         },
         methods: {
+            /*文件上传*/
+            handleRemove(file) {
+                console.log('handleDownload', file);
+            },
+            handlePictureCardPreview(file) {
+                this.dialogImageUrl = file.url;
+                this.dialogVisible = true;
+            },
+            handleDownload(file) {
+                console.log('handleDownload', file);
+            },
             /*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
             getBt(str) {
                 let char = str.replace(/[^\x00-\xff]/g, '**');
