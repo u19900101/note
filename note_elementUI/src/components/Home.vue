@@ -24,7 +24,6 @@
                     <noteList/>
                 </el-aside>
                 <!--笔记内容-->
-                <!-- && -->
                 <note v-if="$store.state.fileMode || $store.state.currentNoteList.length > 0"></note>
                 <div v-else style="text-align: center;width: 100%;">
                     <h1>空空如也 </h1>
@@ -32,7 +31,8 @@
             </el-container>
             <!--笔记和标签页面展示-->
             <el-main v-else>
-                <noteBook_tag></noteBook_tag>
+                <imageList v-if = "$store.state.fileMode"></imageList>
+                <noteBook_tag v-else></noteBook_tag>
             </el-main>
         </el-container>
     </el-container>
@@ -43,12 +43,13 @@
     import noteList from "./NoteList";
     import noteNav from "./Nav";
     import noteBook_tag from "./NoteBook_Tag";
+    import imageList from "./ImageList";
 
     export default {
         name: 'home',
         components: {
             borderLine,
-            noteList,
+            noteList,imageList,
             noteNav,
             note,
             noteBook_tag,

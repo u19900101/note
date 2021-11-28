@@ -61,6 +61,9 @@ const state = {
     /*************文件*************/
     fileMode: false,  //文件模式视图控制
     fileList: [],
+    currentImage: {},//当前图片
+    currentImageUrl: "",//当前图片的url
+    currentImageUrlList: [],//当前图片的urlList
 
     /*************页面显示控制*************/
     listAndNoteShow: true,  //显示列表区和笔记区
