@@ -9,7 +9,7 @@
             <span>{{$store.state.currentImage.location}}</span>
             <span>{{$store.state.currentImage.widthH}}</span>
         </div>
-        <el-button @click="showImageByTimeType('year')" >年</el-button>
+        <el-button @click="showImageByTimeType('year')">年</el-button>
         <el-button @click="showImageByTimeType('month')">月</el-button>
         <el-button @click="showImageByTimeType('day')">日</el-button>
 
@@ -95,11 +95,13 @@
                         <el-row class="imgItem">
                             <div v-for="(img,index) in note.images">
                                 <!-- 500px 为大视图 直接显示原图 会有卡顿-->
-                                <el-image  :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
+                                <el-image :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
                                           @click.native="imageClick(img,note.images,index)"
-                                          :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)" fit="cover"
+                                          :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
+                                          fit="cover"
                                           :preview-src-list="$store.state.currentImageUrlList"
-                                          :alt="img.title"/>
+                                          :alt="img.title"
+                                />
                             </div>
                         </el-row>
 
@@ -128,12 +130,19 @@
             }
         },
         methods: {
-            changeViewScale(viewScale){
+            changeViewScale(viewScale) {
                 switch (viewScale) {
-                    case "big": this.imageScale = "500px";break;
-                    case "medium": this.imageScale = "250px";break;
-                    case "small": this.imageScale = "100px";break;
-                    default: this.imageScale = "100px"
+                    case "big":
+                        this.imageScale = "500px";
+                        break;
+                    case "medium":
+                        this.imageScale = "250px";
+                        break;
+                    case "small":
+                        this.imageScale = "100px";
+                        break;
+                    default:
+                        this.imageScale = "100px"
                 }
                 console.log(viewScale)
             },
@@ -254,6 +263,16 @@
 </script>
 
 <style>
+    /*鼠标经过图片变大*/
+    .el-image {
+        cursor: pointer;
+        transition: all 0.6s;
+    }
+
+    .el-image:hover {
+        transform: scale(1.05);
+    }
+
     /*图片布局样式*/
     .imgItem {
         display: flex;
