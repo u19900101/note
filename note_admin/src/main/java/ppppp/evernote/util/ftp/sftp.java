@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 import java.util.Vector;
@@ -196,10 +197,11 @@ public class sftp {
      * @param multipartFile
      * @return
      */
-    public static String uploadFile(String basePath, String remotDir, MultipartFile multipartFile, String fileName) {
+    public static String uploadFile(String basePath, String remotDir, MultipartFile multipartFile, String fileName) throws IOException {
         //创建目录
-        String tempImage = "C:\\Users\\Administrator\\Desktop\\temp.jpg";
+        String tempImage = "C:\\Users\\Administrator\\Desktop\\"+UUID.randomUUID()+".jpg";
         File tempFile = new File(tempImage);
+
         try {
             sftpLocal.get().channel.cd(basePath);
             createDir(remotDir);
@@ -221,14 +223,18 @@ public class sftp {
             sftpLocal.get().channel.put(multipartFile.getInputStream(), fileName);
            // 上传缩略图 用于列表
             Thumbnails.of(multipartFile.getInputStream()).width(400).toFile(tempImage);
-            sftpLocal.get().channel.put(new FileInputStream(tempFile), fileName.split("\\.")[0] + "_thumbnails." + fileName.split("\\.")[1]);
+            FileInputStream fileInputStream = new FileInputStream(tempFile);
+            sftpLocal.get().channel.put(fileInputStream, fileName.split("\\.")[0] + "_thumbnails." + fileName.split("\\.")[1]);
+            //便于文件关闭
+            fileInputStream.close();
             System.out.println("缩略图上传成功");
-            fileName = "error";
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage() + e.getMessage() + e.toString());
-            return "error";
         }finally {
-            tempFile.delete();
+            boolean delete = tempFile.delete();
+            if(!delete){
+                System.out.println("文件删除失败 " + tempImage);
+            }
         }
         return fileName;
     }

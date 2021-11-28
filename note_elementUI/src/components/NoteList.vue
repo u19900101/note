@@ -184,8 +184,10 @@
                                     <!--缩略图-->
                                     <el-row class="imgItem">
                                         <div v-for="img in note.images">
+                                            <!--<span>{{img.title}}</span>-->
                                             <el-image style="margin-left:10px;width: 100px;height: 100px"
-                                                      :src="getThumbnails(img.url,img.title)" fit="cover">
+                                                      :src="getThumbnails(img.url,img.title)" fit="cover"
+                                            :alt = "img.title">
                                             </el-image>
                                         </div>
                                     </el-row>
