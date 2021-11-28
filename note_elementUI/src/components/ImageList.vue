@@ -9,9 +9,21 @@
             <span>{{$store.state.currentImage.location}}</span>
             <span>{{$store.state.currentImage.widthH}}</span>
         </div>
-        <el-button @click="showImageByTimeType('year')">年</el-button>
+        <el-button @click="showImageByTimeType('year')" >年</el-button>
         <el-button @click="showImageByTimeType('month')">月</el-button>
         <el-button @click="showImageByTimeType('day')">日</el-button>
+
+
+        <el-tooltip  class="item" style="float: right" content="小视图" placement="bottom">
+            <i @click="changeViewScale('small')" class="el-icon-s-grid" :style="{borderBottom: imageScale == '100px'?'4px solid blue':''}" style="font-size: 30px;"></i>
+        </el-tooltip>
+        <el-tooltip  class="item" style="float: right" content="中视图" placement="bottom">
+            <i @click="changeViewScale('medium')" class="el-icon-menu" :style="{borderBottom: imageScale == '250px'?'4px solid blue':''}" style="font-size: 30px"></i>
+        </el-tooltip>
+        <el-tooltip  class="item" style="float: right" content="大视图" placement="bottom">
+            <i @click="changeViewScale('big')" class="el-icon-s-platform" :style="{borderBottom: imageScale == '500px'?'4px solid blue':''}" style="font-size: 30px"></i>
+        </el-tooltip>
+
 
         <el-row>
             <!--笔记本名称-->
@@ -67,7 +79,6 @@
                                                   }}</span>
                             <span style="margin-left: 10px">{{note.images.length}} 张照片</span>
                         </el-row>
-
                         <!--位置-->
                         <el-row>
                             <!--30.614422,114.301961-->
@@ -82,12 +93,11 @@
                         </el-row>
                         <!--缩略图-->
                         <el-row class="imgItem">
-
                             <div v-for="(img,index) in note.images">
-                                <!--<span>{{img.title}}</span>-->
-                                <el-image style="margin-left:10px;width: 100px;height: 100px"
+                                <!-- 500px 为大视图 直接显示原图 会有卡顿-->
+                                <el-image  :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
                                           @click.native="imageClick(img,note.images,index)"
-                                          :src="getThumbnails(img.url,img.title)" fit="cover"
+                                          :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)" fit="cover"
                                           :preview-src-list="$store.state.currentImageUrlList"
                                           :alt="img.title"/>
                             </div>
@@ -114,9 +124,19 @@
                 isSortShow: false,
                 iconMouseLeave: false,  // 鼠标是否离开了图标区域
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
+                imageScale: "250px", //视图大小  默认为中等视图
             }
         },
         methods: {
+            changeViewScale(viewScale){
+                switch (viewScale) {
+                    case "big": this.imageScale = "500px";break;
+                    case "medium": this.imageScale = "250px";break;
+                    case "small": this.imageScale = "100px";break;
+                    default: this.imageScale = "100px"
+                }
+                console.log(viewScale)
+            },
             /*照片日视图*/
             showImageByTimeType(timeType) {
                 let imageList = this.$store.state.fileList
