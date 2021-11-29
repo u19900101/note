@@ -116,18 +116,19 @@
                             <div v-for="(img,index) in note.images">
                                 <div style="position: relative">
                                     <!--图片收藏图标-->
-                                    <div v-if="currentImageIndex == index" @click="starClick(img)" :class="img.star ? 'el-icon-star-on': 'el-icon-star-off' " style="position: absolute;left: 85px;top: 5px;z-index: 5000"></div>
+                                    <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1" style="font-size:18px;color:red;position: absolute;left: 85px;top: 5px;z-index: 5000"></i>
+                                    <div v-if="currentImageId == img.id" @click="starClick(img)" >
+                                        <i  v-if="!img.star" class="iconfont icon-like" style="position: absolute;left: 85px;top: 5px;z-index: 5000"></i>
+                                    </div>
                                     <!-- 500px 为大视图 直接显示原图 会有卡顿 @mouseover="mouseOverImage(index)"-->
                                     <el-image :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
                                               @click.stop="imageClick(img,note.images,index)"
                                               :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
                                               fit="cover"
-                                              @mouseover="currentImageIndex = index"
+                                              @mouseover="currentImageId = img.id"
                                               :preview-src-list="$store.state.currentImageUrlList"
                                               :alt="img.title"/>
                                 </div>
-
-
                             </div>
                         </el-row>
 
@@ -154,7 +155,7 @@
                 iconMouseLeave: false,  // 鼠标是否离开了图标区域
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 imageScale: "100px", //视图大小  默认为小等视图
-                currentImageIndex: 0, //当前图片下标
+                currentImageId: "", //当前图片id
             }
         },
         computed: {
@@ -189,7 +190,6 @@
         methods: {
             starClick(img) {
                 img.star = !img.star
-                console.log(img)
                 this.$message({
                     message: img.star ? '已收藏' : '取消收藏',
                     type: img.star ? 'success' : 'info',
@@ -365,6 +365,7 @@
 </script>
 
 <style>
+
     /*鼠标经过图片变大*/
     .el-image {
         cursor: pointer;
