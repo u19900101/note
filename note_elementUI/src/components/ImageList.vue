@@ -3,26 +3,46 @@
     <div>
         <!--当前大图详细信息的显示-->
         <div v-if="imagePre" class="imgInfo">
-            <span>{{$store.state.currentImage.title}}</span>
-            <span>{{$store.state.currentImage.createTime}}</span>
-            <span>{{getImgageSize($store.state.currentImage.size)}}</span>
-            <span>{{$store.state.currentImage.location}}</span>
-            <span>{{$store.state.currentImage.widthH}}</span>
+            <div class="info" :style="{width: getBt($store.state.currentImage.title) + 'px'}">{{$store.state.currentImage.title}}</div>
+            <!--拍摄日期 -->
+            <div class="imgInfo">
+                <el-date-picker
+                        style="color: #1d9351"
+                        v-model="createTime"
+                        editable
+                        type="datetime"
+                        placeholder="选择日期时间"
+                        :default-time="createTime.split(' ')[0]">
+                </el-date-picker>
+            </div>
+
+            <span class="info" :style="{width: getBt($store.state.currentImage.size.toString()) + 'px'}">{{getImgageSize($store.state.currentImage.size)}}</span>
+            <span class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}" v-if="$store.state.currentImage.location">
+                <i  class="el-icon-location"></i>
+                  <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
+                     style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
+            </span>
+            <span class="info" :style="{width: getBt($store.state.currentImage.widthH) + 'px'}">{{$store.state.currentImage.widthH}}</span>
         </div>
-        <el-button @click="showImageByTimeType('year')">年</el-button>
-        <el-button @click="showImageByTimeType('month')">月</el-button>
-        <el-button @click="showImageByTimeType('day')">日</el-button>
 
 
-        <el-tooltip  class="item" style="float: right" content="小视图" placement="bottom">
-            <i @click="changeViewScale('small')" class="el-icon-s-grid" :style="{borderBottom: imageScale == '100px'?'4px solid blue':''}" style="font-size: 30px;"></i>
-        </el-tooltip>
-        <el-tooltip  class="item" style="float: right" content="中视图" placement="bottom">
-            <i @click="changeViewScale('medium')" class="el-icon-menu" :style="{borderBottom: imageScale == '250px'?'4px solid blue':''}" style="font-size: 30px"></i>
-        </el-tooltip>
-        <el-tooltip  class="item" style="float: right" content="大视图" placement="bottom">
-            <i @click="changeViewScale('big')" class="el-icon-s-platform" :style="{borderBottom: imageScale == '500px'?'4px solid blue':''}" style="font-size: 30px"></i>
-        </el-tooltip>
+        <div>
+            <el-button @click="showImageByTimeType('year')">年</el-button>
+            <el-button @click="showImageByTimeType('month')">月</el-button>
+            <el-button @click="showImageByTimeType('day')">日</el-button>
+            <el-tooltip class="item" style="float: right" content="小视图" placement="bottom">
+                <i @click="changeViewScale('small')" class="el-icon-s-grid"
+                   :style="{borderBottom: imageScale == '100px'?'4px solid blue':''}" style="font-size: 30px;"></i>
+            </el-tooltip>
+            <el-tooltip class="item" style="float: right" content="中视图" placement="bottom">
+                <i @click="changeViewScale('medium')" class="el-icon-menu"
+                   :style="{borderBottom: imageScale == '250px'?'4px solid blue':''}" style="font-size: 30px"></i>
+            </el-tooltip>
+            <el-tooltip class="item" style="float: right" content="大视图" placement="bottom">
+                <i @click="changeViewScale('big')" class="el-icon-s-platform"
+                   :style="{borderBottom: imageScale == '500px'?'4px solid blue':''}" style="font-size: 30px"></i>
+            </el-tooltip>
+        </div>
 
 
         <el-row>
@@ -96,7 +116,7 @@
                             <div v-for="(img,index) in note.images">
                                 <!-- 500px 为大视图 直接显示原图 会有卡顿-->
                                 <el-image :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
-                                          @click.native="imageClick(img,note.images,index)"
+                                          @click.stop="imageClick(img,note.images,index)"
                                           :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
                                           fit="cover"
                                           :preview-src-list="$store.state.currentImageUrlList"
@@ -114,7 +134,7 @@
 
 <script>
     import cascader from "./Cascader";
-
+    let dayjs = require('dayjs');
     export default {
         name: "ImageList",
         components: {
@@ -128,6 +148,24 @@
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 imageScale: "250px", //视图大小  默认为中等视图
             }
+        },
+        computed:{
+            createTime: {
+                get: function () {
+                    return this.$store.state.currentImage.createTime
+                },
+                set: function (newValue) {
+                    let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
+                    this.$store.state.currentImage.createTime = formatTime
+                   /* console.log('更新笔记创建时间', this.$store.state.currentNote.title,formatTime)
+                    this.https.updateNote({
+                        id: this.$store.state.currentNote.id,
+                        createTime: newValue
+                    }).then(({data}) => {
+                        console.log("修改数据库成功", data);
+                    })*/
+                }
+            },
         },
         methods: {
             changeViewScale(viewScale) {
@@ -170,7 +208,8 @@
 
                 /*关闭图片预览时 不显示图片其他信息*/
                 this.$nextTick(() => {
-                    let domImageMask = document.querySelector(".el-image-viewer__close");  // 获取遮罩层关闭按钮dom
+                    // 获取遮罩层关闭按钮dom
+                    let domImageMask = document.querySelector(".el-image-viewer__close");
                     if (!domImageMask) {
                         return;
                     }
@@ -178,7 +217,7 @@
                         this.imagePre = false
                     });
                     /*点击空白处关闭图片显示*/
-                    let domImageMask4 = document.querySelector(".el-image-viewer__mask");  // 获取遮罩层关闭按钮dom
+                    let domImageMask4 = document.querySelector(".el-image-viewer__mask");
                     if (!domImageMask4) {
                         return;
                     }
@@ -186,8 +225,9 @@
                         this.imagePre = false
                     });
 
+
                     /*上一张*/
-                    let domImageMask3 = document.querySelector(".el-image-viewer__prev");  // 获取遮罩层关闭按钮dom
+                    let domImageMask3 = document.querySelector(".el-image-viewer__prev");
                     if (!domImageMask3) {
                         return;
                     }
@@ -215,6 +255,11 @@
                 /*页面显示*/
                 // console.log(imageList)
 
+            },
+            /*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
+            getBt(str) {
+                let char = str.replace(/[^\x00-\xff]/g, '**');
+                return char.length*6 + 40;
             },
             getImgageSize(byteNum) {
                 if (byteNum < 1024 * 1024) {
@@ -257,7 +302,19 @@
                     console.log('sortType is ', sortType)  // sortType 为 -1 时 进行关闭操作
                 }
             },
-
+        },
+        mounted() {
+            /*esc键关闭图片信息显示*/
+            //监听键盘按键事件
+            let self = this;
+            this.$nextTick(function () {
+                document.addEventListener('keyup', function (e) {
+                    //此处填写你的业务逻辑即可
+                    if (e.keyCode == 27) {
+                        self.imagePre = false
+                    }
+                })
+            })
         }
     }
 </script>
@@ -270,7 +327,7 @@
     }
 
     .el-image:hover {
-        transform: scale(1.05);
+        transform: scale(1.02);
     }
 
     /*图片布局样式*/
@@ -278,7 +335,6 @@
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        /*justify-content: flex-start; */
     }
 
     /*大图预览的比例*/
@@ -286,6 +342,7 @@
         max-height: 90% !important;
     }
 
+    /*遮罩层*/
     .el-image-viewer__wrapper {
         z-index: 1000 !important;
     }
@@ -293,18 +350,56 @@
     /*图片的描述信息*/
     .imgInfo {
         display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
         position: absolute;
-        z-index: 5000;
+        z-index: 2001;
         left: 21px;
         top: 6px;
     }
 
-    .imgInfo span {
-        margin-left: 10px;
-        background-color: #ddd;
+    .imgInfo .info {
+        height: 40px;
+        line-height: 40px;
+        background-color: #ffffff;
+        border: 1px solid #D7DADC;
+        border-radius: 5px;
+        text-align: center;
+        margin-left: auto; /*右对齐*/
+    }
+    /*设置时间图标的位置*/
+    .el-input__prefix{
+        left: -3px;
+        height: 0px !important;
+    }
+    .imgInfo .el-input__icon {
+        width: 10px !important;
+    }
+    .el-input__prefix, .el-input__suffix {
+        position: absolute;
+        top: 0;
+        -webkit-transition: all .3s;
+        height: 10px;
+        margin-top: 1px;
+        margin-left: 1px !important;
+    }
+    /*时间框 内容的位置*/
+    .imgInfo .el-input__inner{
+        padding-left: 25px !important;
+        padding-right: 0px !important;
+        width: 182px !important;
+        color: #000000 !important;
+        font-size:16px !important;
     }
 
-    /* 美化列表的滚动条样式*/
+    .el-date-editor.el-input, .el-date-editor.el-input__inner {
+        width: 182px !important;
+    }
+    /*日历框中输入宽度*/
+    .el-input--small .el-input__inner {
+        width: 150px !important;
+    }
+        /* 美化列表的滚动条样式*/
     .page-scroll {
         height: 100%;
         width: 100%;

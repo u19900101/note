@@ -449,7 +449,7 @@
     .mydate .el-input--mini .el-input__inner {
         height: 28px;
         line-height: 28px;
-        width: 150px;
+        width: 150px !important;
         padding-left: 30px;
         padding-right: 0px;
     }
