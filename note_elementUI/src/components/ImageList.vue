@@ -50,7 +50,7 @@
         <!--笔记本名称-->
         <el-row>
             <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
-                <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
+                <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentImageList.length}}条)</span>
             </el-col>
             <el-col :span="8" style="text-align: right;">
                 <div class="sortButton">
@@ -73,9 +73,9 @@
         <!--图片列表-->
         <el-container style="height: 729px;">
             <el-scrollbar class="page-scroll">
-                <div v-for="(note,index) in $store.state.currentNoteList">
+                <div v-for="(image,index) in $store.state.currentImageList">
                     <!--列表区  标题  标签  内容-->
-                    <el-row @click.native="fileClick(note,index)"
+                    <el-row @click.native="fileClick(image,index)"
                             @mousedown.native="$store.state.currentIndex = index"
                             @mouseenter.native="enterIndex = index"
                             :id="index"
@@ -94,10 +94,10 @@
                             <!--根据排序方式来决定显示的时间类型 note.createTime -->
                             <span style="font-size: mini;color: #49a2de">
                                                   {{ $store.state.sortWay.updateTime
-                                                  ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
-                                                  : (note.createTimeAlias ? note.createTimeAlias:note.createTime)
+                                                  ? (image.updateTimeAlias ? image.updateTimeAlias:image.updateTime)
+                                                  : (image.createTimeAlias ? image.createTimeAlias:image.createTime)
                                                   }}</span>
-                            <span style="margin-left: 10px">{{note.images.length}} 张照片</span>
+                            <span style="margin-left: 10px">{{image.images.length}} 张照片</span>
                         </el-row>
                         <!--位置-->
                         <el-row>
@@ -105,24 +105,27 @@
                             <!--百度地图-->
                             <!-- <a :href="'http://api.map.baidu.com/geocoder?location=' + note.lnglat + '&coord_type=gcj02&output=html&src=webapp.baidu.openAPIdemo'"
                                      style="font-size: mini;color:#49a2de"> {{ note.location}}</a>-->
-                            <a :href="'http://maps.google.com/maps?z=6&q=' + note.lnglat"
+                            <a :href="'http://maps.google.com/maps?z=6&q=' + image.lnglat"
                                style="font-size: mini;color:#49a2de">
-                                <i v-if="note.location" class="el-icon-location"></i>
-                                {{ note.location}}
+                                <i v-if="image.location" class="el-icon-location"></i>
+                                {{ image.location}}
                             </a>
                         </el-row>
                         <!--缩略图-->
                         <el-row class="imgItem">
-                            <div v-for="(img,index) in note.images">
-                                <div style="position: relative">
+                            <div v-for="(img,index) in image.images">
+                                <div class="imageIcon">
                                     <!--图片收藏图标-->
-                                    <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1" style="font-size:18px;color:red;position: absolute;left: 85px;top: 5px;z-index: 5000"></i>
-                                    <div v-if="currentImageId == img.id" @click="starClick(img)" >
-                                        <i  v-if="!img.star" class="iconfont icon-like" style="position: absolute;left: 85px;top: 5px;z-index: 5000"></i>
+                                    <!--收藏-->
+                                    <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1"
+                                       style="color: red;"></i>
+                                    <div v-if="currentImageId == img.id" @click="starClick(img)">
+                                        <!--取消收藏-->
+                                        <i v-if="!img.star" class="iconfont icon-like"></i>
                                     </div>
                                     <!-- 500px 为大视图 直接显示原图 会有卡顿 @mouseover="mouseOverImage(index)"-->
                                     <el-image :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
-                                              @click.stop="imageClick(img,note.images,index)"
+                                              @click.stop="imageClick(img,image.images,index)"
                                               :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
                                               fit="cover"
                                               @mouseover="currentImageId = img.id"
@@ -131,7 +134,6 @@
                                 </div>
                             </div>
                         </el-row>
-
                     </el-row>
                 </div>
             </el-scrollbar>
@@ -181,9 +183,7 @@
                 },
                 set: function (newValue) {
                     this.$store.state.currentImage.star = newValue
-                  /*  this.https.updateNote({id: this.$store.state.currentNote.id, star: newValue}).then(({data}) => {
-                        console.log("修改数据库成功", data);
-                    })*/
+
                 }
             },
         },
@@ -196,22 +196,27 @@
                     duration: 1000,  //显示时间, 毫秒。设为 0 则不会自动关闭 默认3000
                     center: true
                 });
-                /*更新收藏笔记的数据*/
-                /*if (this.star) {
-                    this.$store.state.starNotesList.push(this.$store.state.currentNote)
-                    /!* 2.更新所有笔记*!/
-                    this.$store.state.notes.forEach((n) => {
-                        if (n.id == this.$store.state.currentNote.id) n.star = true
+                /*更新收藏图片的数据*/
+                if (img.star) {
+                    if (this.$store.state.starImageList.indexOf(img) == -1) {
+                        this.$store.state.starImageList.push(img)
+                    }
+                    /* 2.更新所有图片 加入收藏*/
+                    this.$store.state.fileList.forEach((n) => {
+                        if (n.id == img.id) n.star = true
                     })
-
                 } else {
-                    this.removeCurrentNoteByTypeName('starNotesList')
-                    /!* 2.更新所有笔记*!/
-                    this.$store.state.notes.forEach((n) => {
-                        if (n.id == this.$store.state.currentNote.id) n.star = false
+                    this.$store.state.starImageList = this.$store.state.starImageList.filter((n) => n.id != img.id)
+                    /* 2.更新所有笔记*/
+                    this.$store.state.fileList.forEach((n) => {
+                        if (n.id == img.id) n.star = false
                     })
-                }*/
+                }
 
+                /*更新数据库*/
+                this.https.updateImage({id: img.id, star: img.star}).then(({data}) => {
+                    console.log("修改数据库成功", data);
+                })
             },
             changeViewScale(viewScale) {
                 switch (viewScale) {
@@ -231,9 +236,13 @@
             },
             /*照片日视图*/
             showImageByTimeType(timeType) {
-                let imageList = this.$store.state.fileList
+                let imageList = []
+                /*将之前按照年月日分组的重新划分*/
+                this.$store.state.currentImageList.forEach((i) => {
+                    imageList.push(...i.images)
+                })
                 let dayImages = this.tool.groupImages(timeType, imageList)
-                this.$store.state.currentNoteList = this.$store.state.sortWay.reverse ? [...dayImages].reverse() : dayImages
+                this.$store.state.currentImageList =  dayImages
             },
             /*封装缩略图的链接*/
             getThumbnails(url, title) {
@@ -365,6 +374,18 @@
 </script>
 
 <style>
+    /*图片的收藏爱心*/
+    .imageIcon {
+        position: relative;
+    }
+
+    .imageIcon i {
+        font-size: 18px;
+        position: absolute;
+        left: 85px;
+        top: 5px;
+        z-index: 1000
+    }
 
     /*鼠标经过图片变大*/
     .el-image {

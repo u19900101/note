@@ -178,6 +178,12 @@
                         // this.$store.state.currentNoteList =  this.$store.state.fileList
                         this.initCurrentNoteListByName("fileList", 8);
                         break; /* 文件 */
+                    case 'starImages':
+                        this.$store.state.fileMode = true
+                        this.$store.state.listAndNoteShow = false
+                        // this.$store.state.currentNoteList =  this.$store.state.fileList
+                        this.initCurrentNoteListByName("fileList", 9);
+                        break; /* 文件 */
                     default:
                         /*区分是 点击的是笔记本 还是 标签*/
                         let firstLevelTitle = this.getfirstLevelTitle(node)
@@ -228,9 +234,10 @@
                     this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
                     this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
                 } else { //其他一级标题  如 wastepaperNotesList
-                    if(noteBookId == 8){
-                        let dayImages = this.$store.state.fileList
-                        this.$store.state.currentNoteList = this.tool.groupImages("day", this.$store.state.sortWay.reverse?[...dayImages].reverse():dayImages)
+                    if(noteBookId == 8 || 9){
+                        let dayImages = noteBookId == 8 ? this.$store.state.fileList :this.$store.state.starImageList
+                        dayImages = this.tool.groupImages("day", this.$store.state.sortWay.reverse?[...dayImages].reverse():dayImages)
+                        this.$store.state.currentImageList = dayImages
                     }else {
                         this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
                         this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
@@ -502,6 +509,11 @@
                         {
                             id: 'images',
                             title: '图片和视频 (' + this.$store.state.fileList.length + ')'
+                        },
+                        /*图片和视频*/
+                        {
+                            id: 'starImages',
+                            title: '我的收藏 (' + this.$store.state.starImageList.length + ')'
                         },
                     ]
                 },

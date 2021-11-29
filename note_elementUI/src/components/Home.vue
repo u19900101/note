@@ -12,7 +12,7 @@
         </div>
 
         <!--数据加载成功后 页面展示-->
-        <el-container v-else id = "home">
+        <el-container v-else id="home">
             <!--导航栏-->
             <el-aside class="widthSyncChild">
                 <noteNav/>
@@ -31,7 +31,7 @@
             </el-container>
             <!--笔记和标签页面展示-->
             <el-main v-else>
-                <imageList v-if = "$store.state.fileMode"></imageList>
+                <imageList v-if="$store.state.fileMode"></imageList>
                 <noteBook_tag v-else></noteBook_tag>
             </el-main>
         </el-container>
@@ -49,7 +49,8 @@
         name: 'home',
         components: {
             borderLine,
-            noteList,imageList,
+            noteList,
+            imageList,
             noteNav,
             note,
             noteBook_tag,
@@ -90,11 +91,9 @@
                         let images = data.data
                         this.$store.state.fileList = data.data; // 进入的笔记本列表数据
                         // this.$store.state.currentNoteBookNoteList = this.$store.state.notes;
-                        //
-                        // this.$store.state.starNotesList = this.$store.state.notes.filter((note) => note.star == true)
 
+                        this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
                     })
-
                 }).then(() => {
                     // 2.获取笔记数据 初始化 notes
                     this.https.getNotes().then(({data}) => {
@@ -171,6 +170,7 @@
         box-sizing: border-box;
         min-width: 0;
     }
+
     /*设置table表格的位置*/
     .el-main {
         padding: 40px 20px 0px 20px !important;

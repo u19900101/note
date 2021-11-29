@@ -82,7 +82,7 @@ function groupImages(groupType, imageData) { // day,month,year
             break
     }
     imageData.forEach((i) => {
-        let key = i.createTime.split(" ")[0].substring(0, timeLen)
+        let key = i.createTime.split(" ")[0].substring(0, timeLen) + "_temp" //放置将2018当做数字处理，影响排序
         if (map[key] == null) {
             map[key] = [i]
         } else {
@@ -106,7 +106,7 @@ function groupImages(groupType, imageData) { // day,month,year
             }
 
         })
-        relDatas.push({createTime: i, location: location, images: map[i]})
+        relDatas.push({createTime: i.replace("_temp",""), location: location, images: map[i]})
     }
     return relDatas
 }

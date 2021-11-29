@@ -2,9 +2,9 @@ package ppppp.evernote.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.drew.imaging.ImageMetadataReader;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,12 +18,15 @@ import ppppp.evernote.util.ResultUtil;
 import ppppp.evernote.util.ftp.sftp;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static ppppp.evernote.util.RequestUtils.sendGetRequest;
+
 /**
  * @author lppppp
  * @create 2021-02-01 10:36
@@ -39,12 +42,22 @@ public class PictureController {
     SortWayService sortWayService;
     /*文件上传*/
 
+
+
     @RequestMapping("/allFiles")
     public String getAllNotes() {
         List<Picture> pictureListList = getSortWayNotes();
         // fillNoteList(noteList);
         return ResultUtil.successWithData(pictureListList);
     }
+
+    // 1.更新图片收藏 2.  3.
+    @PostMapping("/update")
+    public String updateImage(@RequestBody Picture picture) {
+        boolean updateById = pictureService.updateById(picture);
+        return ResultUtil.successWithData(updateById);
+    }
+
     private List<Picture> getSortWayNotes() {
         // 根据sortway中的排序字段进行查询
         Sortway sortway = sortWayService.getById(1);
@@ -116,15 +129,6 @@ public class PictureController {
         Picture imgInfo = getImgInfo(multipartFile.getInputStream(),multipartFile.getOriginalFilename());
         imgInfo.setSize(size);
         return imgInfo;
-    }
-
-    @Test
-    public void T_() throws Exception {
-        File file = new File("C:\\Users\\Administrator\\Desktop\\temp\\img\\wx_20180420_090430.jpg");
-        FileInputStream fileInputStream = new FileInputStream(file);
-        Picture imgInfo = getImgInfo(fileInputStream,"kk.jpg");
-        System.out.println(imgInfo);
-
     }
 
    /* @PostMapping("/uploadFile")

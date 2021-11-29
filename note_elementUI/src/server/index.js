@@ -112,13 +112,15 @@ export function updateSortWay(data) {
 export function getFiles() {
     return vm.get('/api/admin/file/allFiles')
 }
+
+// 更新照片的收藏
+export function updateImage(data) {
+    return vm.post('/api/admin/file/update', data)
+}
 /*export function getWastepaperNotes() {
     return vm.get('/api/admin/note/getWastepaperNotes')
 }
-// 更新笔记的标题和内容
-export function updateNote(data) {
-    return vm.post('/api/admin/note/update', data)
-}
+
 
 export function deleteNote(data) {
     return vm.post('/api/admin/note/deleteNote', data)
@@ -152,6 +154,7 @@ export default {
             getTagsTree,
             /*file*/
             getFiles,
+            updateImage,
         }
     }
 }
