@@ -2,6 +2,7 @@ package ppppp.evernote.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.drew.imaging.ImageMetadataReader;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,9 +18,7 @@ import ppppp.evernote.util.ResultUtil;
 import ppppp.evernote.util.ftp.sftp;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -119,6 +118,14 @@ public class PictureController {
         return imgInfo;
     }
 
+    @Test
+    public void T_() throws Exception {
+        File file = new File("C:\\Users\\Administrator\\Desktop\\temp\\img\\wx_20180420_090430.jpg");
+        FileInputStream fileInputStream = new FileInputStream(file);
+        Picture imgInfo = getImgInfo(fileInputStream,"kk.jpg");
+        System.out.println(imgInfo);
+
+    }
 
    /* @PostMapping("/uploadFile")
     public Map<String, Object> uploadFile(HttpServletRequest request) {
@@ -191,10 +198,18 @@ public class PictureController {
                             break;
                         //    获取照片的尺寸 便于照片去重判断
                         case "Image Height":
-                            pic.setWidthH(t.getDescription().split(" ")[0]);
+                            if(pic.getWidthH() == null){
+                                pic.setWidthH(t.getDescription().split(" ")[0]);
+                            }else {
+                                pic.setWidthH(pic.getWidthH() + "x" + t.getDescription().split(" ")[0]);
+                            }
                             break;
                         case "Image Width":
-                            pic.setWidthH(t.getDescription().split(" ")[0] + "x" + pic.getWidthH());
+                            if(pic.getWidthH() == null){
+                                pic.setWidthH(t.getDescription().split(" ")[0]);
+                            }else {
+                                pic.setWidthH(t.getDescription().split(" ")[0] + "x" + pic.getWidthH());
+                            }
                             break;
                         default:
                             break;

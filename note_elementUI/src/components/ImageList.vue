@@ -3,9 +3,11 @@
     <div>
         <!--当前大图详细信息的显示-->
         <div v-if="imagePre" class="imgInfo">
-            <div class="info" :style="{width: getBt($store.state.currentImage.title) + 'px'}">{{$store.state.currentImage.title}}</div>
+            <div class="info" :style="{width: getBt($store.state.currentImage.title) + 'px'}">
+                {{$store.state.currentImage.title}}
+            </div>
             <!--拍摄日期 -->
-            <div class="imgInfo">
+            <div class="imgTime">
                 <el-date-picker
                         style="color: #1d9351"
                         v-model="createTime"
@@ -15,17 +17,18 @@
                         :default-time="createTime.split(' ')[0]">
                 </el-date-picker>
             </div>
-
+            <!--大小、位置、尺寸-->
             <span class="info" :style="{width: getBt($store.state.currentImage.size.toString()) + 'px'}">{{getImgageSize($store.state.currentImage.size)}}</span>
-            <span class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}" v-if="$store.state.currentImage.location">
-                <i  class="el-icon-location"></i>
+            <span class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
+                  v-if="$store.state.currentImage.location">
+                <i class="el-icon-location"></i>
                   <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
                      style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
             </span>
             <span class="info" :style="{width: getBt($store.state.currentImage.widthH) + 'px'}">{{$store.state.currentImage.widthH}}</span>
         </div>
 
-
+        <!--年月日 大中小 视图-->
         <div>
             <el-button @click="showImageByTimeType('year')">年</el-button>
             <el-button @click="showImageByTimeType('month')">月</el-button>
@@ -44,9 +47,8 @@
             </el-tooltip>
         </div>
 
-
+        <!--笔记本名称-->
         <el-row>
-            <!--笔记本名称-->
             <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
                 <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
             </el-col>
@@ -61,13 +63,14 @@
                 </div>
             </el-col>
         </el-row>
-        <!--笔记排序 级联面板-->
+
+        <!--图片排序 级联面板-->
         <cascader :isSortShow="isSortShow"
                   @sortClick="sortClick"
                   @mouseleave.native="sortPanelMouseLeave = true"
                   @mouseenter.native="sortPanelMouseLeave = false">
         </cascader>
-        <!--文件列表-->
+        <!--图片列表-->
         <el-container style="height: 729px;">
             <el-scrollbar class="page-scroll">
                 <div v-for="(note,index) in $store.state.currentNoteList">
@@ -76,11 +79,8 @@
                             @mousedown.native="$store.state.currentIndex = index"
                             @mouseenter.native="enterIndex = index"
                             :id="index"
-                            :style="{  backgroundColor:getBgColor(index),
-                                                   border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'
-                                          }"
+                            :style="{  backgroundColor:getBgColor(index),border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
                             style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;">
-
                         <!--标签-->
                         <el-row>
                             <!-- 给多行省略符 元素动态设置背景色-->
@@ -114,14 +114,20 @@
                         <!--缩略图-->
                         <el-row class="imgItem">
                             <div v-for="(img,index) in note.images">
-                                <!-- 500px 为大视图 直接显示原图 会有卡顿-->
-                                <el-image :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
-                                          @click.stop="imageClick(img,note.images,index)"
-                                          :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
-                                          fit="cover"
-                                          :preview-src-list="$store.state.currentImageUrlList"
-                                          :alt="img.title"
-                                />
+                                <div style="position: relative">
+                                    <!--图片收藏图标-->
+                                    <div v-if="currentImageIndex == index" @click="starClick(img)" :class="img.star ? 'el-icon-star-on': 'el-icon-star-off' " style="position: absolute;left: 85px;top: 5px;z-index: 5000"></div>
+                                    <!-- 500px 为大视图 直接显示原图 会有卡顿 @mouseover="mouseOverImage(index)"-->
+                                    <el-image :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
+                                              @click.stop="imageClick(img,note.images,index)"
+                                              :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
+                                              fit="cover"
+                                              @mouseover="currentImageIndex = index"
+                                              :preview-src-list="$store.state.currentImageUrlList"
+                                              :alt="img.title"/>
+                                </div>
+
+
                             </div>
                         </el-row>
 
@@ -134,6 +140,7 @@
 
 <script>
     import cascader from "./Cascader";
+
     let dayjs = require('dayjs');
     export default {
         name: "ImageList",
@@ -146,10 +153,11 @@
                 isSortShow: false,
                 iconMouseLeave: false,  // 鼠标是否离开了图标区域
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
-                imageScale: "250px", //视图大小  默认为中等视图
+                imageScale: "100px", //视图大小  默认为小等视图
+                currentImageIndex: 0, //当前图片下标
             }
         },
-        computed:{
+        computed: {
             createTime: {
                 get: function () {
                     return this.$store.state.currentImage.createTime
@@ -157,17 +165,54 @@
                 set: function (newValue) {
                     let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
                     this.$store.state.currentImage.createTime = formatTime
-                   /* console.log('更新笔记创建时间', this.$store.state.currentNote.title,formatTime)
-                    this.https.updateNote({
-                        id: this.$store.state.currentNote.id,
-                        createTime: newValue
-                    }).then(({data}) => {
+                    /* console.log('更新笔记创建时间', this.$store.state.currentNote.title,formatTime)
+                     this.https.updateNote({
+                         id: this.$store.state.currentNote.id,
+                         createTime: newValue
+                     }).then(({data}) => {
+                         console.log("修改数据库成功", data);
+                     })*/
+                }
+            },
+            star: {
+                get: function () {
+                    return this.$store.state.currentImage.star
+                },
+                set: function (newValue) {
+                    this.$store.state.currentImage.star = newValue
+                  /*  this.https.updateNote({id: this.$store.state.currentNote.id, star: newValue}).then(({data}) => {
                         console.log("修改数据库成功", data);
                     })*/
                 }
             },
         },
         methods: {
+            starClick(img) {
+                img.star = !img.star
+                console.log(img)
+                this.$message({
+                    message: img.star ? '已收藏' : '取消收藏',
+                    type: img.star ? 'success' : 'info',
+                    duration: 1000,  //显示时间, 毫秒。设为 0 则不会自动关闭 默认3000
+                    center: true
+                });
+                /*更新收藏笔记的数据*/
+                /*if (this.star) {
+                    this.$store.state.starNotesList.push(this.$store.state.currentNote)
+                    /!* 2.更新所有笔记*!/
+                    this.$store.state.notes.forEach((n) => {
+                        if (n.id == this.$store.state.currentNote.id) n.star = true
+                    })
+
+                } else {
+                    this.removeCurrentNoteByTypeName('starNotesList')
+                    /!* 2.更新所有笔记*!/
+                    this.$store.state.notes.forEach((n) => {
+                        if (n.id == this.$store.state.currentNote.id) n.star = false
+                    })
+                }*/
+
+            },
             changeViewScale(viewScale) {
                 switch (viewScale) {
                     case "big":
@@ -259,7 +304,7 @@
             /*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
             getBt(str) {
                 let char = str.replace(/[^\x00-\xff]/g, '**');
-                return char.length*6 + 40;
+                return char.length * 6 + 40;
             },
             getImgageSize(byteNum) {
                 if (byteNum < 1024 * 1024) {
@@ -367,14 +412,17 @@
         text-align: center;
         margin-left: auto; /*右对齐*/
     }
+
     /*设置时间图标的位置*/
-    .el-input__prefix{
+    .el-input__prefix {
         left: -3px;
         height: 0px !important;
     }
+
     .imgInfo .el-input__icon {
         width: 10px !important;
     }
+
     .el-input__prefix, .el-input__suffix {
         position: absolute;
         top: 0;
@@ -383,23 +431,26 @@
         margin-top: 1px;
         margin-left: 1px !important;
     }
+
     /*时间框 内容的位置*/
-    .imgInfo .el-input__inner{
+    .imgTime .el-input__inner {
         padding-left: 25px !important;
         padding-right: 0px !important;
         width: 182px !important;
         color: #000000 !important;
-        font-size:16px !important;
+        font-size: 16px !important;
     }
 
     .el-date-editor.el-input, .el-date-editor.el-input__inner {
         width: 182px !important;
     }
+
     /*日历框中输入宽度*/
     .el-input--small .el-input__inner {
         width: 150px !important;
     }
-        /* 美化列表的滚动条样式*/
+
+    /* 美化列表的滚动条样式*/
     .page-scroll {
         height: 100%;
         width: 100%;
