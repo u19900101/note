@@ -239,6 +239,8 @@
                         this.$store.state.currentImagesCount = dayImages.length
                         dayImages = this.tool.groupImages("day", this.$store.state.sortWay.reverse?[...dayImages].reverse():dayImages)
                         this.$store.state.currentImageList = dayImages
+                        /*初始化预览 给占个位 不然第一次点击时不出现大图*/
+                        this.$store.state.currentImageUrlList = [1,2,3]
                     }else {
                         this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
                         this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]

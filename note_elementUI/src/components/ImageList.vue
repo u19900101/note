@@ -68,7 +68,7 @@
         </el-header>
 
         <!--图片列表 -->
-        <el-main>
+        <el-main style="padding: 0 0  0 10px">
             <el-scrollbar class="page-scroll">
                 <div v-for="(image,index) in $store.state.currentImageList">
                     <!--列表区  标题  标签  内容-->
@@ -122,7 +122,7 @@
                                     </div>
                                     <!-- 500px 为大视图 直接显示原图 会有卡顿 @mouseover="mouseOverImage(index)"-->
                                     <el-image :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
-                                              @click.stop="imageClick(img,image.images,index)"
+                                              @click="imageClick(img,image.images,index)"
                                               :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
                                               fit="cover"
                                               @mouseover="currentImageId = img.id"
@@ -276,7 +276,7 @@
                 return kk
             },
             imageClick(img, imageList, index) {
-                // console.log('imageClick')
+
                 this.imageInfo = true
                 this.$store.state.currentImageUrl = img.url
                 this.$store.state.currentImage = img
@@ -286,6 +286,8 @@
                 })
                 /*移动数组*/
                 this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index), ...currentImageUrlList.slice(0, index)]
+                // let k = this.$store.state.currentImageUrlList
+                // console.log(this.$store.state.currentImageUrlList.length)
                 /*关闭图片预览时 不显示图片其他信息*/
                 this.$nextTick(() => {
                     // 获取遮罩层关闭按钮dom
@@ -304,8 +306,6 @@
                     domImageMask4.addEventListener("click", () => {
                         this.imageInfo = false
                     });
-
-
                     /*上一张*/
                     let domImageMask3 = document.querySelector(".el-image-viewer__prev");
                     if (!domImageMask3) {
@@ -327,8 +327,6 @@
                         if (index == imageList.length) index = 0
                         this.$store.state.currentImage = imageList.slice(index, index + 1)[0]
                     });
-
-
                 })
             },
             fileClick(imageList, index) {
@@ -412,9 +410,6 @@
         color: #1a1a17;
     }
 
-    /*.el-main {
-        padding: 0 0 20px 0 !important;
-    }*/
 
     /*图片的收藏爱心*/
     .imageIcon {
