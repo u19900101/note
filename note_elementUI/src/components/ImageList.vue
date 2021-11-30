@@ -16,18 +16,22 @@
                     </el-date-picker>
                 </div>
                 <!--图片名称-->
-                <div class="info" :style="{width: getBt($store.state.currentImage.title) + 'px'}">
-                    {{$store.state.currentImage.title}}
-                </div>
+                <el-input clearable v-model="imageName" style="width: 182px" placeholder="请输入名称">
+                    <template slot="append">.{{$store.state.currentImage.title.split(".")[1]}}</template>
+                </el-input>
                 <!--大小、位置、尺寸-->
-                <span class="info" :style="{width: getBt($store.state.currentImage.size.toString()) + 'px'}">{{getImgageSize($store.state.currentImage.size)}}</span>
-                <span class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
-                      v-if="$store.state.currentImage.location">
-                <i class="el-icon-location"></i>
-                  <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
-                     style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
-            </span>
-                <span class="info" :style="{width: getBt($store.state.currentImage.widthH) + 'px'}">{{$store.state.currentImage.widthH}}</span>
+                <div class="info" :style="{width: getBt($store.state.currentImage.size.toString()) + 'px'}">
+                    {{getImgageSize($store.state.currentImage.size)}}
+                </div>
+                <div class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
+                     v-if="$store.state.currentImage.location">
+                    <i class="el-icon-location"></i>
+                    <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
+                       style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
+                </div>
+                <div class="info" :style="{width: getBt($store.state.currentImage.widthH) + 'px'}">
+                    {{$store.state.currentImage.widthH}}
+                </div>
             </div>
 
             <!--年月日 大中小 视图-->
@@ -59,12 +63,12 @@
             <!--笔记本名称-->
             <el-row style="text-align: center">
                 {{$store.state.currentNoteBook.title}}
-                    <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentImagesCount}}条)</span>
+                <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentImagesCount}}条)</span>
             </el-row>
         </el-header>
 
-        <!--图片列表-->
-        <el-main class = "imageMain">
+        <!--图片列表 -->
+        <el-main>
             <el-scrollbar class="page-scroll">
                 <div v-for="(image,index) in $store.state.currentImageList">
                     <!--列表区  标题  标签  内容-->
@@ -151,9 +155,22 @@
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 imageScale: "100px", //视图大小  默认为小等视图
                 currentImageId: "", //当前图片id
+                imageCreateTimeLastTime:0, //修改照片名称的定时器
+                imageNameLastTime:0, //修改照片名称的定时器
             }
         },
         computed: {
+            imageName: {
+                get: function () {
+                    return this.$store.state.currentImage.title.split('.')[0]
+                },
+                set: function (newImageName) {
+                    this.$store.state.currentImage.title = newImageName + '.' + this.$store.state.currentImage.title.split('.')[1]
+                    if(newImageName.length > 0){
+                        this.setTimeoutUpdate(this.updateImageName,this.imageNameLastTime)
+                    }
+                }
+            },
             createTime: {
                 get: function () {
                     return this.$store.state.currentImage.createTime
@@ -161,13 +178,7 @@
                 set: function (newValue) {
                     let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
                     this.$store.state.currentImage.createTime = formatTime
-                    /* console.log('更新笔记创建时间', this.$store.state.currentNote.title,formatTime)
-                     this.https.updateNote({
-                         id: this.$store.state.currentNote.id,
-                         createTime: newValue
-                     }).then(({data}) => {
-                         console.log("修改数据库成功", data);
-                     })*/
+                    this.setTimeoutUpdate(this.updateImageCreateTime,this.imageCreateTimeLastTime,newValue)
                 }
             },
             star: {
@@ -181,6 +192,28 @@
             },
         },
         methods: {
+            setTimeoutUpdate(funcName,lastTimeType,...param){
+                if (lastTimeType == 0) {
+                    funcName(...param)
+                } else {
+                    clearTimeout(lastTimeType)
+                    funcName(...param)
+                }
+            },
+            updateImageName(){
+                this.imageNameLastTime = setTimeout(() => {
+                    this.https.updateImage({id: this.$store.state.currentImage.id, title: this.$store.state.currentImage.title}).then(({data}) => {
+                        console.log("修改图片名称成功", data);
+                    })
+                }, 2000)
+            },
+            updateImageCreateTime(createTime){
+                this.imageCreateTimeLastTime = setTimeout(() => {
+                    this.https.updateImage({id: this.$store.state.currentImage.id, createTime: createTime}).then(({data}) => {
+                        console.log("修改图片创建时间成功", data);
+                    })
+                }, 5000)
+            },
             starClick(img) {
                 img.star = !img.star
                 this.$message({
@@ -243,7 +276,7 @@
                 return kk
             },
             imageClick(img, imageList, index) {
-                console.log('imageClick')
+                // console.log('imageClick')
                 this.imageInfo = true
                 this.$store.state.currentImageUrl = img.url
                 this.$store.state.currentImage = img
@@ -253,7 +286,6 @@
                 })
                 /*移动数组*/
                 this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index), ...currentImageUrlList.slice(0, index)]
-                console.log(this.$store.state.currentImageUrlList.length)
                 /*关闭图片预览时 不显示图片其他信息*/
                 this.$nextTick(() => {
                     // 获取遮罩层关闭按钮dom
@@ -363,9 +395,27 @@
 </script>
 
 <style>
-    .imageMain{
-        padding: 0 0 20px 0 !important;
+    /*照片名称 input 后缀*/
+    .el-input-group__append, .el-input-group__prepend {
+        padding: 0 3px !important;
     }
+
+    .el-input--suffix .el-input__inner {
+        padding-right: 0px !important;
+    }
+
+    /*照片名称*/
+    .imgInfo .el-input__inner {
+        padding: 0 !important;
+        text-align: center;
+        font-size: 16px;
+        color: #1a1a17;
+    }
+
+    /*.el-main {
+        padding: 0 0 20px 0 !important;
+    }*/
+
     /*图片的收藏爱心*/
     .imageIcon {
         position: relative;
@@ -443,12 +493,12 @@
         -webkit-transition: all .3s;
         height: 10px;
         margin-top: 1px;
-        margin-left: 1px !important;
+        margin-left: 0px !important;
     }
 
     /*时间框 内容的位置*/
     .imgTime .el-input__inner {
-        padding-left: 25px !important;
+        padding-left: 8px !important;
         padding-right: 0px !important;
         width: 182px !important;
         color: #000000 !important;

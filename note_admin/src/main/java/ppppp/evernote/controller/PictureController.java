@@ -54,6 +54,7 @@ public class PictureController {
     // 1.更新图片收藏 2.  3.
     @PostMapping("/update")
     public String updateImage(@RequestBody Picture picture) {
+        picture.setUpdateTime(new Date());
         boolean updateById = pictureService.updateById(picture);
         return ResultUtil.successWithData(updateById);
     }

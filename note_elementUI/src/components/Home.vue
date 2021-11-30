@@ -30,7 +30,7 @@
                 </div>
             </el-container>
             <!--笔记和标签页面展示-->
-            <el-main class="imageMain" v-else>
+            <el-main style="padding: 0 0 20px 0" v-else>
                 <imageList v-if="$store.state.fileMode"></imageList>
                 <noteBook_tag v-else></noteBook_tag>
             </el-main>
@@ -173,7 +173,7 @@
 
     /*设置table表格的位置*/
     .el-main {
-        padding: 40px 20px 0px 20px !important;
+        /*padding: 40px 20px 0px 20px !important;*/
     }
 
     /*nav 的背景色*/
