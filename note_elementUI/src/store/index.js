@@ -62,6 +62,7 @@ const state = {
     fileMode: false,  //文件模式视图控制
     fileList: [],
     currentImageList: [],
+    currentImagesCount: 0,  //当前图片类的数量
     currentImage: {},//当前图片
     currentImageUrl: "",//当前图片的url
     currentImageUrlList: [],//当前图片的urlList

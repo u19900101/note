@@ -30,7 +30,7 @@
                 </div>
             </el-container>
             <!--笔记和标签页面展示-->
-            <el-main v-else>
+            <el-main class="imageMain" v-else>
                 <imageList v-if="$store.state.fileMode"></imageList>
                 <noteBook_tag v-else></noteBook_tag>
             </el-main>

@@ -17,7 +17,6 @@
             vm.editortheme = this.$store.state.sortWay.editortheme
             vm.contentTheme = this.$store.state.sortWay.contenttheme
             this.contentEditor = new Vditor("vditor", {
-                height: 670,
                 toolbar: [
                     'emoji', 'br', 'bold', '|', 'line','code-theme' ,
                     //自定义按钮

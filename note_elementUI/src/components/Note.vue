@@ -3,17 +3,17 @@
         <!--标题 & 工具栏-->
         <el-header v-if="!$store.state.fileMode">
             <!--标题-->
-           <!-- <el-row>
-                <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
-                &lt;!&ndash; style="width: 560px" &ndash;&gt;
-                <el-input
-                        v-else
-                        :disabled="$store.state.currentNote.wastepaper"
-                        size="mini"
-                        placeholder="请输入笔记标题"
-                        v-model="title">
-                </el-input>
-            </el-row>-->
+            <!-- <el-row>
+                 <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
+                 &lt;!&ndash; style="width: 560px" &ndash;&gt;
+                 <el-input
+                         v-else
+                         :disabled="$store.state.currentNote.wastepaper"
+                         size="mini"
+                         placeholder="请输入笔记标题"
+                         v-model="title">
+                 </el-input>
+             </el-row>-->
             <!--笔记本 标签 收藏 删除  日期 位置-->
             <el-row class="toolLeft"> <!--toolLeft 让笔记图标在div中居中-->
                 <!--笔记本和图标放一起-->
@@ -92,21 +92,20 @@
             </el-row>
         </el-header>
 
-        <el-main >
-            <vmd v-if="!$store.state.fileMode"></vmd>
-
-            <div v-else>
-                <!--上传图标-->
-                <el-upload
-                        action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
-                        list-type="picture-card"
-                        multiple
-                >
-                    <i slot="default" class="el-icon-plus"></i>
-                    <div slot="file" slot-scope="{file}">
-                        <img class="el-upload-list__item-thumbnail"
-                             :src="file.url" alt="">
-                        <span class="el-upload-list__item-actions">
+        <el-main>
+            <el-scrollbar class="page-scroll">
+                <vmd v-if="!$store.state.fileMode"></vmd>
+                <div v-else>
+                    <!--上传图标-->
+                    <el-upload
+                            action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
+                            list-type="picture-card"
+                            multiple>
+                        <i slot="default" class="el-icon-plus"></i>
+                        <div slot="file" slot-scope="{file}">
+                            <img class="el-upload-list__item-thumbnail"
+                                 :src="file.url" alt="">
+                            <span class="el-upload-list__item-actions">
                          <span class="el-upload-list__item-preview"
                                @click="handlePictureCardPreview(file)">
                              <i class="el-icon-zoom-in"></i>
@@ -117,30 +116,31 @@
                            <i class="el-icon-delete"></i>
                          </span>
                        </span>
-                    </div>
-                </el-upload>
-                <el-dialog :visible.sync="dialogVisible">
-                    <img width="100%" :src="dialogImageUrl" alt="">
-                </el-dialog>
+                        </div>
+                    </el-upload>
+                    <el-dialog :visible.sync="dialogVisible">
+                        <img width="100%" :src="dialogImageUrl" alt="">
+                    </el-dialog>
 
-                <!--内容--> <!--style="width: 600px;"-->
-                <!--  <el-main >
-                      <div @drop="handleTargetDrop"
-                           @dragover="handleTargetDragOver"
-                           style="height: 100%">
-                          <div v-if="!$store.state.isContentEditMode" v-html="content" @click="contentClick"
-                               style="height: 100%"></div>
-                          <el-input v-else
-                                    type="textarea"
-                                    maxlength="1000000"
-                                    show-word-limit
-                                    v-model='content'
-                                    :disabled="$store.state.currentNote.wastepaper"
-                          >
-                          </el-input>
-                      </div>
-                  </el-main>-->
-            </div>
+                    <!--内容--> <!--style="width: 600px;"-->
+                    <!--  <el-main >
+                          <div @drop="handleTargetDrop"
+                               @dragover="handleTargetDragOver"
+                               style="height: 100%">
+                              <div v-if="!$store.state.isContentEditMode" v-html="content" @click="contentClick"
+                                   style="height: 100%"></div>
+                              <el-input v-else
+                                        type="textarea"
+                                        maxlength="1000000"
+                                        show-word-limit
+                                        v-model='content'
+                                        :disabled="$store.state.currentNote.wastepaper"
+                              >
+                              </el-input>
+                          </div>
+                      </el-main>-->
+                </div>
+            </el-scrollbar>
         </el-main>
     </el-container>
 </template>
@@ -156,8 +156,8 @@
             noteTag,
             vmd
         },
-        data(){
-            return{
+        data() {
+            return {
                 dialogImageUrl: '',
                 dialogVisible: false,
             }
@@ -238,7 +238,7 @@
                 set: function (newValue) {
                     let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
                     this.$store.state.currentNote.createTime = formatTime
-                    console.log('更新笔记创建时间', this.$store.state.currentNote.title,formatTime)
+                    console.log('更新笔记创建时间', this.$store.state.currentNote.title, formatTime)
                     this.https.updateNote({
                         id: this.$store.state.currentNote.id,
                         createTime: newValue
@@ -469,13 +469,6 @@
         /*width: 600px; !*适配手机预览*!*/
         width: 100%;
     }
-
-
-    .el-main {
-        /*17*/
-        padding: 80px 20px 0px 20px !important;
-    }
-
     /*这只内容区域高度占满*/
     .el-textarea__inner,
     .el-textarea {

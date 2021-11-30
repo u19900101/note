@@ -1,77 +1,70 @@
 <template>
     <!--文件-->
-    <div>
-        <!--当前大图详细信息的显示-->
-        <div v-if="imagePre" class="imgInfo">
-            <div class="info" :style="{width: getBt($store.state.currentImage.title) + 'px'}">
-                {{$store.state.currentImage.title}}
-            </div>
-            <!--拍摄日期 -->
-            <div class="imgTime">
-                <el-date-picker
-                        style="color: #1d9351"
-                        v-model="createTime"
-                        editable
-                        type="datetime"
-                        placeholder="选择日期时间"
-                        :default-time="createTime.split(' ')[0]">
-                </el-date-picker>
-            </div>
-            <!--大小、位置、尺寸-->
-            <span class="info" :style="{width: getBt($store.state.currentImage.size.toString()) + 'px'}">{{getImgageSize($store.state.currentImage.size)}}</span>
-            <span class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
-                  v-if="$store.state.currentImage.location">
+    <el-container>
+        <el-header style="margin: 10px 0px">
+            <!--当前大图详细信息的显示-->
+            <div v-if="imageInfo" class="imgInfo">
+                <!--拍摄日期 -->
+                <div class="imgTime">
+                    <el-date-picker
+                            style="color: #1d9351"
+                            v-model="createTime"
+                            editable
+                            type="datetime"
+                            placeholder="选择日期时间"
+                            :default-time="createTime.split(' ')[0]">
+                    </el-date-picker>
+                </div>
+                <!--图片名称-->
+                <div class="info" :style="{width: getBt($store.state.currentImage.title) + 'px'}">
+                    {{$store.state.currentImage.title}}
+                </div>
+                <!--大小、位置、尺寸-->
+                <span class="info" :style="{width: getBt($store.state.currentImage.size.toString()) + 'px'}">{{getImgageSize($store.state.currentImage.size)}}</span>
+                <span class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
+                      v-if="$store.state.currentImage.location">
                 <i class="el-icon-location"></i>
                   <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
                      style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
             </span>
-            <span class="info" :style="{width: getBt($store.state.currentImage.widthH) + 'px'}">{{$store.state.currentImage.widthH}}</span>
-        </div>
+                <span class="info" :style="{width: getBt($store.state.currentImage.widthH) + 'px'}">{{$store.state.currentImage.widthH}}</span>
+            </div>
 
-        <!--年月日 大中小 视图-->
-        <div>
-            <el-button @click="showImageByTimeType('year')">年</el-button>
-            <el-button @click="showImageByTimeType('month')">月</el-button>
-            <el-button @click="showImageByTimeType('day')">日</el-button>
-            <el-tooltip class="item" style="float: right" content="小视图" placement="bottom">
-                <i @click="changeViewScale('small')" class="el-icon-s-grid"
-                   :style="{borderBottom: imageScale == '100px'?'4px solid blue':''}" style="font-size: 30px;"></i>
-            </el-tooltip>
-            <el-tooltip class="item" style="float: right" content="中视图" placement="bottom">
-                <i @click="changeViewScale('medium')" class="el-icon-menu"
-                   :style="{borderBottom: imageScale == '250px'?'4px solid blue':''}" style="font-size: 30px"></i>
-            </el-tooltip>
-            <el-tooltip class="item" style="float: right" content="大视图" placement="bottom">
-                <i @click="changeViewScale('big')" class="el-icon-s-platform"
-                   :style="{borderBottom: imageScale == '500px'?'4px solid blue':''}" style="font-size: 30px"></i>
-            </el-tooltip>
-        </div>
+            <!--年月日 大中小 视图-->
+            <div>
+                <el-button @click="showImageByTimeType('year')">年</el-button>
+                <el-button @click="showImageByTimeType('month')">月</el-button>
+                <el-button @click="showImageByTimeType('day')">日</el-button>
+                <!--小视图-->
+                <el-tooltip class="item" style="float: right" content="小视图" placement="bottom">
+                    <i @click="changeViewScale('small')" class="el-icon-s-grid"
+                       :style="{borderBottom: imageScale == '100px'?'4px solid blue':''}" style="font-size: 30px;"></i>
+                </el-tooltip>
+                <el-tooltip class="item" style="float: right" content="中视图" placement="bottom">
+                    <i @click="changeViewScale('medium')" class="el-icon-menu"
+                       :style="{borderBottom: imageScale == '250px'?'4px solid blue':''}" style="font-size: 30px"></i>
+                </el-tooltip>
+                <el-tooltip class="item" style="float: right" content="大视图" placement="bottom">
+                    <i @click="changeViewScale('big')" class="el-icon-s-platform"
+                       :style="{borderBottom: imageScale == '500px'?'4px solid blue':''}" style="font-size: 30px"></i>
+                </el-tooltip>
+                <!--图片排序-->
+                <el-tooltip class="item" style="float: right" content="逆序" placement="bottom">
+                    <i @click="sortClick" class="el-icon-sort"
+                       :style="{borderBottom: !$store.state.sortWay.reverse?'4px solid blue':''}"
+                       style="font-size: 30px;"></i>
+                </el-tooltip>
+            </div>
 
-        <!--笔记本名称-->
-        <el-row>
-            <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
-                <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentImageList.length}}条)</span>
-            </el-col>
-            <el-col :span="8" style="text-align: right;">
-                <div class="sortButton">
-                    <el-button round
-                               @click="sortClick(-1)"
-                               @mouseleave.native="iconMouseLeave = true"
-                               @mouseenter.native="iconMouseLeave = false">
-                        <i class="el-icon-sort"></i>
-                    </el-button>
-                </div>
-            </el-col>
-        </el-row>
+            <!--笔记本名称-->
+            <el-row style="text-align: center">
+                {{$store.state.currentNoteBook.title}}
+                    <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentImagesCount}}条)</span>
+            </el-row>
+        </el-header>
 
-        <!--图片排序 级联面板-->
-        <cascader :isSortShow="isSortShow"
-                  @sortClick="sortClick"
-                  @mouseleave.native="sortPanelMouseLeave = true"
-                  @mouseenter.native="sortPanelMouseLeave = false">
-        </cascader>
         <!--图片列表-->
-        <el-container style="height: 729px;">
+        <el-main class = "imageMain">
             <el-scrollbar class="page-scroll">
                 <div v-for="(image,index) in $store.state.currentImageList">
                     <!--列表区  标题  标签  内容-->
@@ -137,8 +130,8 @@
                     </el-row>
                 </div>
             </el-scrollbar>
-        </el-container>
-    </div>
+        </el-main>
+    </el-container>
 </template>
 
 <script>
@@ -152,7 +145,7 @@
         },
         data() {
             return {
-                imagePre: false, //图片预览
+                imageInfo: false, //图片预览
                 isSortShow: false,
                 iconMouseLeave: false,  // 鼠标是否离开了图标区域
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
@@ -242,7 +235,7 @@
                     imageList.push(...i.images)
                 })
                 let dayImages = this.tool.groupImages(timeType, imageList)
-                this.$store.state.currentImageList =  dayImages
+                this.$store.state.currentImageList = dayImages
             },
             /*封装缩略图的链接*/
             getThumbnails(url, title) {
@@ -250,7 +243,8 @@
                 return kk
             },
             imageClick(img, imageList, index) {
-                this.imagePre = true
+                console.log('imageClick')
+                this.imageInfo = true
                 this.$store.state.currentImageUrl = img.url
                 this.$store.state.currentImage = img
                 let currentImageUrlList = []
@@ -259,7 +253,7 @@
                 })
                 /*移动数组*/
                 this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index), ...currentImageUrlList.slice(0, index)]
-
+                console.log(this.$store.state.currentImageUrlList.length)
                 /*关闭图片预览时 不显示图片其他信息*/
                 this.$nextTick(() => {
                     // 获取遮罩层关闭按钮dom
@@ -268,7 +262,7 @@
                         return;
                     }
                     domImageMask.addEventListener("click", () => {
-                        this.imagePre = false
+                        this.imageInfo = false
                     });
                     /*点击空白处关闭图片显示*/
                     let domImageMask4 = document.querySelector(".el-image-viewer__mask");
@@ -276,7 +270,7 @@
                         return;
                     }
                     domImageMask4.addEventListener("click", () => {
-                        this.imagePre = false
+                        this.imageInfo = false
                     });
 
 
@@ -342,19 +336,14 @@
                     // console.log('进入')
                 }
             },
-
-            sortClick(sortType) {
-                // 排序面板出现就开始监控鼠标按下时间
-                if (sortType == -1) {
-                    this.isSortShow = !this.isSortShow
-                    if (this.isSortShow) {
-                        document.addEventListener('mousedown', this.mouseDown)
-                    } else {
-                        document.removeEventListener('mousedown', this.mouseDown)
-                    }
-                } else {
-                    console.log('sortType is ', sortType)  // sortType 为 -1 时 进行关闭操作
-                }
+            /*图片逆序*/
+            sortClick() {
+                this.$store.state.sortWay.reverse = !this.$store.state.sortWay.reverse
+                this.$store.state.currentImageList = this.$store.state.currentImageList.reverse()
+                // 修改全局变量 联动noteList变化
+                this.https.updateSortWay(this.$store.state.sortWay).then(({data}) => {
+                    console.log(data)
+                })
             },
         },
         mounted() {
@@ -365,7 +354,7 @@
                 document.addEventListener('keyup', function (e) {
                     //此处填写你的业务逻辑即可
                     if (e.keyCode == 27) {
-                        self.imagePre = false
+                        self.imageInfo = false
                     }
                 })
             })
@@ -374,6 +363,9 @@
 </script>
 
 <style>
+    .imageMain{
+        padding: 0 0 20px 0 !important;
+    }
     /*图片的收藏爱心*/
     .imageIcon {
         position: relative;
@@ -422,7 +414,7 @@
         position: absolute;
         z-index: 2001;
         left: 21px;
-        top: 6px;
+        top: 40px;
     }
 
     .imgInfo .info {
@@ -432,7 +424,7 @@
         border: 1px solid #D7DADC;
         border-radius: 5px;
         text-align: center;
-        margin-left: auto; /*右对齐*/
+        /* margin-left: auto;*/ /*右对齐*/
     }
 
     /*设置时间图标的位置*/

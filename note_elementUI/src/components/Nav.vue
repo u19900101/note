@@ -3,7 +3,7 @@
         <!--点击逻辑
     点击上级菜单时 1.显示对应菜单的笔记(标签) 2.不展开子项目
     点击 三角符号时 收起或折叠子项 accordion   default-expand-all-->
-        <el-aside style="height: 729px;" :style="{width: navWidth + 'px'}">
+        <el-aside :style="{width: navWidth + 'px'}">
             <el-scrollbar class="page-scroll">
                 <el-tree :data="data"
                          ref="mytree"
@@ -236,6 +236,7 @@
                 } else { //其他一级标题  如 wastepaperNotesList
                     if(noteBookId == 8 || 9){
                         let dayImages = noteBookId == 8 ? this.$store.state.fileList :this.$store.state.starImageList
+                        this.$store.state.currentImagesCount = dayImages.length
                         dayImages = this.tool.groupImages("day", this.$store.state.sortWay.reverse?[...dayImages].reverse():dayImages)
                         this.$store.state.currentImageList = dayImages
                     }else {

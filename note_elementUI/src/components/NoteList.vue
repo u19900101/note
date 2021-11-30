@@ -1,49 +1,49 @@
 <template>
     <el-container id="noteList">
         <el-aside :style="{width: noteListWidth + 'px'}">
-            <!--笔记本名称 && 笔记排序按钮 搜索-->
-            <div v-if="!$store.state.fileMode">
-                <el-row>
-                    <!--笔记本名称-->
-                    <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
-                        <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
-                    </el-col>
-                    <el-col :span="8" style="text-align: right;">
-                        <div class="sortButton">
-                            <el-button round
-                                       @click="sortClick(-1)"
-                                       @mouseleave.native="iconMouseLeave = true"
-                                       @mouseenter.native="iconMouseLeave = false">
-                                <i class="el-icon-sort"></i>
-                            </el-button>
-                        </div>
-                    </el-col>
-                </el-row>
+            <el-scrollbar class="page-scroll">
+                <!--笔记本名称 && 笔记排序按钮 搜索-->
+                <div v-if="!$store.state.fileMode">
+                    <el-row>
+                        <!--笔记本名称-->
+                        <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
+                            <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
+                        </el-col>
+                        <el-col :span="8" style="text-align: right;">
+                            <div class="sortButton">
+                                <el-button round
+                                           @click="sortClick(-1)"
+                                           @mouseleave.native="iconMouseLeave = true"
+                                           @mouseenter.native="iconMouseLeave = false">
+                                    <i class="el-icon-sort"></i>
+                                </el-button>
+                            </div>
+                        </el-col>
+                    </el-row>
 
-                <!--笔记排序 级联面板-->
-                <cascader :isSortShow="isSortShow"
-                          @sortClick="sortClick"
-                          @mouseleave.native="sortPanelMouseLeave = true"
-                          @mouseenter.native="sortPanelMouseLeave = false"
-                          :style="{'margin-left': (noteListWidth-30) + 'px'}">
-                </cascader>
+                    <!--笔记排序 级联面板-->
+                    <cascader :isSortShow="isSortShow"
+                              @sortClick="sortClick"
+                              @mouseleave.native="sortPanelMouseLeave = true"
+                              @mouseenter.native="sortPanelMouseLeave = false"
+                              :style="{'margin-left': (noteListWidth-30) + 'px'}">
+                    </cascader>
 
-                <!--搜索入口-->
-                <el-row class="search">
-                    <!--带历史记录的输入框-->
-                    <el-autocomplete
-                            v-model="searchValue"
-                            clearable
-                            :fetch-suggestions="querySearch"
-                            placeholder="搜索"
-                            @select="handleSelect"
-                            prefix-icon="el-icon-search"
-                            style="width: 100%;"></el-autocomplete>
-                </el-row>
-                <!--笔记列表-->
-                <el-container>
-                    <el-aside style="height: 729px;" :style="{width: noteListWidth + 'px'}">
-                        <el-scrollbar class="page-scroll">
+                    <!--搜索入口-->
+                    <el-row class="search">
+                        <!--带历史记录的输入框-->
+                        <el-autocomplete
+                                v-model="searchValue"
+                                clearable
+                                :fetch-suggestions="querySearch"
+                                placeholder="搜索"
+                                @select="handleSelect"
+                                prefix-icon="el-icon-search"
+                                style="width: 100%;"></el-autocomplete>
+                    </el-row>
+                    <!--笔记列表-->
+                    <el-container>
+                        <el-aside :style="{width: noteListWidth + 'px'}">
                             <div v-for="(note,index) in $store.state.currentNoteList">
                                 <!-- type="flex" 为了让图片居中 -->
                                 <!--列表区  标题  标签  内容-->
@@ -102,17 +102,16 @@
                                     </el-col>
                                 </el-row>
                             </div>
-                        </el-scrollbar>
-                    </el-aside>
-                </el-container>
-            </div>
+                        </el-aside>
+                    </el-container>
+                </div>
+            </el-scrollbar>
         </el-aside>
         <!--拉动线-->
         <el-aside width="4px">
             <borderLine @widthChange="noteListWidthChange"/>
         </el-aside>
     </el-container>
-
 </template>
 
 <script>
