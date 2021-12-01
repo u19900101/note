@@ -78,8 +78,9 @@
                             :color="currentIndex == index ? '#0bbd87': ''"
                             @click.native="currentIndex = index"
                             @mouseenter.native="enterIndex = index"
-                            :timestamp="image.createTime">
+                            :timestamp="image.createTime + ' ' + image.images.length + '张照片'">
                         <!--列表区  标题  标签  内容-->
+                    <!--    <span style="color: #1a1a17">{{image.images.length}} 张照片</span>-->
                         <!--位置-->
                         <a :href="'http://maps.google.com/maps?z=6&q=' + image.lnglat"
                            style="font-size: mini;color:#49a2de">
@@ -359,7 +360,9 @@
             /*图片逆序*/
             sortClick() {
                 this.$store.state.sortWay.reverse = !this.$store.state.sortWay.reverse
+                this.$store.state.starImageList = this.$store.state.starImageList.reverse()
                 this.$store.state.currentImageList = this.$store.state.currentImageList.reverse()
+                this.$store.state.fileList = this.$store.state.fileList.reverse()
                 // 修改全局变量 联动noteList变化
                 this.https.updateSortWay(this.$store.state.sortWay).then(({data}) => {
                     console.log(data)

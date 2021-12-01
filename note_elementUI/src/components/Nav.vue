@@ -237,7 +237,7 @@
                     if(noteBookId == 8 || 9){
                         let dayImages = noteBookId == 8 ? this.$store.state.fileList :this.$store.state.starImageList
                         this.$store.state.currentImagesCount = dayImages.length
-                        dayImages = this.tool.groupImages("day", this.$store.state.sortWay.reverse?[...dayImages].reverse():dayImages)
+                        dayImages = this.tool.groupImages("day", dayImages)
                         this.$store.state.currentImageList = dayImages
                         /*初始化预览 给占个位 不然第一次点击时不出现大图*/
                         this.$store.state.currentImageUrlList = [1,2,3]

@@ -22,4 +22,9 @@ function format(date, fmt="yyyy-MM-dd hh:mm:ss") {
     return fmt;
 }*/
 let dayjs = require('dayjs');
-console.log(dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'));
+let nowDate = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss').split(" ")[0]
+let arr = nowDate.split("-")
+if(arr.length == 3){
+    console.log(arr[0] + "年" + arr[1] + "月" +arr[2] + "日")
+}
+

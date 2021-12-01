@@ -64,15 +64,11 @@ public class PictureController {
         Sortway sortway = sortWayService.getById(1);
         List<Picture> pictureList = null;
 
-        // 默认均为日期逆序为正常排序
-        if (sortway.getCreateTime()) {
-            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getCreateTime).list(); /*last("limit 10").*/
-        } else if (sortway.getUpdateTime()) {
-            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getUpdateTime).list();
-        }
         //逆序
         if (sortway.getReverse()) {
-            Collections.reverse(pictureList);
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getCreateTime).list(); /*last("limit 10").*/
+        } else {
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByAsc(Picture::getCreateTime).list();
         }
         return pictureList;
     }
