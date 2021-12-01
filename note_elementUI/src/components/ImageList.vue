@@ -36,9 +36,9 @@
 
             <!--年月日 大中小 视图-->
             <div>
-                <el-button @click="showImageByTimeType('year')">年</el-button>
-                <el-button @click="showImageByTimeType('month')">月</el-button>
-                <el-button @click="showImageByTimeType('day')">日</el-button>
+                <el-button @click="showImageByTimeType('year')" size="mini" round>年</el-button>
+                <el-button @click="showImageByTimeType('month')" size="mini"round>月</el-button>
+                <el-button @click="showImageByTimeType('day')" size="mini" round>日</el-button>
                 <!--小视图-->
                 <el-tooltip class="item" style="float: right" content="小视图" placement="bottom">
                     <i @click="changeViewScale('small')" class="el-icon-s-grid"
@@ -70,69 +70,51 @@
         <!--图片列表 -->
         <el-main style="padding: 0 0  0 10px">
             <el-scrollbar class="page-scroll">
-                <div v-for="(image,index) in $store.state.currentImageList">
-                    <!--列表区  标题  标签  内容-->
-                    <el-row @click.native="fileClick(image,index)"
-                            @mousedown.native="$store.state.currentIndex = index"
+                <el-timeline style="padding: 2px">
+                    <el-timeline-item
+                            v-for="(image,index) in $store.state.currentImageList"
+                            :key="index"
+                            placement="top"
+                            :color="currentIndex == index ? '#0bbd87': ''"
+                            @click.native="currentIndex = index"
                             @mouseenter.native="enterIndex = index"
-                            :id="index"
-                            :style="{  backgroundColor:getBgColor(index),border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
-                            style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;">
-                        <!--标签-->
-                        <el-row>
-                            <!-- 给多行省略符 元素动态设置背景色-->
-                            <div class="more-line">
-                                <span style="color: #49a2de">标签kkk<!--{{getTagList(note)}}--></span>
-                            </div>
-                        </el-row>
-
-                        <!--时间-->
-                        <el-row>
-                            <!--根据排序方式来决定显示的时间类型 note.createTime -->
-                            <span style="font-size: mini;color: #49a2de">
-                                                  {{ $store.state.sortWay.updateTime
-                                                  ? (image.updateTimeAlias ? image.updateTimeAlias:image.updateTime)
-                                                  : (image.createTimeAlias ? image.createTimeAlias:image.createTime)
-                                                  }}</span>
-                            <span style="margin-left: 10px">{{image.images.length}} 张照片</span>
-                        </el-row>
+                            :timestamp="image.createTime">
+                        <!--列表区  标题  标签  内容-->
                         <!--位置-->
-                        <el-row>
-                            <!--30.614422,114.301961-->
-                            <!--百度地图-->
-                            <!-- <a :href="'http://api.map.baidu.com/geocoder?location=' + note.lnglat + '&coord_type=gcj02&output=html&src=webapp.baidu.openAPIdemo'"
-                                     style="font-size: mini;color:#49a2de"> {{ note.location}}</a>-->
-                            <a :href="'http://maps.google.com/maps?z=6&q=' + image.lnglat"
-                               style="font-size: mini;color:#49a2de">
-                                <i v-if="image.location" class="el-icon-location"></i>
-                                {{ image.location}}
-                            </a>
-                        </el-row>
-                        <!--缩略图-->
-                        <el-row class="imgItem">
-                            <div v-for="(img,index) in image.images">
-                                <div class="imageIcon">
-                                    <!--图片收藏图标-->
-                                    <!--收藏-->
-                                    <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1"
-                                       style="color: red;"></i>
-                                    <div v-if="currentImageId == img.id" @click="starClick(img)">
-                                        <!--取消收藏-->
-                                        <i v-if="!img.star" class="iconfont icon-like"></i>
+                        <a :href="'http://maps.google.com/maps?z=6&q=' + image.lnglat"
+                           style="font-size: mini;color:#49a2de">
+                            <i v-if="image.location" class="el-icon-location"></i>
+                            {{ image.location}}
+                        </a>
+                        <el-row  :style="{  backgroundColor:getBgColor(index),border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
+                                 style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;">
+                            <!--缩略图-->
+                            <el-row class="imgItem"><!--:reverse="reverse"-->
+                                <div v-for="(img,index) in image.images">
+                                    <div class="imageIcon">
+                                        <!--图片收藏图标-->
+                                        <!--收藏-->
+                                        <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1"
+                                           style="color: red;"></i>
+                                        <div v-if="currentImageId == img.id" @click="starClick(img)">
+                                            <!--取消收藏-->
+                                            <i v-if="!img.star" class="iconfont icon-like"></i>
+                                        </div>
+                                        <!-- 500px 为大视图 直接显示原图 会有卡顿 @mouseover="mouseOverImage(index)"-->
+                                        <el-image :style="{width: imageScale,height: imageScale}"
+                                                  style="margin-left:10px;"
+                                                  @click="imageClick(img,image.images,index)"
+                                                  :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
+                                                  fit="cover"
+                                                  @mouseover="currentImageId = img.id"
+                                                  :preview-src-list="$store.state.currentImageUrlList"
+                                                  :alt="img.title"/>
                                     </div>
-                                    <!-- 500px 为大视图 直接显示原图 会有卡顿 @mouseover="mouseOverImage(index)"-->
-                                    <el-image :style="{width: imageScale,height: imageScale}" style="margin-left:10px;"
-                                              @click="imageClick(img,image.images,index)"
-                                              :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
-                                              fit="cover"
-                                              @mouseover="currentImageId = img.id"
-                                              :preview-src-list="$store.state.currentImageUrlList"
-                                              :alt="img.title"/>
                                 </div>
-                            </div>
+                            </el-row>
                         </el-row>
-                    </el-row>
-                </div>
+                    </el-timeline-item>
+                </el-timeline>
             </el-scrollbar>
         </el-main>
     </el-container>
@@ -155,8 +137,10 @@
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 imageScale: "100px", //视图大小  默认为小等视图
                 currentImageId: "", //当前图片id
-                imageCreateTimeLastTime:0, //修改照片名称的定时器
-                imageNameLastTime:0, //修改照片名称的定时器
+                currentIndex: 0, //当前时间index
+                enterIndex: 0, // 鼠标移入的index
+                imageCreateTimeLastTime: 0, //修改照片名称的定时器
+                imageNameLastTime: 0, //修改照片名称的定时器
             }
         },
         computed: {
@@ -166,8 +150,8 @@
                 },
                 set: function (newImageName) {
                     this.$store.state.currentImage.title = newImageName + '.' + this.$store.state.currentImage.title.split('.')[1]
-                    if(newImageName.length > 0){
-                        this.setTimeoutUpdate(this.updateImageName,this.imageNameLastTime)
+                    if (newImageName.length > 0) {
+                        this.setTimeoutUpdate(this.updateImageName, this.imageNameLastTime)
                     }
                 }
             },
@@ -178,7 +162,7 @@
                 set: function (newValue) {
                     let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
                     this.$store.state.currentImage.createTime = formatTime
-                    this.setTimeoutUpdate(this.updateImageCreateTime,this.imageCreateTimeLastTime,newValue)
+                    this.setTimeoutUpdate(this.updateImageCreateTime, this.imageCreateTimeLastTime, newValue)
                 }
             },
             star: {
@@ -192,7 +176,7 @@
             },
         },
         methods: {
-            setTimeoutUpdate(funcName,lastTimeType,...param){
+            setTimeoutUpdate(funcName, lastTimeType, ...param) {
                 if (lastTimeType == 0) {
                     funcName(...param)
                 } else {
@@ -200,16 +184,22 @@
                     funcName(...param)
                 }
             },
-            updateImageName(){
+            updateImageName() {
                 this.imageNameLastTime = setTimeout(() => {
-                    this.https.updateImage({id: this.$store.state.currentImage.id, title: this.$store.state.currentImage.title}).then(({data}) => {
+                    this.https.updateImage({
+                        id: this.$store.state.currentImage.id,
+                        title: this.$store.state.currentImage.title
+                    }).then(({data}) => {
                         console.log("修改图片名称成功", data);
                     })
                 }, 2000)
             },
-            updateImageCreateTime(createTime){
+            updateImageCreateTime(createTime) {
                 this.imageCreateTimeLastTime = setTimeout(() => {
-                    this.https.updateImage({id: this.$store.state.currentImage.id, createTime: createTime}).then(({data}) => {
+                    this.https.updateImage({
+                        id: this.$store.state.currentImage.id,
+                        createTime: createTime
+                    }).then(({data}) => {
                         console.log("修改图片创建时间成功", data);
                     })
                 }, 5000)
@@ -353,8 +343,8 @@
             /*控制列表颜色*/
             getBgColor(index) {
                 /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/
-                if (this.$store.state.currentIndex == index) return "#E6E6E6"
-                if (this.enterIndex == index) return "#EDF6FD"
+                if (this.currentIndex == index) return "#E6E6E6" /*选中时的灰色*/
+                if (this.enterIndex == index) return "#EDF6FD" /*天蓝色*/
                 return "#ffffff"
             },
             // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
