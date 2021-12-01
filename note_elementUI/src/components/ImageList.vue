@@ -142,6 +142,7 @@
                 enterIndex: 0, // 鼠标移入的index
                 imageCreateTimeLastTime: 0, //修改照片名称的定时器
                 imageNameLastTime: 0, //修改照片名称的定时器
+                removeIcons: false,// 动态移除 删除和收藏图标
             }
         },
         computed: {
@@ -280,7 +281,10 @@
                 // let k = this.$store.state.currentImageUrlList
                 // console.log(this.$store.state.currentImageUrlList.length)
                 /*关闭图片预览时 不显示图片其他信息*/
+                // let vm = this
                 this.$nextTick(() => {
+
+                    this.addDelLikeIcon(index)
                     // 获取遮罩层关闭按钮dom
                     let domImageMask = document.querySelector(".el-image-viewer__close");
                     if (!domImageMask) {
@@ -306,6 +310,7 @@
                         index -= 1
                         if (index == -1) index = imageList.length - 1
                         this.$store.state.currentImage = imageList.slice(index, index + 1)[0]
+                        this.addDelLikeIcon(index)
                     });
 
                     /*下一张*/
@@ -317,8 +322,69 @@
                         index += 1
                         if (index == imageList.length) index = 0
                         this.$store.state.currentImage = imageList.slice(index, index + 1)[0]
+                        this.addDelLikeIcon(index)
                     });
+
                 })
+            },
+            addDelLikeIcon(index){
+                let vm = this
+                /*给预览大图添加删除和收藏按钮*/
+                setTimeout(function () {/*防止dom没渲染处理，延迟一段时间再加图片。*/
+                    // 因为下面是通过class获取的 所以点击一次后所有相对于class中就全部会有小图标
+                    // 除了第一次点击增加小图标外，剩下的全部都是修改小图标的业务逻辑  如果点击的次数大于1  执行到这里就不往下执行了
+                    let iconItem = document.querySelector('.el-image-viewer__actions__inner') // 这里获取的是图片外层的父元素   就是给这个元素追加标签
+                    if(vm.removeIcons){
+                        iconItem.removeChild(iconItem.lastChild)
+                        iconItem.removeChild(iconItem.lastChild)
+                    }
+                    iconItem = $('.el-image-viewer__actions__inner')
+                    let deleteIcon = `<i class="el-icon-delete fs-20 deleteImg"></i>` // fs-20 代表图标字体大小20px
+                    iconItem.append(deleteIcon)
+                    console.log(vm.$store.state.currentImage.title)
+                    let likeIcon = vm.$store.state.currentImage.star ? `<i class="iconfont icon-like1 fs-20 likeImg"></i>` : `<i class="iconfont icon-like fs-20 likeImg"></i>`
+                    iconItem.append(likeIcon)
+                    /*删除照片*/
+                    $('.deleteImg').click(() => {
+                        console.log('deleteImg')
+                        vm.deleteImgClick(index)
+                    })
+                    $('.likeImg').click(() => {
+                        console.log('likeImg')
+                    })
+                    vm.removeIcons = true
+                }, 100)
+
+            },
+            deleteImgClick(index){
+                let msg = this.$store.state.currentNote.wastepaper ? '彻底删除' : '移入到废纸篓'
+                this.$confirm('此操作将该照片' + msg + ', 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    center: true
+                }).then(() => {
+                    this.deleteCurrentImage(index)
+                    this.$message({type: 'success', message: '成功!', duration: 1000,});
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消',
+                        duration: 1000,
+                    });
+                });
+            },
+            deleteCurrentImage(index){
+                console.log('kkkk')
+                let currentList = this.$store.state.currentImageList[this.currentIndex].images
+                let res = currentList.filter((i) => i.id != this.$store.state.currentImage.id)
+                this.$store.state.currentImage = res[index-1]
+                let currentImageUrlList = []
+                res.forEach((i) => {
+                    currentImageUrlList.push(i.url)
+                })
+                /*移动数组*/
+                this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index-1), ...currentImageUrlList.slice(0, index+1)]
             },
             fileClick(imageList, index) {
                 /*页面显示*/
