@@ -9,10 +9,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import ppppp.evernote.entity.Notebook;
 import ppppp.evernote.entity.Picture;
 import ppppp.evernote.entity.Sortway;
+import ppppp.evernote.entity.Tag;
+import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.service.PictureService;
 import ppppp.evernote.service.SortWayService;
+import ppppp.evernote.service.TagService;
 import ppppp.evernote.util.MyUtils;
 import ppppp.evernote.util.ResultUtil;
 import ppppp.evernote.util.ftp.sftp;
@@ -40,6 +44,11 @@ public class PictureController {
     PictureService pictureService;
     @Autowired
     SortWayService sortWayService;
+
+    @Autowired
+    TagService tagService;
+    @Autowired
+    NotebookService notebookService;
     /*文件上传*/
 
 
@@ -104,6 +113,47 @@ public class PictureController {
                 }
             }
         }.start();
+    }
+
+
+    @PostMapping("/deleteImage")
+    public String deleteImage(@RequestBody Picture picture) {
+
+        picture = pictureService.getById(picture.getId());
+        // 1.更新 标签数量
+        if (picture.getTagUid() != null) {
+            // 新笔记本 +1
+            String[] tagIdList = picture.getTagUid().split(",");
+            for (String tagId : tagIdList) {
+                Tag tag = tagService.getById(tagId);
+                tag.setNoteCount(tag.getNoteCount() - 1);
+                tagService.updateById(tag);
+            }
+        }
+
+        boolean isLogicalDelete, isWastepaperSucceed;
+        boolean isUpdateNoteBookCountSucceed = true;
+        // 3.逻辑删除和状态修改
+        Notebook wastepaperNotebook = notebookService.getById(10); //回收站id为10
+        if (picture.getWastepaper()) {
+            //  逻辑删除
+            isLogicalDelete = pictureService.removeById(picture.getId());
+            // 修改废纸篓的数量 -1
+            isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - 1));
+        } else { // 状态修改
+            // 2.更新 noteBook的数量
+           /* isUpdateNoteBookCountSucceed = updateNoteCountWrapper(note.getPid(), -1);
+            note.setWastepaper(true);
+            isLogicalDelete = noteService.updateById(note);*/
+            // 修改废纸篓的数量 +1
+            isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() + 1));
+        }
+       /* if (isUpdateNoteBookCountSucceed && isLogicalDelete && isWastepaperSucceed) {
+            return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
+        }*/
+        picture.setWastepaper(true);
+        boolean update = pictureService.updateById(picture);
+        return ResultUtil.successWithData(update);
     }
 
     private void execUpload(MultipartHttpServletRequest request) throws Exception {

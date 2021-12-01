@@ -143,7 +143,7 @@
                 imageCreateTimeLastTime: 0, //修改照片名称的定时器
                 imageNameLastTime: 0, //修改照片名称的定时器
                 removeIcons: false,// 动态移除 删除和收藏图标
-                lastImage : {} // 上一张图片 用于 动态加载喜欢标签时是否重新创建
+                lastImage: {} // 上一张图片 用于 动态加载喜欢标签时是否重新创建
             }
         },
         computed: {
@@ -293,6 +293,7 @@
                     }
                     domImageMask.addEventListener("click", () => {
                         this.imageInfo = false
+                        this.removeIcons =false //解决初次点击时不出现红心
                     });
                     /*点击空白处关闭图片显示*/
                     let domImageMask4 = document.querySelector(".el-image-viewer__mask");
@@ -301,6 +302,7 @@
                     }
                     domImageMask4.addEventListener("click", () => {
                         this.imageInfo = false
+                        this.removeIcons =false //解决初次点击时不出现红心
                     });
                     /*上一张*/
                     let domImageMask3 = document.querySelector(".el-image-viewer__prev");
@@ -352,7 +354,7 @@
                 let vm = this
                 /*给预览大图添加收藏按钮*/
                 setTimeout(function () {/*防止dom没渲染处理，延迟一段时间再加图片。*/
-                    if( !vm.removeIcons || vm.lastImage.star != vm.$store.state.currentImage.star){
+                    if (!vm.removeIcons || vm.lastImage.star != vm.$store.state.currentImage.star) {
                         vm.changeLikeIcon()
                     }
                     vm.removeIcons = true
@@ -392,16 +394,23 @@
                 });
             },
             deleteCurrentImage(index) {
-                console.log('kkkk')
+                this.https.deleteImage({
+                    id: this.$store.state.currentImage.id
+                }).then(({data}) => {
+                    console.log("删除图片", data);
+                })
                 let currentList = this.$store.state.currentImageList[this.currentIndex].images
                 let res = currentList.filter((i) => i.id != this.$store.state.currentImage.id)
-                this.$store.state.currentImage = res[index - 1]
-                let currentImageUrlList = []
-                res.forEach((i) => {
-                    currentImageUrlList.push(i.url)
-                })
-                /*移动数组*/
+
+                /*移除 fileList中的该图片*/
+                this.$store.state.fileList = this.$store.state.fileList.filter((i) => i.id != this.$store.state.currentImage.id)
+                this.$store.state.currentImageList[this.currentIndex].images = res
+                this.$store.state.currentImage = res[index - 1 < 0 ? 0 : index - 1]
+                /*不能直接置空 不然又出现不显示大图*/
+                let currentImageUrlList = res.map(x => x.url);
+                /*轮播图的变化移动数组*/
                 this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index - 1), ...currentImageUrlList.slice(0, index + 1)]
+
             },
             fileClick(imageList, index) {
                 /*页面显示*/

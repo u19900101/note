@@ -117,14 +117,16 @@ export function getFiles() {
 export function updateImage(data) {
     return vm.post('/api/admin/file/update', data)
 }
+
+export function deleteImage(data) {
+    return vm.post('/api/admin/file/deleteImage', data)
+}
 /*export function getWastepaperNotes() {
     return vm.get('/api/admin/note/getWastepaperNotes')
 }
 
 
-export function deleteNote(data) {
-    return vm.post('/api/admin/note/deleteNote', data)
-}*/
+*/
 
 export default {
     install(Vue) {
@@ -155,6 +157,7 @@ export default {
             /*file*/
             getFiles,
             updateImage,
+            deleteImage,
         }
     }
 }
