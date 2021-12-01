@@ -37,7 +37,7 @@
             <!--年月日 大中小 视图-->
             <div>
                 <el-button @click="showImageByTimeType('year')" size="mini" round>年</el-button>
-                <el-button @click="showImageByTimeType('month')" size="mini"round>月</el-button>
+                <el-button @click="showImageByTimeType('month')" size="mini" round>月</el-button>
                 <el-button @click="showImageByTimeType('day')" size="mini" round>日</el-button>
                 <!--小视图-->
                 <el-tooltip class="item" style="float: right" content="小视图" placement="bottom">
@@ -80,15 +80,15 @@
                             @mouseenter.native="enterIndex = index"
                             :timestamp="image.createTime + ' ' + image.images.length + '张照片'">
                         <!--列表区  标题  标签  内容-->
-                    <!--    <span style="color: #1a1a17">{{image.images.length}} 张照片</span>-->
+                        <!--    <span style="color: #1a1a17">{{image.images.length}} 张照片</span>-->
                         <!--位置-->
                         <a :href="'http://maps.google.com/maps?z=6&q=' + image.lnglat"
                            style="font-size: mini;color:#49a2de">
                             <i v-if="image.location" class="el-icon-location"></i>
                             {{ image.location}}
                         </a>
-                        <el-row  :style="{  backgroundColor:getBgColor(index),border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
-                                 style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;">
+                        <el-row :style="{  backgroundColor:getBgColor(index),border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
+                                style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;">
                             <!--缩略图-->
                             <el-row class="imgItem"><!--:reverse="reverse"-->
                                 <div v-for="(img,index) in image.images">
@@ -143,6 +143,7 @@
                 imageCreateTimeLastTime: 0, //修改照片名称的定时器
                 imageNameLastTime: 0, //修改照片名称的定时器
                 removeIcons: false,// 动态移除 删除和收藏图标
+                lastImage : {} // 上一张图片 用于 动态加载喜欢标签时是否重新创建
             }
         },
         computed: {
@@ -272,19 +273,19 @@
                 this.imageInfo = true
                 this.$store.state.currentImageUrl = img.url
                 this.$store.state.currentImage = img
+                this.lastImage = img
                 let currentImageUrlList = []
                 imageList.forEach((i) => {
                     currentImageUrlList.push(i.url)
                 })
                 /*移动数组*/
                 this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index), ...currentImageUrlList.slice(0, index)]
-                // let k = this.$store.state.currentImageUrlList
-                // console.log(this.$store.state.currentImageUrlList.length)
-                /*关闭图片预览时 不显示图片其他信息*/
-                // let vm = this
-                this.$nextTick(() => {
 
-                    this.addDelLikeIcon(index)
+                /*关闭图片预览时 不显示图片其他信息*/
+                this.$nextTick(() => {
+                    /*添加删除和收藏按钮*/
+                    this.addDelIcon(index) //删除图标只需加一次
+                    this.addLikeIcon()
                     // 获取遮罩层关闭按钮dom
                     let domImageMask = document.querySelector(".el-image-viewer__close");
                     if (!domImageMask) {
@@ -309,8 +310,9 @@
                     domImageMask3.addEventListener("click", () => {
                         index -= 1
                         if (index == -1) index = imageList.length - 1
+                        this.lastImage = this.$store.state.currentImage
                         this.$store.state.currentImage = imageList.slice(index, index + 1)[0]
-                        this.addDelLikeIcon(index)
+                        this.addLikeIcon()
                     });
 
                     /*下一张*/
@@ -321,43 +323,58 @@
                     domImageMask2.addEventListener("click", () => {
                         index += 1
                         if (index == imageList.length) index = 0
+                        this.lastImage = this.$store.state.currentImage
                         this.$store.state.currentImage = imageList.slice(index, index + 1)[0]
-                        this.addDelLikeIcon(index)
+                        this.addLikeIcon()
                     });
 
                 })
             },
-            addDelLikeIcon(index){
+            addDelIcon(index) {
                 let vm = this
                 /*给预览大图添加删除和收藏按钮*/
                 setTimeout(function () {/*防止dom没渲染处理，延迟一段时间再加图片。*/
                     // 因为下面是通过class获取的 所以点击一次后所有相对于class中就全部会有小图标
                     // 除了第一次点击增加小图标外，剩下的全部都是修改小图标的业务逻辑  如果点击的次数大于1  执行到这里就不往下执行了
                     let iconItem = document.querySelector('.el-image-viewer__actions__inner') // 这里获取的是图片外层的父元素   就是给这个元素追加标签
-                    if(vm.removeIcons){
-                        iconItem.removeChild(iconItem.lastChild)
-                        iconItem.removeChild(iconItem.lastChild)
-                    }
                     iconItem = $('.el-image-viewer__actions__inner')
                     let deleteIcon = `<i class="el-icon-delete fs-20 deleteImg"></i>` // fs-20 代表图标字体大小20px
                     iconItem.append(deleteIcon)
-                    console.log(vm.$store.state.currentImage.title)
-                    let likeIcon = vm.$store.state.currentImage.star ? `<i class="iconfont icon-like1 fs-20 likeImg"></i>` : `<i class="iconfont icon-like fs-20 likeImg"></i>`
-                    iconItem.append(likeIcon)
                     /*删除照片*/
                     $('.deleteImg').click(() => {
                         console.log('deleteImg')
                         vm.deleteImgClick(index)
                     })
-                    $('.likeImg').click(() => {
-                        console.log('likeImg')
-                    })
+                }, 100)
+
+            },
+            addLikeIcon() {
+                let vm = this
+                /*给预览大图添加收藏按钮*/
+                setTimeout(function () {/*防止dom没渲染处理，延迟一段时间再加图片。*/
+                    if( !vm.removeIcons || vm.lastImage.star != vm.$store.state.currentImage.star){
+                        vm.changeLikeIcon()
+                    }
                     vm.removeIcons = true
                 }, 100)
 
             },
-            deleteImgClick(index){
-                let msg = this.$store.state.currentNote.wastepaper ? '彻底删除' : '移入到废纸篓'
+            /*切换喜欢图标*/
+            changeLikeIcon() {
+                let iconItem = document.querySelector('.el-image-viewer__actions__inner') // 这里获取的是图片外层的父元素   就是给这个元素追加标签
+                if (this.removeIcons) { // 第一次添加时不移除上一次的like图标
+                    iconItem.removeChild(iconItem.lastChild)
+                }
+                iconItem = $('.el-image-viewer__actions__inner')
+                let likeIcon = this.$store.state.currentImage.star ? `<i class="iconfont icon-like1 likeImg" style="color: red;font-size: 25px"></i>` : `<i class="iconfont icon-like likeImg" style="font-size: 22px"></i>`
+                iconItem.append(likeIcon)
+                $('.likeImg').click(() => {
+                    this.starClick(this.$store.state.currentImage)
+                    this.changeLikeIcon()
+                })
+            },
+            deleteImgClick(index) {
+                let msg = this.$store.state.currentImage.wastepaper ? '彻底删除' : '移入到废纸篓'
                 this.$confirm('此操作将该照片' + msg + ', 是否继续?', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
@@ -374,17 +391,17 @@
                     });
                 });
             },
-            deleteCurrentImage(index){
+            deleteCurrentImage(index) {
                 console.log('kkkk')
                 let currentList = this.$store.state.currentImageList[this.currentIndex].images
                 let res = currentList.filter((i) => i.id != this.$store.state.currentImage.id)
-                this.$store.state.currentImage = res[index-1]
+                this.$store.state.currentImage = res[index - 1]
                 let currentImageUrlList = []
                 res.forEach((i) => {
                     currentImageUrlList.push(i.url)
                 })
                 /*移动数组*/
-                this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index-1), ...currentImageUrlList.slice(0, index+1)]
+                this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index - 1), ...currentImageUrlList.slice(0, index + 1)]
             },
             fileClick(imageList, index) {
                 /*页面显示*/
