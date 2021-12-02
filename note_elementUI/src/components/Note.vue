@@ -64,11 +64,6 @@
                     恢复笔记
                 </el-button>
 
-                <el-button @click="clearAllWasteNotes" size="mini" type="danger" round
-                           v-if="$store.state.currentNote.wastepaper"
-                           style="margin-left: 10px;">
-                    清空废纸篓
-                </el-button>
 
                 <!--日期 -->
                 <div class="mydate">
@@ -121,24 +116,6 @@
                     <el-dialog :visible.sync="dialogVisible">
                         <img width="100%" :src="dialogImageUrl" alt="">
                     </el-dialog>
-
-                    <!--内容--> <!--style="width: 600px;"-->
-                    <!--  <el-main >
-                          <div @drop="handleTargetDrop"
-                               @dragover="handleTargetDragOver"
-                               style="height: 100%">
-                              <div v-if="!$store.state.isContentEditMode" v-html="content" @click="contentClick"
-                                   style="height: 100%"></div>
-                              <el-input v-else
-                                        type="textarea"
-                                        maxlength="1000000"
-                                        show-word-limit
-                                        v-model='content'
-                                        :disabled="$store.state.currentNote.wastepaper"
-                              >
-                              </el-input>
-                          </div>
-                      </el-main>-->
                 </div>
             </el-scrollbar>
         </el-main>
@@ -407,29 +384,7 @@
                 }, 1000)
 
             },
-            /*清空废纸篓*/
-            clearAllWasteNotes() {
 
-                this.$confirm('此操作将清空废纸篓是否继续?', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning',
-                    center: true
-                }).then(() => {
-                    this.https.clearAllWasteNotes().then(({data}) => {
-                        console.log("清空废纸篓", data);
-                    })
-                    this.$store.state.currentNoteList = []
-                    this.$store.state.wastepaperNotesList = []
-                    this.$message({type: 'success', message: '成功!', duration: 1000,});
-                }).catch(() => {
-                    this.$message({
-                        type: 'info',
-                        message: '已取消',
-                        duration: 1000,
-                    });
-                });
-            },
             replaceHeightLight(str) {
                 return str.replace(/<font style="background:yellow" color="red">/gi, "").replace(/<\/font>/gi, "")
             },
@@ -464,6 +419,7 @@
         margin-top: 10px;
         display: flex;
         justify-content: flex-start; /*主轴上靠左 flex-start*/
+       /* flex-wrap: nowrap; !*不换行*!*/
         /*justify-content: space-between; !*无法实现开头和结尾对其 *!*/
         align-items: center; /*侧轴上居中*/
         /*width: 600px; !*适配手机预览*!*/

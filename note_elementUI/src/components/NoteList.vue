@@ -6,17 +6,35 @@
                 <div v-if="!$store.state.fileMode">
                     <el-row>
                         <!--笔记本名称-->
-                        <el-col :span="16" style="text-align: center">{{$store.state.currentNoteBook.title}}
+                        <el-col class="listTitle" style="text-align: center">
+                            <span>{{$store.state.currentNoteBook.title}}
                             <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
+                            </span>
+                            <el-button @click="clearAllWasteNotes" style="padding: 6px 7px;" size="mini" type="danger"
+                                       round
+                                       v-if="$store.state.currentNoteBook.title == '废纸篓'"
+                            >
+                                清空
+                            </el-button>
+                            <el-button @click="recoverAllNote" style="padding: 6px 7px;" size="mini" type="primary"
+                                       round
+                                       v-if="$store.state.currentNoteBook.title == '废纸篓'"
+                            >
+                                恢复
+                            </el-button>
+                            <el-button round style="padding: 6px 7px;" size="mini"
+                                       @click="sortClick(-1)"
+                                       @mouseleave.native="iconMouseLeave = true"
+                                       @mouseenter.native="iconMouseLeave = false">
+                                <i class="el-icon-sort"></i>
+                            </el-button>
                         </el-col>
+
+
+                        <!--排序图标-->
                         <el-col :span="8" style="text-align: right;">
-                            <div class="sortButton">
-                                <el-button round
-                                           @click="sortClick(-1)"
-                                           @mouseleave.native="iconMouseLeave = true"
-                                           @mouseenter.native="iconMouseLeave = false">
-                                    <i class="el-icon-sort"></i>
-                                </el-button>
+                            <div>
+
                             </div>
                         </el-col>
                     </el-row>
@@ -142,6 +160,55 @@
         },
 
         methods: {
+            /*清空废纸篓*/
+            clearAllWasteNotes() {
+
+                this.$confirm('此操作将清空废纸篓是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    center: true
+                }).then(() => {
+                    this.https.clearAllWasteNotes().then(({data}) => {
+                        console.log("清空废纸篓", data);
+                    })
+                    this.$store.state.currentNoteList = []
+                    this.$store.state.wastepaperNotesList = []
+                    this.$message({type: 'success', message: '成功!', duration: 1000,});
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消',
+                        duration: 1000,
+                    });
+                });
+            },
+
+            /*恢复所有删除的笔记*/
+            recoverAllNote() {
+                /*1.修改 note push到 所有笔记和 todo 对应的笔记本中*/
+                this.$store.state.currentNote.wastepaper = false
+                this.$store.state.notes.unshift(...this.$store.state.currentNoteList)
+
+                /*4.后台 将 wastepaper设置为 false*/
+                this.https.recoverAllNotes().then(({data}) => {
+                    console.log("恢复所有删除的笔记 成功", data);
+                })
+
+                /*2.将 当前笔记移出  */
+                this.$store.state.currentNoteList = []
+                this.$store.state.wastepaperNotesList = []
+
+
+                //  4.更新笔记数量的显示  延时加载
+                setTimeout(() => {
+                    this.https.getNoteBooksTree().then(({data}) => {
+                        this.$store.state.noteBooksTree = data.data
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree)
+                    })
+                }, 1000)
+
+            },
             /*控制列表颜色*/
             getBgColor(index) {
                 /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/
@@ -364,9 +431,18 @@
 </script>
 
 <style>
+    /*排序栏的样式*/
+    .listTitle {
+        margin: 5px 0px;
+        display: flex;
+        justify-content: flex-start; /*主轴上靠左 flex-start*/
+        flex-wrap: wrap; /*不换行*/
+        justify-content: space-between; /**无法实现开头和结尾对其 *!*/
+        align-items: center; /*侧轴上居中*/
+        /*width: 600px; !*适配手机预览*!*/
+        width: 100%;
+    }
 
-
-    /*笔记列表中图片 居中 */
     .innerCenter {
         /*background: aqua;*/
         display: flex;

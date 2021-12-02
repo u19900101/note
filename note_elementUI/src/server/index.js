@@ -58,6 +58,11 @@ export function clearAllWasteNotes() {
     return vm.post('/api/admin/note/clearAllWasteNotes')
 }
 
+// 恢复所有删除的笔记
+export function recoverAllNotes() {
+    return vm.post('/api/admin/note/recoverAllNotes')
+}
+
 export function insertNote(data) {
     return vm.post('/api/admin/note/insert', data)
 }
@@ -121,12 +126,11 @@ export function updateImage(data) {
 export function deleteImage(data) {
     return vm.post('/api/admin/file/deleteImage', data)
 }
-/*export function getWastepaperNotes() {
-    return vm.get('/api/admin/note/getWastepaperNotes')
+export function wastepaperPictureList() {
+    return vm.get('/api/admin/file/wastepaperPictureList')
 }
 
 
-*/
 
 export default {
     install(Vue) {
@@ -149,7 +153,7 @@ export default {
 
             deleteNote,
             getWastepaperNotes,
-            clearAllWasteNotes,
+            clearAllWasteNotes,recoverAllNotes,
             /*tag*/
             insertTag,
             deleteTag,
@@ -158,6 +162,7 @@ export default {
             getFiles,
             updateImage,
             deleteImage,
+            wastepaperPictureList,
         }
     }
 }

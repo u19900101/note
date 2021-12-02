@@ -1,6 +1,7 @@
 package ppppp.evernote.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.additional.update.impl.LambdaUpdateChainWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,6 +11,7 @@ import ppppp.evernote.entity.Note;
 import ppppp.evernote.entity.Notebook;
 import ppppp.evernote.entity.Sortway;
 import ppppp.evernote.entity.Tag;
+import ppppp.evernote.mapper.NoteMapper;
 import ppppp.evernote.service.NoteService;
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.service.SortWayService;
@@ -44,6 +46,9 @@ public class NoteController {
 
     @Autowired
     private SortWayService sortWayService;
+
+    @Autowired
+    private NoteMapper noteMapper;
 
     @RequestMapping("/allNotes")
     public String getAllNotes() {
@@ -100,8 +105,6 @@ public class NoteController {
             isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - 1));
 
         }
-
-
         return ResultUtil.successWithData(b && isUpdateNoteBookCountSucceed && isWastepaperSucceed);
     }
 
@@ -111,7 +114,7 @@ public class NoteController {
 
         note = noteService.getById(note.getId());
         // 1.更新 标签数量
-        if (note.getTagUid() != null) {
+        if (note.getTagUid() != null && note.getTagUid().length() > 2) {
             // 新笔记本 +1
             String[] tagIdList = note.getTagUid().split(",");
             for (String tagId : tagIdList) {
@@ -151,6 +154,14 @@ public class NoteController {
         queryWrapper.eq("wastepaper", 1);
         boolean removeAll = noteService.remove(queryWrapper);
         return ResultUtil.successWithData(removeAll);
+    }
+
+    // 恢复所有废纸篓中的笔记
+    @PostMapping("/recoverAllNotes")
+    public String recoverAllNotes() {
+        LambdaUpdateChainWrapper<Note> lambdaUpdateChainWrapper = new LambdaUpdateChainWrapper<>(noteMapper);
+        boolean update = lambdaUpdateChainWrapper.eq(Note::getWastepaper, 1).set(Note::getWastepaper, 0).update();
+        return ResultUtil.successWithData(update);
     }
 
     // 新建笔记
