@@ -88,12 +88,14 @@
 
                     /*图片数据*/
                     this.https.getFiles().then(({data}) => {
-                        let images = data.data
                         this.$store.state.fileList = data.data; // 进入的笔记本列表数据
-                        // this.$store.state.currentNoteBookNoteList = this.$store.state.notes;
-
                         this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
                     })
+
+                    this.https.getWastepaperPictureList().then(({data}) => {
+                        this.$store.state.wastepaperPictureList = data.data
+                    })
+
                 }).then(() => {
                     // 2.获取笔记数据 初始化 notes
                     this.https.getNotes().then(({data}) => {

@@ -1,6 +1,7 @@
 package ppppp.evernote.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.extension.service.additional.update.impl.LambdaUpdateChainWrapper;
 import com.drew.imaging.ImageMetadataReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,10 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import ppppp.evernote.entity.Notebook;
-import ppppp.evernote.entity.Picture;
-import ppppp.evernote.entity.Sortway;
-import ppppp.evernote.entity.Tag;
+import ppppp.evernote.entity.*;
+import ppppp.evernote.mapper.PictureMapper;
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.service.PictureService;
 import ppppp.evernote.service.SortWayService;
@@ -40,24 +39,38 @@ import static ppppp.evernote.util.RequestUtils.sendGetRequest;
 public class PictureController {
     private static ThreadLocal<sftp> sftpLocal = new ThreadLocal<sftp>();
 
-    @Autowired
-    PictureService pictureService;
-    @Autowired
-    SortWayService sortWayService;
-
-    @Autowired
-    TagService tagService;
-    @Autowired
-    NotebookService notebookService;
+    @Autowired PictureService pictureService;
+    @Autowired SortWayService sortWayService;
+    @Autowired TagService tagService;
+    @Autowired NotebookService notebookService;
+    @Autowired PictureMapper pictureMapper;
     /*文件上传*/
-
-
-
     @RequestMapping("/allFiles")
     public String getAllNotes() {
         List<Picture> pictureListList = getSortWayNotes();
         // fillNoteList(noteList);
         return ResultUtil.successWithData(pictureListList);
+    }
+
+    @RequestMapping("/getWastepaperPictureList")
+    public String getWastepaperPictureList() {
+        List<Picture> pictureListList =  pictureService.lambdaQuery().orderByDesc(Picture::getCreateTime).eq(Picture::getWastepaper, true).list();
+        Sortway sortway = sortWayService.getById(1);
+        if(sortway.getReverse()){
+            Collections.reverse(pictureListList);
+        }
+        return ResultUtil.successWithData(pictureListList);
+    }
+
+    // 恢复所有回收站中的照片
+    @PostMapping("/recoverAllPictures")
+    public String recoverAllPictures() {
+        LambdaUpdateChainWrapper<Picture> lambdaUpdateChainWrapper = new LambdaUpdateChainWrapper<>(pictureMapper);
+        boolean update = lambdaUpdateChainWrapper.eq(Picture::getWastepaper, 1).set(Picture::getWastepaper, 0).update();
+        if(update){
+            return getAllNotes();
+        }
+        return ResultUtil.errorWithMessage("失败 恢复所有回收站中的照片");
     }
 
     // 1.更新图片收藏 2.  3.

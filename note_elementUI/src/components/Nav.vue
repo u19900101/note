@@ -183,7 +183,14 @@
                         this.$store.state.listAndNoteShow = false
                         // this.$store.state.currentNoteList =  this.$store.state.fileList
                         this.initCurrentNoteListByName("fileList", 9);
-                        break; /* 文件 */
+                        break; /* 收藏的图片 */
+                    case 'recycleBin':
+                        this.$store.state.fileMode = true
+                        this.$store.state.listAndNoteShow = false
+                        // this.$store.state.currentNoteList =  this.$store.state.fileList
+                        this.initCurrentNoteListByName("fileList", 10);
+                        break; /* 图片回收站 */
+
                     default:
                         /*区分是 点击的是笔记本 还是 标签*/
                         let firstLevelTitle = this.getfirstLevelTitle(node)
@@ -234,8 +241,14 @@
                     this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
                     this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
                 } else { //其他一级标题  如 wastepaperNotesList
-                    if(noteBookId == 8 || 9){
-                        let dayImages = noteBookId == 8 ? this.$store.state.fileList :this.$store.state.starImageList
+                    if(noteBookId == 8 || noteBookId == 9 || noteBookId == 10){
+                        let dayImages = []
+                        switch (noteBookId) {
+                            case 8:dayImages = this.$store.state.fileList;break;
+                            case 9:dayImages = this.$store.state.starImageList;break;
+                            case 10:dayImages = this.$store.state.wastepaperPictureList;break;
+                        }
+
                         this.$store.state.currentImagesCount = dayImages.length
                         dayImages = this.tool.groupImages("day", dayImages)
                         this.$store.state.currentImageList = dayImages
@@ -517,6 +530,11 @@
                         {
                             id: 'starImages',
                             title: '我的收藏 (' + this.$store.state.starImageList.length + ')'
+                        },
+                        /*图片和视频*/
+                        {
+                            id: 'recycleBin',
+                            title: '回收站 (' + this.$store.state.wastepaperPictureList.length + ')'
                         },
                     ]
                 },

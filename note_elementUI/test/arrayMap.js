@@ -15,11 +15,22 @@ let marr = arr.map(function(element, index, array){
     console.log(array);*/
     return element + this;
 }, 80);
-console.log(marr)
+// console.log(marr)
 
 
 //不传initialValue值
 arr = [1,2,3];
 // arr = arr.reduce(function(pre,cur,index,arr){return pre+cur});
-arr = arr.reduce((pre,cur,index,arr) =>pre+cur);
-console.log(arr)
+// arr = k2.reduce((pre,cur,index,arr) =>pre.id+cur.id);
+let array = [
+    {
+        name: 'apple',
+        price: 10
+    }, {
+        name: 'banana',
+        price: 9
+    }
+];
+sumprice = k2.reduce((total, currentValue) =>
+     total + currentValue.id, 0);
+console.log(sumprice);

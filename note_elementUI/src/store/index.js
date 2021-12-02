@@ -67,6 +67,7 @@ const state = {
     currentImageUrl: "",//当前图片的url
     currentImageUrlList: [],//当前图片的urlList
     starImageList:[],//收藏的图片
+    wastepaperPictureList: [],//回收站中的图片
 
     /*************页面显示控制*************/
     listAndNoteShow: true,  //显示列表区和笔记区
