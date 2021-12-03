@@ -138,6 +138,10 @@ export function recoverAllPictures() {
     return vm.post('/api/admin/file/recoverAllPictures')
 }
 
+export function recoverSelectedPictures(data) {
+    return vm.post('/api/admin/file/recoverSelectedPictures',data)
+}
+
 
 
 
@@ -171,7 +175,7 @@ export default {
             getFiles,
             updateImage,
             deleteImage,
-            getWastepaperPictureList,recoverAllPictures,deleteImageBatch
+            getWastepaperPictureList,recoverAllPictures,recoverSelectedPictures,deleteImageBatch
         }
     }
 }

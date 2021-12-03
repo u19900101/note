@@ -65,7 +65,7 @@
             </div>
 
             <!--题头信息显示  照片的总数量-->
-            <div v-if="checkedImages.length > 0 " class="imageTitle">
+            <div v-if="checkedImages.length > 0" class="imageTitle">
                 <span>已选中 {{checkedImages.length}}条 </span>
                 <!--批量删除-->
                 <el-button @click="deleteImageBatch" size="mini" style="margin-left: 10px;padding: 0px">
@@ -84,19 +84,19 @@
                 </el-button>
             </div>
 
-            <el-row style="text-align: left;margin-bottom: 20px">
+            <div class="imageTitle" style="left: 50%">
                 <!--清空回收站-->
                 <el-button @click="clearPictures" v-if="$store.state.currentNoteBook.title == '回收站'" size="mini"
                            type="danger" round style="margin-left: 10px;">
                     清空回收站
                 </el-button>
                 <!-- 恢复所有-->
-                <el-button @click="recoverAllPictures" v-if="$store.state.currentNoteBook.title == '回收站'" size="mini"
+                <el-button @click="recoverPictures" v-if="$store.state.currentNoteBook.title == '回收站'" size="mini"
                            type="primary" round style="margin-left: 10px;">
-                    恢复所有
+                    {{checkedImages.length > 0 ?'恢复选中':'恢复所有' }}
                 </el-button>
 
-            </el-row>
+            </div>
         </el-header>
 
         <!--图片列表 -->
@@ -311,27 +311,38 @@
                 }, 1000)
 
             },
-            recoverAllPictures() {
+            recoverPictures() {
                 /*1.修改所有已经移入回收站的图片 */
                 /*4.后台 将 wastepaper设置为 false 重新请求数据*/
-                this.https.recoverAllPictures().then(({data}) => {
-                    console.log("恢复所有删除的图片 成功", data);
-                    this.$store.state.fileList = data.data; // 进入的笔记本列表数据
-                    this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
-                })
+                let ids = this.checkedImages.map(x => x.id)
+                let count = 0 //计数
+                if(this.checkedImages.length > 0){ //恢复选中照片
+                    this.https.recoverSelectedPictures(ids).then(({data}) => {
+                        console.log("恢复所选的图片 成功", data);
+                        this.$store.state.fileList = data.data; // 进入的笔记本列表数据
+                        this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
+                        this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => ids.indexOf(i.id) == -1)
 
-                /*2.清空当前回收站*/
-                this.$store.state.wastepaperPictureList = []
-                this.$store.state.currentImageList = []
-
-
-                //  4.更新笔记数量的显示  延时加载
-                /*  setTimeout(() => {
-                      this.https.getNoteBooksTree().then(({data}) => {
-                          this.$store.state.noteBooksTree = data.data
-                          this.tool.addNoteCount(this.$store.state.noteBooksTree)
-                      })
-                  }, 1000)*/
+                        this.$store.state.currentImageList.forEach((i) =>{
+                            i.images = i.images.filter((inner) => {
+                                if(ids.indexOf(inner.id) == -1) {
+                                    count += 1
+                                    if(count == ids.length) return /*跳出 停止循环*/
+                                }
+                                return ids.indexOf(inner.id) == -1
+                            } )
+                        })
+                    })
+                }else { //恢复所有
+                    this.https.recoverAllPictures().then(({data}) => {
+                        console.log("恢复所有删除的图片 成功", data);
+                        this.$store.state.fileList = data.data; // 进入的笔记本列表数据
+                        this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
+                        /*2.清空当前回收站*/
+                        this.$store.state.wastepaperPictureList = []
+                        this.$store.state.currentImageList = []
+                    })
+                }
 
             },
             setTimeoutUpdate(funcName, lastTimeType, ...param) {

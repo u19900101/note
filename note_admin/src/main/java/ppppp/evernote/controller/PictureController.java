@@ -82,6 +82,19 @@ public class PictureController {
         return ResultUtil.errorWithMessage("失败 恢复所有回收站中的照片");
     }
 
+    @PostMapping("/recoverSelectedPictures")
+    public String recoverSelectedPictures(@RequestBody Object jsonpictureArrayIdList) {
+
+        ArrayList<Integer> pictureArrayIdList = (ArrayList) jsonpictureArrayIdList;
+
+        LambdaUpdateChainWrapper<Picture> lambdaUpdateChainWrapper = new LambdaUpdateChainWrapper<>(pictureMapper);
+        boolean update = lambdaUpdateChainWrapper.in(Picture::getId, pictureArrayIdList).set(Picture::getWastepaper, 0).update();
+        if (update) {
+            return getAllPictures();
+        }
+        return ResultUtil.errorWithMessage("失败 恢复所有回收站中的照片");
+    }
+
     // 1.更新图片收藏 2.  3.
     @PostMapping("/update")
     public String updateImage(@RequestBody Picture picture) {
