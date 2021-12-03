@@ -121,7 +121,7 @@ function groupImages(groupType, imageData) { // day,month,year
             }
 
         })
-        relDatas.push({createTime: i.replace("_temp", ""), location: location, images: map[i]})
+        relDatas.push({createTime: i.replace("_temp", ""), location: location, images: map[i],checkedAll:false, checkedImages:[]})
     }
     return relDatas
 }

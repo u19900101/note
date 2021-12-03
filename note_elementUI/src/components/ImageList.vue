@@ -99,28 +99,35 @@
                         <el-row :style="{  backgroundColor:getBgColor(index),border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
                                 style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;">
                             <!--缩略图-->
-                            <el-row class="imgItem"><!--:reverse="reverse"-->
-                                <div v-for="(img,index) in image.images">
-                                    <div class="imageIcon">
-                                        <!--图片收藏图标-->
-                                        <!--收藏-->
-                                        <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1"
-                                           style="color: red;"></i>
-                                        <div v-if="currentImageId == img.id && !img.wastepaper" @click="starClick(img)">
-                                            <!--鼠标移动到图片时 显示未收藏-->
-                                            <i v-if="!img.star" class="iconfont icon-like"></i>
+                            <el-row>
+                                <el-checkbox  v-model="image.checkedAll" v-if="checkedImages.length > 0" @change="handleCheckAllChange">全选</el-checkbox>
+                                <el-checkbox-group v-model="image.checkedImages" @change="handleCheckedImagesChange"  class="imgItem">
+                                    <div v-for="(img,indexInner) in image.images">
+                                        <div class="imageIcon">
+                                            <!--图片收藏图标-->
+                                            <!--收藏-->
+                                            <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1" style="color: red;"></i>
+                                            <!--照片多选框 鼠标移入时会显示  当选中一个后其余所有的都出现选框-->
+                                            <el-checkbox v-if="currentImageId == img.id || checkedImages.length > 0" :label="img.id" :key="img.id" class="imageCheck"></el-checkbox>
+
+                                            <div v-if="currentImageId == img.id && !img.wastepaper" @click="starClick(img)">
+                                                <!--鼠标移动到图片时 显示未收藏-->
+                                                <i v-if="!img.star" class="iconfont icon-like"></i>
+                                            </div>
+                                            <!-- 500px 为大视图 直接显示原图 会有卡顿 @mouseover="mouseOverImage(index)"-->
+                                            <el-image :style="{width: imageScale,height: imageScale}"
+                                                      style="margin-left:10px;"
+                                                      @click="imageClick(img,image.images,indexInner)"
+                                                      :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
+                                                      fit="cover"
+                                                      @mouseover="currentImageId = img.id"
+                                                      :preview-src-list="$store.state.currentImageUrlList"
+                                                      :alt="img.title"/>
                                         </div>
-                                        <!-- 500px 为大视图 直接显示原图 会有卡顿 @mouseover="mouseOverImage(index)"-->
-                                        <el-image :style="{width: imageScale,height: imageScale}"
-                                                  style="margin-left:10px;"
-                                                  @click="imageClick(img,image.images,index)"
-                                                  :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
-                                                  fit="cover"
-                                                  @mouseover="currentImageId = img.id"
-                                                  :preview-src-list="$store.state.currentImageUrlList"
-                                                  :alt="img.title"/>
                                     </div>
-                                </div>
+
+                                </el-checkbox-group>
+
                             </el-row>
                         </el-row>
                     </el-timeline-item>
@@ -152,9 +159,10 @@
                 imageCreateTimeLastTime: 0, //修改照片名称的定时器
                 imageNameLastTime: 0, //修改照片名称的定时器
                 removeIcons: false,// 动态移除 删除和收藏图标
-                lastImage: {} // 上一张图片 用于 动态加载喜欢标签时是否重新创建
+                lastImage: {}, // 上一张图片 用于 动态加载喜欢标签时是否重新创建
             }
         },
+
         computed: {
             /*当前类所含照片的数量*/
             currentImagesCount() {
@@ -191,8 +199,33 @@
 
                 }
             },
+            /*选中的照片id 集合*/
+            checkedImages(){
+                let checkedImages = this.$store.state.currentImageList.reduce((t, c) => {
+                    t.push(...c.checkedImages)
+                    return t
+                }, [])
+                return  checkedImages
+            }
         },
         methods: {
+            /*全选*/
+            handleCheckAllChange(allChecked) {
+                /*添加当前日期聚合的照片id到选中列表中*/
+                if(allChecked){
+                    this.$store.state.currentImageList[this.currentIndex].checkedImages = []
+                    this.$store.state.currentImageList[this.currentIndex].checkedImages =   this.$store.state.currentImageList[this.currentIndex].images.map(x => x.id)
+                }else { /*移除当前选中的list*/
+                    this.$store.state.currentImageList[this.currentIndex].checkedImages = []
+                }
+                console.log(this.checkedImages.length)
+            },
+            handleCheckedImagesChange(checkedArray) {
+                /*当前时间图片都在已选中时 将当前选中checkAll 设置为true 否则为false*/
+                let checkedCount = checkedArray.length;
+                this.$store.state.currentImageList[this.currentIndex].checkedAll = checkedCount === this.$store.state.currentImageList[this.currentIndex].images.length;
+                console.log(this.checkedImages.length)
+            },
             /*清空回收站图片*/
             clearPictures() {
                 this.$confirm('此操作将清空废纸篓是否继续?', '提示', {
@@ -627,6 +660,15 @@
         position: absolute;
         left: 85px;
         top: 5px;
+        z-index: 1000
+    }
+
+    /*控制图片多选的图标*/
+    .imageIcon .imageCheck {
+        font-size: 18px;
+        position: absolute;
+        left: 87px;
+        bottom: 8px;
         z-index: 1000
     }
 

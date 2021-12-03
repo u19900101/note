@@ -34,3 +34,13 @@ let array = [
 sumprice = k2.reduce((total, currentValue) =>
      total + currentValue.id, 0);
 console.log(sumprice);
+
+/*合并数组*/
+let k8 = [{id:1,name:"name1"},{id:1,name:"name2"},{id:1,name:"name3"}]
+
+let res = k8.reduce((t, c) => {
+    t.push(c.name)
+    return t
+}, [])
+
+console.log(res);
