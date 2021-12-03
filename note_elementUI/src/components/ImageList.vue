@@ -106,8 +106,8 @@
                                         <!--收藏-->
                                         <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1"
                                            style="color: red;"></i>
-                                        <div v-if="currentImageId == img.id" @click="starClick(img)">
-                                            <!--取消收藏-->
+                                        <div v-if="currentImageId == img.id && !img.wastepaper" @click="starClick(img)">
+                                            <!--鼠标移动到图片时 显示未收藏-->
                                             <i v-if="!img.star" class="iconfont icon-like"></i>
                                         </div>
                                         <!-- 500px 为大视图 直接显示原图 会有卡顿 @mouseover="mouseOverImage(index)"-->
@@ -301,6 +301,7 @@
                 }, 5000)
             },
             starClick(img) {
+                if(img.wastepaper) return
                 img.star = !img.star
                 this.$message({
                     message: img.star ? '已收藏' : '取消收藏',
@@ -490,8 +491,9 @@
                     console.log("移动图片到回收站", data);
                 })
                 this.lastImage = this.$store.state.currentImage
-                /*移除 fileList中的该图片*/
+                /*移除 fileList,statImageList 中的该图片*/
                 this.$store.state.fileList = this.$store.state.fileList.filter((i) => i.id != this.$store.state.currentImage.id)
+                if(this.$store.state.currentImage.star)  this.$store.state.starImageList = this.$store.state.starImageList.filter((i) => i.id != this.$store.state.currentImage.id)
 
                 /*给回收站添加该照片 或彻底删除*/
                 if(this.$store.state.currentImage.wastepaper){ /*彻底删除 从回收站移除*/
