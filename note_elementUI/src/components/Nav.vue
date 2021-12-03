@@ -249,7 +249,6 @@
                             case 10:dayImages = this.$store.state.wastepaperPictureList;break;
                         }
 
-                        this.$store.state.currentImagesCount = dayImages.length
                         dayImages = this.tool.groupImages("day", dayImages)
                         this.$store.state.currentImageList = dayImages
                         /*初始化预览 给占个位 不然第一次点击时不出现大图*/

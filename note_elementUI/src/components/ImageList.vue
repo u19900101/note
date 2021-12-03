@@ -67,26 +67,24 @@
             <!--题头信息显示  照片的总数量-->
             <div v-if="checkedImages.length > 0 " class="imageTitle">
                 <span>已选中 {{checkedImages.length}}条 </span>
-                <!--删除-->
-                <el-button @click="clearPictures" size="mini" style="margin-left: 10px;padding: 0px">
+                <!--批量删除-->
+                <el-button @click="deleteImageBatch" size="mini" style="margin-left: 10px;padding: 0px">
                     <i class="el-icon-delete" style="font-size: 25px"></i>
                 </el-button>
 
-                <!--收藏-->
-                <el-button @click="clearPictures"  size="mini"
+                <!--批量收藏-->
+                <el-button @click="clearPictures" size="mini"
                            style="margin-left: 10px;padding: 0px">
                     <i class="iconfont icon-like1" style="color: red;font-size: 25px"></i>
                 </el-button>
-                <!--取消收藏-->
+                <!--批量取消收藏-->
                 <el-button @click="clearPictures" size="mini"
                            style="margin-left: 10px;padding: 0px">
-                    <i class="iconfont icon-like" style="font-size: 25px"></i>
+                    <i class="iconfont icon-like" style="font-size: 23px"></i>
                 </el-button>
             </div>
 
             <el-row style="text-align: left;margin-bottom: 20px">
-
-
                 <!--清空回收站-->
                 <el-button @click="clearPictures" v-if="$store.state.currentNoteBook.title == '回收站'" size="mini"
                            type="danger" round style="margin-left: 10px;">
@@ -138,7 +136,9 @@
                                                style="color: red;"></i>
                                             <!--照片多选框 鼠标移入时会显示  当选中一个后其余所有的都出现选框-->
                                             <el-checkbox v-if="currentImageId == img.id || checkedImages.length > 0"
-                                                         :label="img.id" :key="img.id" class="imageCheck"></el-checkbox>
+                                                         :label="img" :key="img.id" class="imageCheck"><br>
+                                                <!-- 多选框不显示label 只要在里面加上<br>就OK了 -->
+                                            </el-checkbox>
 
                                             <div v-if="currentImageId == img.id && !img.wastepaper"
                                                  @click="starClick(img)">
@@ -245,7 +245,7 @@
                 /*添加当前日期聚合的照片id到选中列表中*/
                 if (allChecked) {
                     this.$store.state.currentImageList[this.currentIndex].checkedImages = []
-                    this.$store.state.currentImageList[this.currentIndex].checkedImages = this.$store.state.currentImageList[this.currentIndex].images.map(x => x.id)
+                    this.$store.state.currentImageList[this.currentIndex].checkedImages = this.$store.state.currentImageList[this.currentIndex].images
                 } else { /*移除当前选中的list*/
                     this.$store.state.currentImageList[this.currentIndex].checkedImages = []
                 }
@@ -313,9 +313,7 @@
             },
             recoverAllPictures() {
                 /*1.修改所有已经移入回收站的图片 */
-                /*直接放到首位 忽略时间排序*/
-                /*this.$store.state.fileList.unshift(...this.$store.state.wastepaperPictureList)*/
-                /*4.后台 将 wastepaper设置为 false*/
+                /*4.后台 将 wastepaper设置为 false 重新请求数据*/
                 this.https.recoverAllPictures().then(({data}) => {
                     console.log("恢复所有删除的图片 成功", data);
                     this.$store.state.fileList = data.data; // 进入的笔记本列表数据
@@ -596,6 +594,47 @@
                     this.imageInfo = false
                     this.removeIcons = false
                 }
+            },
+            /*批量移动图片到回收站 或彻底删除*/
+            deleteImageBatch() {
+                let ids = this.checkedImages.map(x => x.id)
+                let checkedImages = this.checkedImages // 为异步操作保存当前值
+                /*重新请求数据 避免繁琐的判断和调整*/
+                this.https.deleteImageBatch(ids).then(({data}) => {
+                    let addImageToRecyleBin = true
+                    let dayImages = []
+                    console.log(this.$store.state.currentNoteBook.id == 10 ? "彻底删除图片":"批量移动图片到回收站", data);
+
+
+                    if (this.$store.state.currentNoteBook.id == 10) {  //回收站下的批量删除
+                        this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => ids.indexOf(i.id) == -1)
+                        dayImages = this.$store.state.wastepaperPictureList
+                        addImageToRecyleBin = false
+                    }else {
+                        this.$store.state.fileList = data.data; // 进入的笔记本列表数据
+                        this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
+                    }
+
+                    // 全部图片和收藏图片下的批量删除
+                    /*重新初始化当前图片列表*/
+                    if (this.$store.state.currentNoteBook.id == 8) {
+                        dayImages = this.$store.state.fileList
+                    } else if (this.$store.state.currentNoteBook.id == 9) {
+                        dayImages = this.$store.state.starImageList
+                    }
+
+                    dayImages = this.tool.groupImages("day", dayImages)
+                    this.$store.state.currentImageList = dayImages
+
+                    /*2.将照片加入到回收站回收站*/
+                    if (addImageToRecyleBin) {
+                        checkedImages = checkedImages.map(x => {
+                            x.wastepaper = true
+                            return x
+                        })
+                        this.$store.state.wastepaperPictureList.unshift(...checkedImages)
+                    }
+                })
             },
             fileClick(imageList, index) {
                 /*页面显示*/

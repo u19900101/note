@@ -126,6 +126,10 @@ export function updateImage(data) {
 export function deleteImage(data) {
     return vm.post('/api/admin/file/deleteImage', data)
 }
+
+export function deleteImageBatch(data) { //idList
+    return vm.post('/api/admin/file/deleteImageBatch', data)
+}
 export function getWastepaperPictureList() {
     return vm.get('/api/admin/file/getWastepaperPictureList')
 }
@@ -167,7 +171,7 @@ export default {
             getFiles,
             updateImage,
             deleteImage,
-            getWastepaperPictureList,recoverAllPictures
+            getWastepaperPictureList,recoverAllPictures,deleteImageBatch
         }
     }
 }

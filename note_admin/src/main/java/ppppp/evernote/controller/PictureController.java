@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import ppppp.evernote.entity.*;
+import ppppp.evernote.entity.Notebook;
+import ppppp.evernote.entity.Picture;
+import ppppp.evernote.entity.Sortway;
+import ppppp.evernote.entity.Tag;
 import ppppp.evernote.mapper.PictureMapper;
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.service.PictureService;
@@ -39,14 +42,20 @@ import static ppppp.evernote.util.RequestUtils.sendGetRequest;
 public class PictureController {
     private static ThreadLocal<sftp> sftpLocal = new ThreadLocal<sftp>();
 
-    @Autowired PictureService pictureService;
-    @Autowired SortWayService sortWayService;
-    @Autowired TagService tagService;
-    @Autowired NotebookService notebookService;
-    @Autowired PictureMapper pictureMapper;
+    @Autowired
+    PictureService pictureService;
+    @Autowired
+    SortWayService sortWayService;
+    @Autowired
+    TagService tagService;
+    @Autowired
+    NotebookService notebookService;
+    @Autowired
+    PictureMapper pictureMapper;
+
     /*文件上传*/
     @RequestMapping("/allFiles")
-    public String getAllNotes() {
+    public String getAllPictures() {
         List<Picture> pictureListList = getSortWayNotes();
         // fillNoteList(noteList);
         return ResultUtil.successWithData(pictureListList);
@@ -54,9 +63,9 @@ public class PictureController {
 
     @RequestMapping("/getWastepaperPictureList")
     public String getWastepaperPictureList() {
-        List<Picture> pictureListList =  pictureService.lambdaQuery().orderByDesc(Picture::getCreateTime).eq(Picture::getWastepaper, true).list();
+        List<Picture> pictureListList = pictureService.lambdaQuery().orderByDesc(Picture::getCreateTime).eq(Picture::getWastepaper, true).list();
         Sortway sortway = sortWayService.getById(1);
-        if(sortway.getReverse()){
+        if (sortway.getReverse()) {
             Collections.reverse(pictureListList);
         }
         return ResultUtil.successWithData(pictureListList);
@@ -67,8 +76,8 @@ public class PictureController {
     public String recoverAllPictures() {
         LambdaUpdateChainWrapper<Picture> lambdaUpdateChainWrapper = new LambdaUpdateChainWrapper<>(pictureMapper);
         boolean update = lambdaUpdateChainWrapper.eq(Picture::getWastepaper, 1).set(Picture::getWastepaper, 0).update();
-        if(update){
-            return getAllNotes();
+        if (update) {
+            return getAllPictures();
         }
         return ResultUtil.errorWithMessage("失败 恢复所有回收站中的照片");
     }
@@ -94,6 +103,7 @@ public class PictureController {
         }
         return pictureList;
     }
+
     /*每张照片都发送一次请求上传*/
     @PostMapping("/uploadFileAndInsert")
     public void uploadFileAndInsert(HttpServletRequest request) throws Exception {
@@ -107,13 +117,13 @@ public class PictureController {
             public void run() {
                 try {
                     sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
-                    String fileName = sftp.uploadFile("/mydata/nginx/html/img", "/"+ uploadDir, multipartFile,  picture.getTitle());
+                    String fileName = sftp.uploadFile("/mydata/nginx/html/img", "/" + uploadDir, multipartFile, picture.getTitle());
                     sftp.release();
-                    if(!fileName.equals("error")){
+                    if (!fileName.equals("error")) {
                         System.out.println("上传成功 " + fileName);
 
                         // 若重名，则重新命名文件
-                        if(!fileName.equals(picture.getTitle())){
+                        if (!fileName.equals(picture.getTitle())) {
                             picture.setTitle(fileName);
                         }
                         String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
@@ -131,7 +141,6 @@ public class PictureController {
 
     @PostMapping("/deleteImage")
     public String deleteImage(@RequestBody Picture picture) {
-
         picture = pictureService.getById(picture.getId());
         // 1.更新 标签数量
         if (picture.getTagUid() != null) {
@@ -169,6 +178,60 @@ public class PictureController {
         return ResultUtil.successWithData(update);
     }
 
+    @PostMapping("/deleteImageBatch")
+    public String deleteImageBatch(@RequestBody Object jsonpictureArrayList) {
+        boolean update = false;
+        boolean isLogicalDelete = false;
+        ArrayList<Integer> pictureArrayList = (ArrayList) jsonpictureArrayList;
+        for (Integer picId : pictureArrayList) {
+            // 1.更新 标签数量
+            Picture picture = pictureService.getById(picId);
+            if (picture.getTagUid() != null) {
+                // 新笔记本 +1
+                String[] tagIdList = picture.getTagUid().split(",");
+                for (String tagId : tagIdList) {
+                    Tag tag = tagService.getById(tagId);
+                    tag.setNoteCount(tag.getNoteCount() - 1);
+                    tagService.updateById(tag);
+                }
+            }
+
+            boolean isWastepaperSucceed;
+            boolean isUpdateNoteBookCountSucceed = true;
+            // 3.逻辑删除和状态修改
+            Notebook wastepaperNotebook = notebookService.getById(10); //回收站id为10
+            if (picture.getWastepaper()) {
+                //  逻辑删除
+                isLogicalDelete = pictureService.removeById(picture.getId());
+                // 修改废纸篓的数量 -1
+                isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - 1));
+                if (!isLogicalDelete) {
+                    return ResultUtil.errorWithMessage("批量删除更新失败");
+                }
+            } else { // 状态修改
+                // 2.更新 noteBook的数量
+           /* isUpdateNoteBookCountSucceed = updateNoteCountWrapper(note.getPid(), -1);
+            note.setWastepaper(true);
+            isLogicalDelete = noteService.updateById(note);*/
+                // 修改废纸篓的数量 +1
+                isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() + 1));
+                picture.setWastepaper(true);
+                update = pictureService.updateById(picture);
+                if (!update) {
+                    return ResultUtil.errorWithMessage("批量删除更新失败");
+                }
+            }
+       /* if (isUpdateNoteBookCountSucceed && isLogicalDelete && isWastepaperSucceed) {
+            return sendPostRequest("http://localhost:8080/admin/noteBook/noteBooksTree");
+        }*/
+
+        }
+        if(isLogicalDelete){
+            return ResultUtil.successWithMessage("彻底删除成功");
+        }
+        return getAllPictures();
+    }
+
     private void execUpload(MultipartHttpServletRequest request) throws Exception {
         MultipartHttpServletRequest multiRequest = request;
         List<MultipartFile> fileList = multiRequest.getFiles("file");
@@ -186,7 +249,7 @@ public class PictureController {
     public static Picture getPictureInfo(MultipartFile multipartFile) throws Exception {
         long size = multipartFile.getSize();
         // 得到照片的信息 0.照片的名称(规范时间信息)  1.坐标 2.拍摄时间(没有就为当前时间) 3.宽高
-        Picture imgInfo = getImgInfo(multipartFile.getInputStream(),multipartFile.getOriginalFilename());
+        Picture imgInfo = getImgInfo(multipartFile.getInputStream(), multipartFile.getOriginalFilename());
         imgInfo.setSize(size);
         return imgInfo;
     }
@@ -262,16 +325,16 @@ public class PictureController {
                             break;
                         //    获取照片的尺寸 便于照片去重判断
                         case "Image Height":
-                            if(pic.getWidthH() == null){
+                            if (pic.getWidthH() == null) {
                                 pic.setWidthH(t.getDescription().split(" ")[0]);
-                            }else {
+                            } else {
                                 pic.setWidthH(pic.getWidthH() + "x" + t.getDescription().split(" ")[0]);
                             }
                             break;
                         case "Image Width":
-                            if(pic.getWidthH() == null){
+                            if (pic.getWidthH() == null) {
                                 pic.setWidthH(t.getDescription().split(" ")[0]);
-                            }else {
+                            } else {
                                 pic.setWidthH(t.getDescription().split(" ")[0] + "x" + pic.getWidthH());
                             }
                             break;
@@ -307,13 +370,13 @@ public class PictureController {
     }
 
     //经纬度转地址
-    public static String getLocation(String lnglat){
+    public static String getLocation(String lnglat) {
         String key = "GjG3XAdmywz7CyETWqHwIuEC6ZExY6QT";
-        String url="http://api.map.baidu.com/geocoder/v2/?ak="+key+"&output=json&coordtype=bd09ll&location="+lnglat;
-        String res=sendGetRequest(url);
+        String url = "http://api.map.baidu.com/geocoder/v2/?ak=" + key + "&output=json&coordtype=bd09ll&location=" + lnglat;
+        String res = sendGetRequest(url);
 
         //获取详细地址
-        String addressLocation= JSON.parseObject(res).getJSONObject("result").getString("formatted_address");
+        String addressLocation = JSON.parseObject(res).getJSONObject("result").getString("formatted_address");
         return addressLocation;
     }
 
@@ -387,6 +450,7 @@ public class PictureController {
         }
         return map;
     }
+
     /*public void checkAndCreateImg(String destDir, File uploadImgTemp,
                                   ArrayList<HashMap<String, Object>> successMapList,
                                   ArrayList<HashMap<String, Object>> failedMapList) throws ParseException, IOException, ImageProcessingException {
