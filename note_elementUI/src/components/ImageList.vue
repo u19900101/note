@@ -1,7 +1,7 @@
 <template>
     <!--文件-->
     <el-container>
-        <el-header style="margin: 10px 0px">
+        <el-header style="margin: 10px 0px 2px 0px">
             <!--当前大图详细信息的显示-->
             <div v-if="imageInfo" class="imgInfo">
                 <!--拍摄日期 -->
@@ -35,10 +35,14 @@
             </div>
 
             <!--年月日 大中小 视图-->
-            <div>
-                <el-button @click="showImageByTimeType('year')" size="mini" round>年</el-button>
-                <el-button @click="showImageByTimeType('month')" size="mini" round>月</el-button>
-                <el-button @click="showImageByTimeType('day')" size="mini" round>日</el-button>
+            <div style="text-align: center">
+                <el-button @click="showImageByTimeType('year')" style="float:left;" size="mini" round>年</el-button>
+                <el-button @click="showImageByTimeType('month')" style="float:left;" size="mini" round>月</el-button>
+                <el-button @click="showImageByTimeType('day')" style="float:left;" size="mini" round>日</el-button>
+
+                {{$store.state.currentNoteBook.title}}
+                <span style="color: rgba(40,59,55,0.77)">(共{{currentImagesCount}}条)</span>
+
                 <!--小视图-->
                 <el-tooltip class="item" style="float: right" content="小视图" placement="bottom">
                     <i @click="changeViewScale('small')" class="el-icon-s-grid"
@@ -60,14 +64,35 @@
                 </el-tooltip>
             </div>
 
-            <!--题头-->
-            <el-row style="text-align: center">
-                {{$store.state.currentNoteBook.title}}
-                <span style="color: rgba(40,59,55,0.77)">(共{{currentImagesCount}}条)</span>
+            <!--题头信息显示  照片的总数量-->
+            <div v-if="checkedImages.length > 0 " class="imageTitle">
+                <span>已选中 {{checkedImages.length}}条 </span>
+                <!--删除-->
+                <el-button @click="clearPictures" size="mini" style="margin-left: 10px;padding: 0px">
+                    <i class="el-icon-delete" style="font-size: 25px"></i>
+                </el-button>
+
+                <!--收藏-->
+                <el-button @click="clearPictures"  size="mini"
+                           style="margin-left: 10px;padding: 0px">
+                    <i class="iconfont icon-like1" style="color: red;font-size: 25px"></i>
+                </el-button>
+                <!--取消收藏-->
+                <el-button @click="clearPictures" size="mini"
+                           style="margin-left: 10px;padding: 0px">
+                    <i class="iconfont icon-like" style="font-size: 25px"></i>
+                </el-button>
+            </div>
+
+            <el-row style="text-align: left;margin-bottom: 20px">
+
+
+                <!--清空回收站-->
                 <el-button @click="clearPictures" v-if="$store.state.currentNoteBook.title == '回收站'" size="mini"
                            type="danger" round style="margin-left: 10px;">
                     清空回收站
                 </el-button>
+                <!-- 恢复所有-->
                 <el-button @click="recoverAllPictures" v-if="$store.state.currentNoteBook.title == '回收站'" size="mini"
                            type="primary" round style="margin-left: 10px;">
                     恢复所有
@@ -77,9 +102,9 @@
         </el-header>
 
         <!--图片列表 -->
-        <el-main style="padding: 0 0  0 10px">
+        <el-main style="padding: 0px 0  0 10px">
             <el-scrollbar class="page-scroll">
-                <el-timeline style="padding: 2px">
+                <el-timeline style="padding: 7px">
                     <el-timeline-item
                             v-for="(image,index) in $store.state.currentImageList"
                             :key="index"
@@ -100,17 +125,23 @@
                                 style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;">
                             <!--缩略图-->
                             <el-row>
-                                <el-checkbox  v-model="image.checkedAll" v-if="checkedImages.length > 0" @change="handleCheckAllChange">全选</el-checkbox>
-                                <el-checkbox-group v-model="image.checkedImages" @change="handleCheckedImagesChange"  class="imgItem">
+                                <el-checkbox v-model="image.checkedAll" v-if="checkedImages.length > 0"
+                                             @change="handleCheckAllChange">全选
+                                </el-checkbox>
+                                <el-checkbox-group v-model="image.checkedImages" @change="handleCheckedImagesChange"
+                                                   class="imgItem">
                                     <div v-for="(img,indexInner) in image.images">
                                         <div class="imageIcon">
                                             <!--图片收藏图标-->
                                             <!--收藏-->
-                                            <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1" style="color: red;"></i>
+                                            <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1"
+                                               style="color: red;"></i>
                                             <!--照片多选框 鼠标移入时会显示  当选中一个后其余所有的都出现选框-->
-                                            <el-checkbox v-if="currentImageId == img.id || checkedImages.length > 0" :label="img.id" :key="img.id" class="imageCheck"></el-checkbox>
+                                            <el-checkbox v-if="currentImageId == img.id || checkedImages.length > 0"
+                                                         :label="img.id" :key="img.id" class="imageCheck"></el-checkbox>
 
-                                            <div v-if="currentImageId == img.id && !img.wastepaper" @click="starClick(img)">
+                                            <div v-if="currentImageId == img.id && !img.wastepaper"
+                                                 @click="starClick(img)">
                                                 <!--鼠标移动到图片时 显示未收藏-->
                                                 <i v-if="!img.star" class="iconfont icon-like"></i>
                                             </div>
@@ -200,22 +231,22 @@
                 }
             },
             /*选中的照片id 集合*/
-            checkedImages(){
+            checkedImages() {
                 let checkedImages = this.$store.state.currentImageList.reduce((t, c) => {
                     t.push(...c.checkedImages)
                     return t
                 }, [])
-                return  checkedImages
+                return checkedImages
             }
         },
         methods: {
             /*全选*/
             handleCheckAllChange(allChecked) {
                 /*添加当前日期聚合的照片id到选中列表中*/
-                if(allChecked){
+                if (allChecked) {
                     this.$store.state.currentImageList[this.currentIndex].checkedImages = []
-                    this.$store.state.currentImageList[this.currentIndex].checkedImages =   this.$store.state.currentImageList[this.currentIndex].images.map(x => x.id)
-                }else { /*移除当前选中的list*/
+                    this.$store.state.currentImageList[this.currentIndex].checkedImages = this.$store.state.currentImageList[this.currentIndex].images.map(x => x.id)
+                } else { /*移除当前选中的list*/
                     this.$store.state.currentImageList[this.currentIndex].checkedImages = []
                 }
                 console.log(this.checkedImages.length)
@@ -334,7 +365,7 @@
                 }, 5000)
             },
             starClick(img) {
-                if(img.wastepaper) return
+                if (img.wastepaper) return
                 img.star = !img.star
                 this.$message({
                     message: img.star ? '已收藏' : '取消收藏',
@@ -526,12 +557,12 @@
                 this.lastImage = this.$store.state.currentImage
                 /*移除 fileList,statImageList 中的该图片*/
                 this.$store.state.fileList = this.$store.state.fileList.filter((i) => i.id != this.$store.state.currentImage.id)
-                if(this.$store.state.currentImage.star)  this.$store.state.starImageList = this.$store.state.starImageList.filter((i) => i.id != this.$store.state.currentImage.id)
+                if (this.$store.state.currentImage.star) this.$store.state.starImageList = this.$store.state.starImageList.filter((i) => i.id != this.$store.state.currentImage.id)
 
                 /*给回收站添加该照片 或彻底删除*/
-                if(this.$store.state.currentImage.wastepaper){ /*彻底删除 从回收站移除*/
+                if (this.$store.state.currentImage.wastepaper) { /*彻底删除 从回收站移除*/
                     this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => i.id != this.$store.state.currentImage.id)
-                }else { //添加到回收站
+                } else { //添加到回收站
                     this.$store.state.currentImage.wastepaper = true
                     this.$store.state.wastepaperPictureList.unshift(this.$store.state.currentImage)
                 }
@@ -540,9 +571,9 @@
                 let currentList = this.$store.state.currentImageList[this.currentIndex].images
                 let res = currentList.filter((i) => i.id != this.$store.state.currentImage.id)
                 //删除最后一张照片时清空该时间段照片
-                if(res.length == 0) {
-                    this.$store.state.currentImageList.splice(this.currentIndex,1)
-                }else {
+                if (res.length == 0) {
+                    this.$store.state.currentImageList.splice(this.currentIndex, 1)
+                } else {
                     this.$store.state.currentImageList[this.currentIndex].images = res
                 }
 
@@ -552,13 +583,13 @@
                 /!*不能直接置空 不然又出现不显示大图*!/
                 */
                 /*轮播图的变化移动数组*/
-                this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index - 1), ...currentImageUrlList.slice(0, index-1 )]
-                if(this.$store.state.currentImageUrlList.length ==0){
+                this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index - 1), ...currentImageUrlList.slice(0, index - 1)]
+                if (this.$store.state.currentImageUrlList.length == 0) {
                     this.imageInfo = false
                     this.removeIcons = false
                 }
                 /*todo 解决删除最后一张图片时的bug*/
-                if(index == this.$store.state.currentImageUrlList.length ){
+                if (index == this.$store.state.currentImageUrlList.length) {
                     /*手动调用点击图片也无法解决*/
                     /*this.imageClick(this.$store.state.currentImage, res, index - 1)*/
                     /*只能手动关闭图片信息的显示*/
@@ -632,6 +663,7 @@
 </script>
 
 <style>
+    /*时间线的位置*/
     /*照片名称 input 后缀*/
     .el-input-group__append, .el-input-group__prepend {
         padding: 0 3px !important;
@@ -707,6 +739,15 @@
         position: absolute;
         z-index: 2001;
         left: 21px;
+        top: 40px;
+    }
+
+    .imageTitle {
+        display: flex;
+        justify-content: flex-start;
+        position: absolute;
+        z-index: 2001;
+        left: 190px;
         top: 40px;
     }
 
