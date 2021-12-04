@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 import java.util.Vector;
@@ -239,5 +240,23 @@ public class sftp {
         return fileName;
     }
 
+    public static Boolean deleteFiles(String basePath,ArrayList<String> paths) throws IOException {
+        boolean flag = true;
+        try {
+            sftpLocal.get().channel.cd(basePath);
+            for (String path : paths) {
+                /*删除大图*/
+                sftpLocal.get().channel.rm(path);
+                /*删除缩略图 NAME_thumbnails.jpg*/
+                String s = path.split("\\.")[0] + "_thumbnails." + path.split("\\.")[1];
+                sftpLocal.get().channel.rm(s);
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getLocalizedMessage() + e.getMessage() + e.toString());
+            flag = false;
+        }
+        return flag;
+    }
 }
 

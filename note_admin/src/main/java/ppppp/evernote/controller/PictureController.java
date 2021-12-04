@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static ppppp.evernote.util.RequestUtils.sendGetRequest;
+import static ppppp.evernote.util.ftp.sftp.deleteFiles;
 
 /**
  * @author lppppp
@@ -60,7 +61,7 @@ public class PictureController {
         // fillNoteList(noteList);
         return ResultUtil.successWithData(pictureListList);
     }
-
+    /*获取回收站的图片*/
     @RequestMapping("/getWastepaperPictureList")
     public String getWastepaperPictureList() {
         List<Picture> pictureListList = pictureService.lambdaQuery().orderByDesc(Picture::getCreateTime).eq(Picture::getWastepaper, true).list();
@@ -173,6 +174,11 @@ public class PictureController {
         if (picture.getWastepaper()) {
             //  逻辑删除
             isLogicalDelete = pictureService.removeById(picture.getId());
+            if(isLogicalDelete){ //在服务器上进行删除 http://lpgogo.top/img/2016-08-16/2.jpg
+                ArrayList<String> stringArrayList = new ArrayList<>();
+                stringArrayList.add(picture.getUrl().replace("http://lpgogo.top/img/",""));
+                deleteImageFromServer(stringArrayList);
+            }
             // 修改废纸篓的数量 -1
             isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - 1));
         } else { // 状态修改
@@ -191,11 +197,28 @@ public class PictureController {
         return ResultUtil.successWithData(update);
     }
 
+    private void deleteImageFromServer(ArrayList<String> paths) {
+
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
+                    Boolean deleteFiles = deleteFiles("/mydata/nginx/html/img", paths);
+                    sftp.release();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+
     @PostMapping("/deleteImageBatch")
     public String deleteImageBatch(@RequestBody Object jsonpictureArrayList) {
         boolean update = false;
         boolean isLogicalDelete = false;
         ArrayList<Integer> pictureArrayList = (ArrayList) jsonpictureArrayList;
+        ArrayList<String> removeImagesPathList = new ArrayList<>();
         for (Integer picId : pictureArrayList) {
             // 1.更新 标签数量
             Picture picture = pictureService.getById(picId);
@@ -216,6 +239,8 @@ public class PictureController {
             if (picture.getWastepaper()) {
                 //  逻辑删除
                 isLogicalDelete = pictureService.removeById(picture.getId());
+
+                removeImagesPathList.add(picture.getUrl().replace("http://lpgogo.top/img/",""));
                 // 修改废纸篓的数量 -1
                 isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - 1));
                 if (!isLogicalDelete) {
@@ -240,6 +265,7 @@ public class PictureController {
 
         }
         if(isLogicalDelete){
+            deleteImageFromServer(removeImagesPathList);
             return ResultUtil.successWithMessage("彻底删除成功");
         }
         return getAllPictures();
