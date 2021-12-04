@@ -259,17 +259,13 @@
             },
             /*清空回收站图片*/
             clearPictures() {
-                this.$confirm('此操作将清空废纸篓是否继续?', '提示', {
+                this.$confirm('此操作将清空回收站所有图片是否继续?', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning',
                     center: true
                 }).then(() => {
-                    this.https.clearAllWasteNotes().then(({data}) => {
-                        console.log("清空废纸篓", data);
-                    })
-                    this.$store.state.currentNoteList = []
-                    this.$store.state.wastepaperNotesList = []
+                    this.clearRecyleBin()
                     this.$message({type: 'success', message: '成功!', duration: 1000,});
                 }).catch(() => {
                     this.$message({
@@ -278,38 +274,6 @@
                         duration: 1000,
                     });
                 });
-            },
-            /*恢复当的图片*/
-            recoverCurrentPictures() {
-                /*1.修改 note push到 所有笔记和 todo 对应的笔记本中*/
-                this.$store.state.currentNote.wastepaper = false
-                this.$store.state.notes.unshift(this.$store.state.currentNote)
-
-                /*4.后台 将 wastepaper设置为 false*/
-                this.https.updateNote({
-                    id: this.$store.state.currentNote.id,
-                    pid: this.$store.state.currentNote.pid,
-                    wastepaper: false
-                }).then(({data}) => {
-                    console.log("修改数据库成功", data);
-                })
-
-                /*2.将 当前笔记移出  */
-                this.$store.state.currentNoteList.splice(this.$store.state.currentIndex, 1)
-                /* 3.修改当前选中的笔记*/
-                if (this.$store.state.currentNoteList.length > 0) {
-                    this.$store.state.currentIndex = 0
-                    this.$store.state.currentNote = this.$store.state.currentNoteList[0]
-                }
-
-                //  4.更新笔记数量的显示  延时加载
-                setTimeout(() => {
-                    this.https.getNoteBooksTree().then(({data}) => {
-                        this.$store.state.noteBooksTree = data.data
-                        this.tool.addNoteCount(this.$store.state.noteBooksTree)
-                    })
-                }, 1000)
-
             },
             recoverPictures() {
                 /*1.修改所有已经移入回收站的图片 */
@@ -344,6 +308,123 @@
                     })
                 }
 
+            },
+            deleteImgClick(index) {
+                let msg = this.$store.state.currentImage.wastepaper ? '彻底删除' : '移入到回收站'
+                this.$confirm('此操作将该照片' + msg + ', 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    center: true
+                }).then(() => {
+                    this.deleteCurrentImage(index)
+                    this.$message({type: 'success', message: '成功!', duration: 1000,});
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消',
+                        duration: 1000,
+                    });
+                });
+            },
+            deleteCurrentImage(index) {
+                this.https.deleteImage({
+                    id: this.$store.state.currentImage.id
+                }).then(({data}) => {
+                    console.log("移动图片到回收站", data);
+                })
+                this.lastImage = this.$store.state.currentImage
+                /*移除 fileList,statImageList 中的该图片*/
+                this.$store.state.fileList = this.$store.state.fileList.filter((i) => i.id != this.$store.state.currentImage.id)
+                if (this.$store.state.currentImage.star) this.$store.state.starImageList = this.$store.state.starImageList.filter((i) => i.id != this.$store.state.currentImage.id)
+
+                /*给回收站添加该照片 或彻底删除*/
+                if (this.$store.state.currentImage.wastepaper) { /*彻底删除 从回收站移除*/
+                    this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => i.id != this.$store.state.currentImage.id)
+                } else { //添加到回收站
+                    this.$store.state.currentImage.wastepaper = true
+                    this.$store.state.wastepaperPictureList.unshift(this.$store.state.currentImage)
+                }
+
+
+                let currentList = this.$store.state.currentImageList[this.currentIndex].images
+                let res = currentList.filter((i) => i.id != this.$store.state.currentImage.id)
+                //删除最后一张照片时清空该时间段照片
+                if (res.length == 0) {
+                    this.$store.state.currentImageList.splice(this.currentIndex, 1)
+                } else {
+                    this.$store.state.currentImageList[this.currentIndex].images = res
+                }
+
+                this.$store.state.currentImage = res[index - 1 < 0 ? 0 : index - 1]
+                let currentImageUrlList = res.map(x => x.url);
+                /*
+                /!*不能直接置空 不然又出现不显示大图*!/
+                */
+                /*轮播图的变化移动数组*/
+                this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index - 1), ...currentImageUrlList.slice(0, index - 1)]
+                if (this.$store.state.currentImageUrlList.length == 0) {
+                    this.imageInfo = false
+                    this.removeIcons = false
+                }
+                /*todo 解决删除最后一张图片时的bug*/
+                if (index == this.$store.state.currentImageUrlList.length) {
+                    /*手动调用点击图片也无法解决*/
+                    /*this.imageClick(this.$store.state.currentImage, res, index - 1)*/
+                    /*只能手动关闭图片信息的显示*/
+                    this.imageInfo = false
+                    this.removeIcons = false
+                }
+            },
+            /*批量移动图片到回收站 或彻底删除*/
+            deleteImageBatch() {
+                let ids = this.checkedImages.map(x => x.id)
+                let checkedImages = this.checkedImages // 为异步操作保存当前值
+                /*重新请求数据 避免繁琐的判断和调整*/
+                this.https.deleteImageBatch(ids).then(({data}) => {
+                    let addImageToRecyleBin = true
+                    let dayImages = []
+                    console.log(this.$store.state.currentNoteBook.id == 10 ? "彻底删除图片":"批量移动图片到回收站", data);
+
+
+                    if (this.$store.state.currentNoteBook.id == 10) {  //回收站下的批量删除
+                        this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => ids.indexOf(i.id) == -1)
+                        dayImages = this.$store.state.wastepaperPictureList
+                        addImageToRecyleBin = false
+                    }else {
+                        this.$store.state.fileList = data.data; // 进入的笔记本列表数据
+                        this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
+                    }
+
+                    // 全部图片和收藏图片下的批量删除
+                    /*重新初始化当前图片列表*/
+                    if (this.$store.state.currentNoteBook.id == 8) {
+                        dayImages = this.$store.state.fileList
+                    } else if (this.$store.state.currentNoteBook.id == 9) {
+                        dayImages = this.$store.state.starImageList
+                    }
+
+                    dayImages = this.tool.groupImages("day", dayImages)
+                    this.$store.state.currentImageList = dayImages
+
+                    /*2.将照片加入到回收站回收站*/
+                    if (addImageToRecyleBin) {
+                        checkedImages = checkedImages.map(x => {
+                            x.wastepaper = true
+                            return x
+                        })
+                        this.$store.state.wastepaperPictureList.unshift(...checkedImages)
+                    }
+                })
+            },
+            clearRecyleBin(){
+                let ids = this.$store.state.wastepaperPictureList.map(x => x.id)
+                /*重新请求数据 避免繁琐的判断和调整*/
+                this.https.deleteImageBatch(ids).then(({data}) => {
+                    console.log( data);
+                })
+                this.$store.state.currentImageList = []
+                this.$store.state.wastepaperPictureList = []
             },
             setTimeoutUpdate(funcName, lastTimeType, ...param) {
                 if (lastTimeType == 0) {
@@ -539,114 +620,7 @@
                     this.changeLikeIcon()
                 })
             },
-            deleteImgClick(index) {
-                let msg = this.$store.state.currentImage.wastepaper ? '彻底删除' : '移入到回收站'
-                this.$confirm('此操作将该照片' + msg + ', 是否继续?', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning',
-                    center: true
-                }).then(() => {
-                    this.deleteCurrentImage(index)
-                    this.$message({type: 'success', message: '成功!', duration: 1000,});
-                }).catch(() => {
-                    this.$message({
-                        type: 'info',
-                        message: '已取消',
-                        duration: 1000,
-                    });
-                });
-            },
-            deleteCurrentImage(index) {
-                this.https.deleteImage({
-                    id: this.$store.state.currentImage.id
-                }).then(({data}) => {
-                    console.log("移动图片到回收站", data);
-                })
-                this.lastImage = this.$store.state.currentImage
-                /*移除 fileList,statImageList 中的该图片*/
-                this.$store.state.fileList = this.$store.state.fileList.filter((i) => i.id != this.$store.state.currentImage.id)
-                if (this.$store.state.currentImage.star) this.$store.state.starImageList = this.$store.state.starImageList.filter((i) => i.id != this.$store.state.currentImage.id)
 
-                /*给回收站添加该照片 或彻底删除*/
-                if (this.$store.state.currentImage.wastepaper) { /*彻底删除 从回收站移除*/
-                    this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => i.id != this.$store.state.currentImage.id)
-                } else { //添加到回收站
-                    this.$store.state.currentImage.wastepaper = true
-                    this.$store.state.wastepaperPictureList.unshift(this.$store.state.currentImage)
-                }
-
-
-                let currentList = this.$store.state.currentImageList[this.currentIndex].images
-                let res = currentList.filter((i) => i.id != this.$store.state.currentImage.id)
-                //删除最后一张照片时清空该时间段照片
-                if (res.length == 0) {
-                    this.$store.state.currentImageList.splice(this.currentIndex, 1)
-                } else {
-                    this.$store.state.currentImageList[this.currentIndex].images = res
-                }
-
-                this.$store.state.currentImage = res[index - 1 < 0 ? 0 : index - 1]
-                let currentImageUrlList = res.map(x => x.url);
-                /*
-                /!*不能直接置空 不然又出现不显示大图*!/
-                */
-                /*轮播图的变化移动数组*/
-                this.$store.state.currentImageUrlList = [...currentImageUrlList.slice(index - 1), ...currentImageUrlList.slice(0, index - 1)]
-                if (this.$store.state.currentImageUrlList.length == 0) {
-                    this.imageInfo = false
-                    this.removeIcons = false
-                }
-                /*todo 解决删除最后一张图片时的bug*/
-                if (index == this.$store.state.currentImageUrlList.length) {
-                    /*手动调用点击图片也无法解决*/
-                    /*this.imageClick(this.$store.state.currentImage, res, index - 1)*/
-                    /*只能手动关闭图片信息的显示*/
-                    this.imageInfo = false
-                    this.removeIcons = false
-                }
-            },
-            /*批量移动图片到回收站 或彻底删除*/
-            deleteImageBatch() {
-                let ids = this.checkedImages.map(x => x.id)
-                let checkedImages = this.checkedImages // 为异步操作保存当前值
-                /*重新请求数据 避免繁琐的判断和调整*/
-                this.https.deleteImageBatch(ids).then(({data}) => {
-                    let addImageToRecyleBin = true
-                    let dayImages = []
-                    console.log(this.$store.state.currentNoteBook.id == 10 ? "彻底删除图片":"批量移动图片到回收站", data);
-
-
-                    if (this.$store.state.currentNoteBook.id == 10) {  //回收站下的批量删除
-                        this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => ids.indexOf(i.id) == -1)
-                        dayImages = this.$store.state.wastepaperPictureList
-                        addImageToRecyleBin = false
-                    }else {
-                        this.$store.state.fileList = data.data; // 进入的笔记本列表数据
-                        this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
-                    }
-
-                    // 全部图片和收藏图片下的批量删除
-                    /*重新初始化当前图片列表*/
-                    if (this.$store.state.currentNoteBook.id == 8) {
-                        dayImages = this.$store.state.fileList
-                    } else if (this.$store.state.currentNoteBook.id == 9) {
-                        dayImages = this.$store.state.starImageList
-                    }
-
-                    dayImages = this.tool.groupImages("day", dayImages)
-                    this.$store.state.currentImageList = dayImages
-
-                    /*2.将照片加入到回收站回收站*/
-                    if (addImageToRecyleBin) {
-                        checkedImages = checkedImages.map(x => {
-                            x.wastepaper = true
-                            return x
-                        })
-                        this.$store.state.wastepaperPictureList.unshift(...checkedImages)
-                    }
-                })
-            },
             fileClick(imageList, index) {
                 /*页面显示*/
                 // console.log(imageList)

@@ -213,6 +213,7 @@ public class PictureController {
         }.start();
     }
 
+    /*批量移入到回收站或者从回收站彻底删除*/
     @PostMapping("/deleteImageBatch")
     public String deleteImageBatch(@RequestBody Object jsonpictureArrayList) {
         boolean update = false;
@@ -246,7 +247,8 @@ public class PictureController {
                 if (!isLogicalDelete) {
                     return ResultUtil.errorWithMessage("批量删除更新失败");
                 }
-            } else { // 状态修改
+            }
+            else { // 状态修改
                 // 2.更新 noteBook的数量
            /* isUpdateNoteBookCountSucceed = updateNoteCountWrapper(note.getPid(), -1);
             note.setWastepaper(true);
