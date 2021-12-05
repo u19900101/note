@@ -172,7 +172,7 @@
                     case 'wastePaper':
                         this.initCurrentNoteListByName("wastepaperNotesList", 2);
                         break; /*'废纸篓' */
-                    case 'images':
+                    case 'images': /*todo 优化结构*/
                         this.$store.state.fileMode = true
                         this.$store.state.listAndNoteShow = false
                         // this.$store.state.currentNoteList =  this.$store.state.fileList
@@ -183,6 +183,11 @@
                         this.$store.state.listAndNoteShow = false
                         // this.$store.state.currentNoteList =  this.$store.state.fileList
                         this.initCurrentNoteListByName("fileList", 9);
+                        break; /* 收藏的图片 */
+                    case 'tagImages':
+                        console.log('tagImages ...')
+                        // this.$store.state.currentNoteList =  this.$store.state.fileList
+                        // this.initCurrentNoteListByName("fileList", 9);
                         break; /* 收藏的图片 */
                     case 'recycleBin':
                         this.$store.state.fileMode = true
@@ -196,8 +201,11 @@
                         let firstLevelTitle = this.getfirstLevelTitle(node)
                         if (firstLevelTitle == '笔记本') {
                             this.initCurrentNoteListByName("noteBookNameId", data.id);
-                        } else {
+                        } else if (firstLevelTitle == '标签'){
                             this.initTagNotesListByTagNode(data)
+                        }else if (firstLevelTitle == '图片标签'){
+
+                            this.initImageListByTagNode(data)
                         }
 
                 }
@@ -432,9 +440,29 @@
                 res.push(treeNode.id)
 
             },
+            /*初始化 图片列表 */
+            initImageListByTagNode(tagNodeData) {
+                /*视图控制*/
+                this.$store.state.fileMode = true
+                this.$store.state.listAndNoteShow = false
+
+                let dayImages = this.tool.groupImages("day", this.getImageListByTagNode(tagNodeData))
+                this.$store.state.currentImageList = dayImages
+
+
+                /*3.初始化 currentNote currentNoteBook*/
+                if (this.$store.state.currentImageList.length > 0) {
+                    this.$store.state.currentImage = this.$store.state.currentImageList[0].images[0]
+                    this.$store.state.currentIndex = 0
+                }
+                /*给title去掉括号*/
+                let title = tagNodeData.title.split(' ')[0]
+                this.$store.state.currentNoteBook = {title: title}
+            },
+
             initTagNotesListByTagNode(tagNodeData) {
                 /*3.初始化 currentNoteList */
-                this.$store.state.currentNoteList = this.getNoteListByTagNode(tagNodeData)
+                this.$store.state.currentNoteList = this.getImageListByTagNode(tagNodeData)
 
                 /*3.初始化 currentNote currentNoteBook*/
                 if (this.$store.state.currentNoteList.length > 0) {
@@ -453,13 +481,13 @@
                     })
                 }
             },
-            getNoteListByTagNode(tagNodeData) {
+            getImageListByTagNode(tagNodeData) {
                 /*1.查找当前标签的所有子标签*/
                 let tagIds = []
                 this.getTagChildrenIds(tagIds, tagNodeData)
 
                 /*2.找到 包含tagIds 的所有笔记*/
-                return this.$store.state.notes.filter((n) => {
+                return this.$store.state.fileList.filter((n) => {
                     /*判断两者的tagList是否有交集*/
                     if (n.tagList.length > 0) {
                         let resIds = n.tagList.filter(function (v) {
@@ -529,6 +557,12 @@
                         {
                             id: 'starImages',
                             title: '我的收藏 (' + this.$store.state.starImageList.length + ')'
+                        },
+                        /*图片标签*/
+                        {
+                            id: 'imageTags',
+                            title: '图片标签',
+                            children: this.$store.state.imageTagsTree
                         },
                         /*图片和视频*/
                         {

@@ -142,6 +142,9 @@ export function recoverSelectedPictures(data) {
     return vm.post('/api/admin/file/recoverSelectedPictures',data)
 }
 
+export function getImageTags() {
+    return vm.get('/api/admin/imageTag/getImageTags')
+}
 
 
 
@@ -172,10 +175,10 @@ export default {
             deleteTag,
             getTagsTree,
             /*file*/
-            getFiles,
+            getFiles,getImageTags,getWastepaperPictureList,
             updateImage,
             deleteImage,
-            getWastepaperPictureList,recoverAllPictures,recoverSelectedPictures,deleteImageBatch
+            recoverAllPictures,recoverSelectedPictures,deleteImageBatch
         }
     }
 }

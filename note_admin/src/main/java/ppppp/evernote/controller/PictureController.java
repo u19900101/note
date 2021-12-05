@@ -12,10 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ppppp.evernote.entity.*;
 import ppppp.evernote.mapper.PictureMapper;
-import ppppp.evernote.service.NotebookService;
-import ppppp.evernote.service.PictureService;
-import ppppp.evernote.service.SortWayService;
-import ppppp.evernote.service.TagService;
+import ppppp.evernote.service.*;
 import ppppp.evernote.util.MyUtils;
 import ppppp.evernote.util.ResultUtil;
 import ppppp.evernote.util.ftp.sftp;
@@ -32,6 +29,8 @@ import static ppppp.evernote.util.RequestUtils.sendGetRequest;
 import static ppppp.evernote.util.ftp.sftp.deleteFiles;
 
 /**
+ * 文件上传
+ *
  * @author lppppp
  * @create 2021-02-01 10:36
  */
@@ -49,26 +48,17 @@ public class PictureController {
     @Autowired
     NotebookService notebookService;
     @Autowired
+    ImageTagService imageTagService;
+    @Autowired
     PictureMapper pictureMapper;
 
-    /*文件上传*/
+    /*获取所有文件*/
     @RequestMapping("/allFiles")
     public String getAllPictures() {
         List<Picture> pictureListList = getSortWayNotes();
         /*给照片封装标签数据*/
         fillPictureListList(pictureListList);
         return ResultUtil.successWithData(pictureListList);
-    }
-
-    private void fillPictureListList(List<Picture> pictureListList) {
-        for (Picture picture : pictureListList) {
-            if (picture.getTagUid() != null && picture.getTagUid().length() > 1) {
-                for (String tagId : picture.getTagUid().split(",")) {
-                    Tag tag = tagService.getById(tagId);
-                    picture.getTagList().add(tag);
-                }
-            }
-        }
     }
 
     /*获取回收站的图片*/
@@ -81,6 +71,7 @@ public class PictureController {
         }
         return ResultUtil.successWithData(pictureListList);
     }
+
 
     // 恢复所有回收站中的照片
     @PostMapping("/recoverAllPictures")
@@ -106,7 +97,7 @@ public class PictureController {
         return ResultUtil.errorWithMessage("失败 恢复所有回收站中的照片");
     }
 
-    // 1.更新图片收藏 2.  3.
+    // 更新  1.收藏 2.名称  3.标签
     @PostMapping("/update")
     public String updateImage(@RequestBody Picture picture) {
         picture.setUpdateTime(new Date());
@@ -114,19 +105,6 @@ public class PictureController {
         return ResultUtil.successWithData(updateById);
     }
 
-    private List<Picture> getSortWayNotes() {
-        // 根据sortway中的排序字段进行查询
-        Sortway sortway = sortWayService.getById(1);
-        List<Picture> pictureList = null;
-
-        //逆序
-        if (sortway.getReverse()) {
-            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getCreateTime).list(); /*last("limit 10").*/
-        } else {
-            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByAsc(Picture::getCreateTime).list();
-        }
-        return pictureList;
-    }
 
     /*每张照片都发送一次请求上传*/
     @PostMapping("/uploadFileAndInsert")
@@ -184,9 +162,9 @@ public class PictureController {
         if (picture.getWastepaper()) {
             //  逻辑删除
             isLogicalDelete = pictureService.removeById(picture.getId());
-            if(isLogicalDelete){ //在服务器上进行删除 http://lpgogo.top/img/2016-08-16/2.jpg
+            if (isLogicalDelete) { //在服务器上进行删除 http://lpgogo.top/img/2016-08-16/2.jpg
                 ArrayList<String> stringArrayList = new ArrayList<>();
-                stringArrayList.add(picture.getUrl().replace("http://lpgogo.top/img/",""));
+                stringArrayList.add(picture.getUrl().replace("http://lpgogo.top/img/", ""));
                 deleteImageFromServer(stringArrayList);
             }
             // 修改废纸篓的数量 -1
@@ -251,14 +229,13 @@ public class PictureController {
                 //  逻辑删除
                 isLogicalDelete = pictureService.removeById(picture.getId());
 
-                removeImagesPathList.add(picture.getUrl().replace("http://lpgogo.top/img/",""));
+                removeImagesPathList.add(picture.getUrl().replace("http://lpgogo.top/img/", ""));
                 // 修改废纸篓的数量 -1
                 isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - 1));
                 if (!isLogicalDelete) {
                     return ResultUtil.errorWithMessage("批量删除更新失败");
                 }
-            }
-            else { // 状态修改
+            } else { // 状态修改
                 // 2.更新 noteBook的数量
            /* isUpdateNoteBookCountSucceed = updateNoteCountWrapper(note.getPid(), -1);
             note.setWastepaper(true);
@@ -276,11 +253,36 @@ public class PictureController {
         }*/
 
         }
-        if(isLogicalDelete){
+        if (isLogicalDelete) {
             deleteImageFromServer(removeImagesPathList);
             return ResultUtil.successWithMessage("彻底删除成功");
         }
         return getAllPictures();
+    }
+
+    private void fillPictureListList(List<Picture> pictureListList) {
+        for (Picture picture : pictureListList) {
+            if (picture.getTagUid() != null && picture.getTagUid().length() > 1) {
+                for (String tagId : picture.getTagUid().split(",")) {
+                    Tag tag = tagService.getById(tagId);
+                    picture.getTagList().add(tag);
+                }
+            }
+        }
+    }
+
+    private List<Picture> getSortWayNotes() {
+        // 根据sortway中的排序字段进行查询
+        Sortway sortway = sortWayService.getById(1);
+        List<Picture> pictureList = null;
+
+        //逆序
+        if (sortway.getReverse()) {
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getCreateTime).list(); /*last("limit 10").*/
+        } else {
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByAsc(Picture::getCreateTime).list();
+        }
+        return pictureList;
     }
 
     private void execUpload(MultipartHttpServletRequest request) throws Exception {

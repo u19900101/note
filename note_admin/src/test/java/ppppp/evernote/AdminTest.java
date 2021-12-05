@@ -6,15 +6,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import ppppp.evernote.entity.Note;
-import ppppp.evernote.entity.Notebook;
-import ppppp.evernote.entity.Picture;
-import ppppp.evernote.entity.Tag;
+import ppppp.evernote.entity.*;
 import ppppp.evernote.mapper.NoteMapper;
-import ppppp.evernote.service.NoteService;
-import ppppp.evernote.service.NotebookService;
-import ppppp.evernote.service.PictureService;
-import ppppp.evernote.service.TagService;
+import ppppp.evernote.service.*;
 import ppppp.evernote.util.ResultUtil;
 
 import java.util.Date;
@@ -32,6 +26,13 @@ public class AdminTest {
     @Autowired
     private PictureService pictureService;
 
+    @Autowired
+    ImageTagService imageTagService;
+    @Test
+    public void T_imageTagService(){
+        List<ImageTag> list = imageTagService.lambdaQuery().list();
+        System.out.println(list);
+    }
     @Test  /*lambdaQuery 会查询出逻辑删除*/
     public void 交换pic经纬度(){
         List<Picture> all = pictureService.lambdaQuery().list();

@@ -44,6 +44,7 @@
     import noteNav from "./Nav";
     import noteBook_tag from "./NoteBook_Tag";
     import imageList from "./ImageList";
+    import {getImageTags} from "../server";
 
     export default {
         name: 'home',
@@ -94,6 +95,14 @@
 
                     this.https.getWastepaperPictureList().then(({data}) => {
                         this.$store.state.wastepaperPictureList = data.data
+                    })
+
+                    this.https.getImageTags().then(({data}) => {
+                        this.$store.state.imageTagsTree = data.data[0]
+                        this.$store.state.imageTags = data.data[1]
+                        /* 将标签数据 封装上笔记的数量*/
+                        this.$store.state.imageTreePure = JSON.parse(JSON.stringify(data.data[0]));
+                        this.tool.addNoteCount(this.$store.state.imageTagsTree)
                     })
 
                 }).then(() => {
