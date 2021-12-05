@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import ppppp.evernote.entity.Notebook;
-import ppppp.evernote.entity.Picture;
-import ppppp.evernote.entity.Sortway;
-import ppppp.evernote.entity.Tag;
+import ppppp.evernote.entity.*;
 import ppppp.evernote.mapper.PictureMapper;
 import ppppp.evernote.service.NotebookService;
 import ppppp.evernote.service.PictureService;
@@ -58,9 +55,22 @@ public class PictureController {
     @RequestMapping("/allFiles")
     public String getAllPictures() {
         List<Picture> pictureListList = getSortWayNotes();
-        // fillNoteList(noteList);
+        /*给照片封装标签数据*/
+        fillPictureListList(pictureListList);
         return ResultUtil.successWithData(pictureListList);
     }
+
+    private void fillPictureListList(List<Picture> pictureListList) {
+        for (Picture picture : pictureListList) {
+            if (picture.getTagUid() != null && picture.getTagUid().length() > 1) {
+                for (String tagId : picture.getTagUid().split(",")) {
+                    Tag tag = tagService.getById(tagId);
+                    picture.getTagList().add(tag);
+                }
+            }
+        }
+    }
+
     /*获取回收站的图片*/
     @RequestMapping("/getWastepaperPictureList")
     public String getWastepaperPictureList() {

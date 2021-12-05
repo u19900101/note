@@ -3,35 +3,39 @@
     <el-container>
         <el-header style="margin: 10px 0px 2px 0px">
             <!--当前大图详细信息的显示-->
-            <div v-if="imageInfo" class="imgInfo">
-                <!--拍摄日期 -->
-                <div class="imgTime">
-                    <el-date-picker
-                            style="color: #1d9351"
-                            v-model="createTime"
-                            editable
-                            type="datetime"
-                            placeholder="选择日期时间"
-                            :default-time="createTime.split(' ')[0]">
-                    </el-date-picker>
+            <div v-if="imageInfo">
+                <!--拍摄日期、图片名称、位置-->
+                <div  class="imgInfo">
+                    <!--拍摄日期 -->
+                    <div class="imgTime">
+                        <el-date-picker
+                                style="color: #1d9351"
+                                v-model="createTime"
+                                editable
+                                type="datetime"
+                                placeholder="选择日期时间"
+                                :default-time="createTime.split(' ')[0]">
+                        </el-date-picker>
+                    </div>
+                    <!--图片名称-->
+                    <el-input clearable v-model="imageName" style="width: 182px" placeholder="请输入名称">
+                        <template slot="append">.{{$store.state.currentImage.title.split(".")[1]}}</template>
+                    </el-input>
+                    <!--位置-->
+                    <div class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
+                         v-if="$store.state.currentImage.location">
+                        <i class="el-icon-location"></i>
+                        <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
+                           style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
+                    </div>
+
                 </div>
-                <!--图片名称-->
-                <el-input clearable v-model="imageName" style="width: 182px" placeholder="请输入名称">
-                    <template slot="append">.{{$store.state.currentImage.title.split(".")[1]}}</template>
-                </el-input>
-                <!--大小、位置、尺寸-->
-                <div class="info" :style="{width: getBt($store.state.currentImage.size.toString()) + 'px'}">
-                    {{getImgageSize($store.state.currentImage.size)}}
+                <!--大小、宽高-->
+                <div class="imgInfoRightBottom">
+                    <strong>{{getImgageSize($store.state.currentImage.size)}}</strong> {{$store.state.currentImage.widthH}}
                 </div>
-                <div class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
-                     v-if="$store.state.currentImage.location">
-                    <i class="el-icon-location"></i>
-                    <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
-                       style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
-                </div>
-                <div class="info" :style="{width: getBt($store.state.currentImage.widthH) + 'px'}">
-                    {{$store.state.currentImage.widthH}}
-                </div>
+                <!--标签-->
+                <imageTag class="imgTag" ref="noteTag"></imageTag>
             </div>
 
             <!--年月日 大中小 视图-->
@@ -72,16 +76,6 @@
                     <i class="el-icon-delete" style="font-size: 25px"></i>
                 </el-button>
 
-                <!--批量收藏-->
-                <el-button @click="clearPictures" size="mini"
-                           style="margin-left: 10px;padding: 0px">
-                    <i class="iconfont icon-like1" style="color: red;font-size: 25px"></i>
-                </el-button>
-                <!--批量取消收藏-->
-                <el-button @click="clearPictures" size="mini"
-                           style="margin-left: 10px;padding: 0px">
-                    <i class="iconfont icon-like" style="font-size: 23px"></i>
-                </el-button>
             </div>
 
             <div class="imageTitle" style="left: 50%">
@@ -170,12 +164,13 @@
 
 <script>
     import cascader from "./Cascader";
+    import imageTag from "./ImageTag";
 
     let dayjs = require('dayjs');
     export default {
         name: "ImageList",
         components: {
-            cascader
+            cascader,imageTag
         },
         data() {
             return {
@@ -634,12 +629,12 @@
             getImgageSize(byteNum) {
                 if (byteNum < 1024 * 1024) {
                     let kb = (byteNum / 1024).toString()
-                    return kb.substring(0, kb.indexOf(".") + 2) + "kb"
+                    return kb.substring(0, kb.indexOf(".") + 2) + " Kb"
                 }
 
                 if (byteNum >= 1024 * 1024) {
                     let kb = (byteNum / 1024 / 1024).toString()
-                    return kb.substring(0, kb.indexOf(".") + 2) + "Mb"
+                    return kb.substring(0, kb.indexOf(".") + 2) + " Mb"
                 }
             },
             /*控制列表颜色*/
@@ -764,6 +759,26 @@
         z-index: 2001;
         left: 21px;
         top: 40px;
+    }
+
+    .imgTag {
+        display: flex;
+        position: absolute;
+        z-index: 2001;
+        left: 21px;
+        top: 5px;
+    }
+
+    /*图片宽高和大小信息*/
+    .imgInfoRightBottom {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        position: absolute;
+        z-index: 2001;
+        right: 10px;
+        bottom: 40px;
+        font-size: 10px;
     }
 
     .imageTitle {

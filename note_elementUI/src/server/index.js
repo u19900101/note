@@ -12,7 +12,7 @@ const vm = axios.create({
 });
 
 /*
-* http://admin.note.com/api/admin/sortWay/allSortWay
+* http://lpgogo.top/api/admin/sortWay/allSortWay
 * */
 /**笔记本*/
 export function getNotebooks() {
