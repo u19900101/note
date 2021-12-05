@@ -264,7 +264,7 @@ public class PictureController {
         for (Picture picture : pictureListList) {
             if (picture.getTagUid() != null && picture.getTagUid().length() > 1) {
                 for (String tagId : picture.getTagUid().split(",")) {
-                    Tag tag = tagService.getById(tagId);
+                    ImageTag tag = imageTagService.getById(tagId);
                     picture.getTagList().add(tag);
                 }
             }

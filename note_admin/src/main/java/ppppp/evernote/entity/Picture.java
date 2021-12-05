@@ -49,6 +49,6 @@ public class Picture implements Serializable {
     private Long size;
     @TableField(exist = false)
     // 解决初始化赋值时为null
-    private List<Tag> tagList = new ArrayList<>();
+    private List<ImageTag> tagList = new ArrayList<>();
 
 }

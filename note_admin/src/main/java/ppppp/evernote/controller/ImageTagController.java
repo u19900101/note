@@ -50,8 +50,8 @@ public class ImageTagController {
     }
 
     // 新建笔记
-    @PostMapping("/insert")
-    public String insertTag(@RequestBody ImageTag tag) {
+    @PostMapping("/insertImageTag")
+    public String insertImageTag(@RequestBody ImageTag tag) {
         // 设置修改时间为当前时间
         tag.setCreateTime(new Date());
         /*找到最大sort值赋值给新的tag，不然会出现新建多个tag后无法有效记录排序*/
@@ -104,8 +104,8 @@ public class ImageTagController {
     }
 
 
-    @PostMapping("/updateTag")
-    public String updateTag(@RequestBody HashMap obj) {
+    @PostMapping("/updateImageTags")
+    public String updateImageTags(@RequestBody HashMap obj) {
         Integer currentId = (Integer) obj.get("currentId");
         ImageTag tag = imageTagService.getById(currentId);
         tag.setUpdateTime(new Date());//设置更新时间

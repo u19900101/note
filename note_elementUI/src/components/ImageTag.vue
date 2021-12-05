@@ -21,7 +21,6 @@
                 placeholder="请输入内容"
                 @blur="inputBlur"
                 @select="handleSelect"
-                @scroll="mousewheel"
                 popper-append-to-body
                 @keyup.enter.native="handleInputConfirm"
         ></el-autocomplete>

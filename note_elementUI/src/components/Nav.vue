@@ -29,7 +29,7 @@
                         <!-- 动态设置一级标题和子节点的字体大小-->
                         <!--不能对 node在此处实行插值查看-->
                         <!--右键修改笔记本名称   -->
-                         <div v-if=data.isEdit @click.stop class="editNoteBookName">
+                         <div v-if="data.isEdit" @click.stop class="editNoteBookName">
                               <input v-focus
                                      v-model=data.title
                                      @blur.stop="NodeBlur(node, data)"
@@ -54,7 +54,7 @@
 
 <script>
     import borderLine from "./BorderLine";
-    import {getNoteBooksTree} from "../server";
+    import {getNoteBooksTree, updateImageTags} from "../server";
 
     export default {
         name: "tree",
@@ -92,52 +92,64 @@
                     this.exeWidthChange(this.navWidth)
                 }
             },
-            exeWidthChange(navWidth){
+            exeWidthChange(navWidth) {
                 this.lastTime = setTimeout(() => {
                     this.https.updateSortWay({id: 1, navWidth: navWidth}).then(({data}) => {
                         console.log(data)
                     })
                 }, 2000)
             },
-            /*
-            * event、传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
+            /* event、传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
             handleNodeContextmenu(e, data, node) {
                 console.log('右键点击了节点', node.data.title)
                 /*响应式的设置属性*/
                 this.noteCountTemp = data.title.split(" ")[1]
-                this.$set(data, 'title', data.title.split(" ")[0])
-                this.$set(data, 'isEdit', true)
+                data.title = data.title.split(" ")[0]
+                data.isEdit = true
             },
 
+            /*节点失去焦点时  修改节点名称*/
             NodeBlur(node, data) {
+                console.log(data.title, ' 节点失去焦点')
                 if (data.isEdit) {
-                    this.$set(data, 'isEdit', false)
+                    data.isEdit = false
                     let title = data.title
                     let currentId = data.id
-                    this.$set(data, 'title', title + " " + this.noteCountTemp)
-
-                    /*名称修改*/
+                    data.title = title + " " + this.noteCountTemp
+                    let target
                     /*区分是 点击的是笔记本 还是 标签*/
                     let firstLevelTitle = this.getfirstLevelTitle(node)
-
-                    if (firstLevelTitle == '笔记本') {
-                        this.https.updateNotebook({currentId: currentId, title:title}).then(({data}) => {
-                            console.log('更新笔记本名称成功', data)
-                            /*更新tree*/
-                            let currentNoteBook = this.getTagNodeDataById(currentId, this.$store.state.noteBooksTree)
-                            currentNoteBook.title = currentNoteBook.title.replace(currentNoteBook.title.split(" ")[0], title)
-                            /*更新noteBooks*/
-                            this.$store.state.noteBooks.filter((n) => n.id == currentId)[0].title = title
-                        })
-                    } else { /*标签名称修改*/
-                        this.https.updateTag({currentId: currentId, title: title}).then(({data}) => {
-                            /*更新Tag tree*/
-                            console.log('更新标签名称成功', data)
-                            let currentTag = this.getTagNodeDataById(currentId, this.$store.state.tagsTree)
-                            currentTag.title = currentTag.title.replace(currentTag.title.split(" ")[0], title)
-                            /*更新tags*/
-                            this.$store.state.tags.filter((n) => n.id == data.id)[0].title = title
-                        })
+                    switch (firstLevelTitle) {
+                        case  '笔记本':
+                            target = this.$store.state.noteBooks.filter((t) => t.id == currentId)[0].title;
+                            if (target != title) {
+                                this.https.updateNotebook({currentId: currentId, title: title}).then(({data}) => {
+                                    console.log('更新笔记本名称成功', data)
+                                    /*更新noteBooks*/
+                                    this.$store.state.noteBooks.filter((n) => n.id == currentId)[0].title = title
+                                })
+                            }
+                            break;
+                        case  '标签':
+                            target = this.$store.state.tags.filter((t) => t.id == currentId)[0].title;
+                            if (target != title) {
+                                this.https.updateTag({currentId: currentId, title: title}).then(({data}) => {
+                                    /*更新Tag tree*/
+                                    console.log('更新标签名称成功', data)
+                                    /*更新tags*/
+                                    this.$store.state.tags.filter((n) => n.id == currentId)[0].title = title
+                                })
+                            }
+                            break;
+                        case  '图片标签':
+                            target = this.$store.state.imageTags.filter((t) => t.id == currentId)[0].title;
+                            this.https.updateImageTags({currentId: currentId, title: title}).then(({data}) => {
+                                /*更新Tag tree*/
+                                console.log('更新图片标签名称成功', data)
+                                /*更新tags*/
+                                this.$store.state.imageTags.filter((n) => n.id == currentId)[0].title = title
+                            })
+                            break;
                     }
                 }
             },
@@ -201,10 +213,10 @@
                         let firstLevelTitle = this.getfirstLevelTitle(node)
                         if (firstLevelTitle == '笔记本') {
                             this.initCurrentNoteListByName("noteBookNameId", data.id);
-                        } else if (firstLevelTitle == '标签'){
+                        } else if (firstLevelTitle == '标签') {
                             this.initTagNotesListByTagNode(data)
-                        }else if (firstLevelTitle == '图片标签'){
-
+                        } else if (firstLevelTitle == '图片标签') {
+                            this.$store.state.currentImageUrlList = [1, 2, 3]
                             this.initImageListByTagNode(data)
                         }
 
@@ -249,19 +261,25 @@
                     this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
                     this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
                 } else { //其他一级标题  如 wastepaperNotesList
-                    if(noteBookId == 8 || noteBookId == 9 || noteBookId == 10){
+                    if (noteBookId == 8 || noteBookId == 9 || noteBookId == 10) {
                         let dayImages = []
                         switch (noteBookId) {
-                            case 8:dayImages = this.$store.state.fileList;break;
-                            case 9:dayImages = this.$store.state.starImageList;break;
-                            case 10:dayImages = this.$store.state.wastepaperPictureList;break;
+                            case 8:
+                                dayImages = this.$store.state.fileList;
+                                break;
+                            case 9:
+                                dayImages = this.$store.state.starImageList;
+                                break;
+                            case 10:
+                                dayImages = this.$store.state.wastepaperPictureList;
+                                break;
                         }
 
                         dayImages = this.tool.groupImages("day", dayImages)
                         this.$store.state.currentImageList = dayImages
                         /*初始化预览 给占个位 不然第一次点击时不出现大图*/
-                        this.$store.state.currentImageUrlList = [1,2,3]
-                    }else {
+                        this.$store.state.currentImageUrlList = [1, 2, 3]
+                    } else {
                         this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
                         this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
                     }
@@ -462,7 +480,7 @@
 
             initTagNotesListByTagNode(tagNodeData) {
                 /*3.初始化 currentNoteList */
-                this.$store.state.currentNoteList = this.getImageListByTagNode(tagNodeData)
+                this.$store.state.currentNoteList = this.getNoteListByTagNode(tagNodeData)
 
                 /*3.初始化 currentNote currentNoteBook*/
                 if (this.$store.state.currentNoteList.length > 0) {
@@ -481,13 +499,13 @@
                     })
                 }
             },
-            getImageListByTagNode(tagNodeData) {
+            getNoteListByTagNode(tagNodeData) {
                 /*1.查找当前标签的所有子标签*/
                 let tagIds = []
                 this.getTagChildrenIds(tagIds, tagNodeData)
 
                 /*2.找到 包含tagIds 的所有笔记*/
-                return this.$store.state.fileList.filter((n) => {
+                return this.$store.state.notes.filter((n) => {
                     /*判断两者的tagList是否有交集*/
                     if (n.tagList.length > 0) {
                         let resIds = n.tagList.filter(function (v) {
@@ -497,6 +515,25 @@
                     }
                     return false
                 })
+            },
+            getImageListByTagNode(tagNodeData) {
+                /*1.查找当前标签的所有子标签*/
+                let tagIds = []
+                this.getTagChildrenIds(tagIds, tagNodeData)
+
+                /*2.找到 包含tagIds 的所有笔记*/
+                let res = this.$store.state.fileList.filter((n) => {
+                    /*判断两者的tagList是否有交集*/
+                    if (n.tagList.length > 0) {
+                        let resIds = n.tagList.filter((v) => {
+                                return tagIds.indexOf(v.id) != -1
+                            }
+                        )
+                        return resIds.length > 0
+                    }
+                    return false
+                })
+                return res
             },
 
             getTagNodeDataById(tagId, tagTreeData) {

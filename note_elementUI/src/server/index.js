@@ -146,6 +146,14 @@ export function getImageTags() {
     return vm.get('/api/admin/imageTag/getImageTags')
 }
 
+export function updateImageTags(data) {
+    return vm.post('/api/admin/imageTag/updateImageTags',data)
+}
+
+export function insertImageTag(data) {
+    return vm.post('/api/admin/imageTag/insertImageTag',data)
+}
+
 
 
 export default {
@@ -175,8 +183,9 @@ export default {
             deleteTag,
             getTagsTree,
             /*file*/
+            insertImageTag,
             getFiles,getImageTags,getWastepaperPictureList,
-            updateImage,
+            updateImage,updateImageTags,
             deleteImage,
             recoverAllPictures,recoverSelectedPictures,deleteImageBatch
         }
