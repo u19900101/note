@@ -49,7 +49,7 @@ public class ImageTagController {
         return tagTree;
     }
 
-    // 新建笔记
+    // 新建
     @PostMapping("/insertImageTag")
     public String insertImageTag(@RequestBody ImageTag tag) {
         // 设置修改时间为当前时间
@@ -59,6 +59,7 @@ public class ImageTagController {
         tag.setSort(maxSortTag.getSort() + 1);
         imageTagService.save(tag);
         ImageTag newTag = imageTagService.getById(tag.getId());
+
         return ResultUtil.successWithData(newTag);
     }
 

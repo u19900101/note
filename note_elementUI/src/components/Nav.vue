@@ -30,13 +30,13 @@
                         <!-- 动态设置一级标题和子节点的字体大小-->
                         <!--不能对 node在此处实行插值查看-->
                         <!--右键修改笔记本名称   -->
-                         <div v-if="data.isEdit" @click.stop class="editNoteBookName">
+                         <div v-if="node.data.isEdit" @click.stop class="editNoteBookName">
                               <input v-focus
-                                     v-model=data.title
+                                     v-model=node.data.title
                                      @blur.stop="NodeBlur(node, data)"
                                      @keyup.enter="NodeBlur(node, data)"
                                      size="small"
-                              ></input>
+                                     placeholder="请输入名称"></input>
                          </div>
                          <span v-else :style="{'font-size': node.level == 1 ? '20px':'14px'}" style="margin-left: 5px">{{ data.title }}</span>
                     </span>
@@ -44,7 +44,7 @@
             </el-scrollbar>
         </el-aside>
         <!--右键菜单-->
-        <div v-if="showContextmenu"
+        <div v-show="showContextmenu"
              @mouseleave="menuMouseLeave = true"
              @mouseenter="menuMouseLeave = false"
              :style="{left:menuLeft + 'px',top:menuTop + 'px'}" style="position: absolute;z-index: 2001">
@@ -54,15 +54,17 @@
                     background-color="#545c64"
                     text-color="#fff"
                     active-text-color="#ffd04b">
-                <el-menu-item index="2" @click="reNameNode">
+                <el-menu-item index="2" @click="reNameNode"
+                              :disabled="['noteBooks','allTags','tagImages'].indexOf(currentNode.data.id) != -1">
                     <i class="el-icon-edit"></i>
                     <span slot="title">重命名</span>
                 </el-menu-item>
-                <el-menu-item index="3" @click="deleteNode">
+                <el-menu-item index="3" @click="deleteNode"
+                              :disabled="['noteBooks','allTags','tagImages'].indexOf(currentNode.data.id) != -1">
                     <i class="el-icon-delete"></i>
                     <span slot="title">删除</span>
                 </el-menu-item>
-                <el-menu-item index="4">
+                <el-menu-item index="4" @click="addChildNode">
                     <i class="el-icon-folder-add"></i>
                     <span slot="title">添加子项目</span>
                 </el-menu-item>
@@ -78,7 +80,8 @@
 <script>
     import borderLine from "./BorderLine";
     import {getNoteBooksTree, updateImageTags} from "../server";
-
+    /*深拷贝*/
+    let _ = require('lodash')
     export default {
         name: "tree",
         components: {
@@ -100,7 +103,7 @@
                 showContextmenu: false,// 右键显示菜单
                 menuLeft: 0, //菜单定位
                 menuTop: 0,
-                currentNodeData: {}, //当前节点的值
+                currentNode: {data: {id: -1}}, //当前节点
                 menuMouseLeave: true, //
                 expandedKeyId: '', //默认展开的节点id
                 currentFirstLevelNodeId: -1,//当前一级节点的id
@@ -129,17 +132,20 @@
                     })
                 }, 2000)
             },
-            /* event、传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
+            /* 右键  传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
             handleNodeContextmenu(e, data, node) {
-                console.log('右键点击了节点', node.data.title)
+                console.log('右键节点', node.data.id, node)
+                this.currentNode = node
+                /*右键节点同时展开该节点*/
+                this.expandedKeyId = node.data.id
+                /*手动展开当前节点*/
+                node.expanded = true
                 /*右键非一级节点时 显示右键菜单  增删改*/
-                if (node.level != 1) {
+                if (node.level != 1 || ['noteBooks', 'allTags', 'tagImages'].indexOf(node.data.id) != -1) {
                     let charL = data.title.replace(/[^\x00-\xff]/g, '**').length;
                     this.menuLeft = charL * 6 + 70 //菜单定位
                     this.menuTop = e.clientY + 168 < document.body.clientHeight ? e.clientY : document.body.clientHeight - 168 //菜单定位
                     this.showContextmenu = true
-                    this.currentNodeData = data
-
                     // 面板出现就开始监控鼠标按下  利用延时解决mousedown事件覆盖click事件
                     setTimeout(() => {
                         document.addEventListener('mousedown', this.mouseDown)
@@ -149,16 +155,14 @@
 
             /*删除节点*/
             deleteNode() {
-                console.log('currentNoteBook', this.$store.state.currentNoteBook.title)
-                console.log("delete", this.currentNodeData)
                 /*1.页面变化*/
                 /*获取当前被选中节点的 data，若没有节点被选中则返回 null*/
-                this.$refs.mytree.remove(this.currentNodeData)
+                this.$refs.mytree.remove(this.currentNode.data)
                 this.showContextmenu = false
                 /*2.修改数据库 返回imagetree 更新tree*/
-                let deleteTargetId = this.currentNodeData.id
+                let deleteTargetId = this.currentNode.data.id
                 /*删除笔记标签*/
-                if (this.currentFirstLevelNodeId  == 11) {
+                if (this.currentFirstLevelNodeId == 11) {
                     this.expandedKeyId = 'allTags'
                     this.https.deleteTag({id: deleteTargetId}).then(({data}) => {
                         /* 将标签数据 封装上笔记的数量*/
@@ -168,7 +172,7 @@
                         this.$store.state.tags = data.data[1];
                         this.tool.addNoteCount(this.$store.state.tagsTree)
                     })
-                }else if (this.currentFirstLevelNodeId == 12) {
+                } else if (this.currentFirstLevelNodeId == 12) {
                     this.expandedKeyId = 'tagImages'
                     this.https.deleteImageTag({id: deleteTargetId}).then(({data}) => {
                         /* 将标签数据 封装上笔记的数量*/
@@ -178,8 +182,7 @@
                         this.$store.state.imageTags = data.data[1];
                         this.tool.addNoteCount(this.$store.state.imageTagsTree)
                     })
-                }else
-                    if (this.currentFirstLevelNodeId == 13) {
+                } else if (this.currentFirstLevelNodeId == 13) {
                     this.expandedKeyId = 'noteBooks'
                     /*2.删除笔记本 将包含该 id的所有笔记都移动到废纸篓 同时删除该id对应的笔记本 */
                     this.https.deleteNotebook({id: deleteTargetId}).then(({data}) => {
@@ -206,9 +209,57 @@
             /*对节点重命名*/
             reNameNode() {
                 this.showContextmenu = false //隐藏菜单
-                this.noteCountTemp = this.currentNodeData.title.split(" ")[1]
-                this.currentNodeData.title = this.currentNodeData.title.split(" ")[0]
-                this.currentNodeData.isEdit = true
+                this.noteCountTemp = this.currentNode.data.title.split(" ")[1]
+                this.currentNode.data.title = this.currentNode.data.title.split(" ")[0]
+                this.currentNode.data.isEdit = true
+            },
+
+            /*添加子节点*/
+            addChildNode() {
+                let pid = this.currentNode.data.id
+                if (['noteBooks', 'allTags', 'tagImages'].indexOf(pid) != -1) {
+                    pid = 0
+                }
+
+                let firstLevelTitle = this.getfirstLevelTitle(this.currentNode)
+                switch (firstLevelTitle) {
+                    case  '笔记本':
+                        this.https.insertNoteBook({pid: pid, title: '', noteCount: 0}).then(({data}) => {
+                            let inputTag = data.data;
+                            /*要进行深拷贝*/
+                            this.$store.state.noteBooks.push(_.cloneDeep(inputTag));
+                            this.addChildNodeFunc(inputTag)
+                        })
+                        break;
+                    case  '标签':
+                        this.https.insertTag({pid: pid, title: '', noteCount: 0}).then(({data}) => {
+                            let inputTag = data.data;
+                            /*要进行深拷贝*/
+                            this.$store.state.tags.push(_.cloneDeep(inputTag));
+                            this.addChildNodeFunc(inputTag)
+                        })
+                        break;
+                    case  '图片标签':
+                        this.https.insertImageTag({pid: pid, title: '', noteCount: 0}).then(({data}) => {
+                            let inputTag = data.data;
+                            /*要进行深拷贝*/
+                            this.$store.state.imageTags.push(_.cloneDeep(inputTag));
+                            this.addChildNodeFunc(inputTag)
+                        })
+                        break;
+                }
+            },
+            addChildNodeFunc(inputTag) {
+                this.showContextmenu = false
+                this.$refs.mytree.append(inputTag, this.currentNode)
+                this.showContextmenu = false
+                this.noteCountTemp = '(0)'
+                inputTag.isEdit = true
+                this.currentNode = {data: inputTag}
+              /*  let node = this.$refs.mytree.getNode(inputTag)
+                node.parent.expanded = true
+                node.expanded = true
+                console.log(node)*/
             },
             // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
             mouseDown() {
@@ -223,15 +274,16 @@
             NodeBlur(node, data) {
                 console.log(data.title, ' 节点失去焦点')
                 if (data.isEdit) {
-                    data.isEdit = false
                     let title = data.title
                     let currentId = data.id
                     data.title = title + " " + this.noteCountTemp
+                    data.isEdit = false
                     let target
                     /*区分是 点击的是笔记本 还是 标签*/
                     let firstLevelTitle = this.getfirstLevelTitle(node)
                     switch (firstLevelTitle) {
                         case  '笔记本':
+                            /*判断标签内容是否发生了改变*/
                             target = this.$store.state.noteBooks.filter((t) => t.id == currentId)[0].title;
                             if (target != title) {
                                 this.https.updateNotebook({currentId: currentId, title: title}).then(({data}) => {
@@ -254,26 +306,29 @@
                             break;
                         case  '图片标签':
                             target = this.$store.state.imageTags.filter((t) => t.id == currentId)[0].title;
-                            this.https.updateImageTags({currentId: currentId, title: title}).then(({data}) => {
-                                /*更新Tag tree*/
-                                console.log('更新图片标签名称成功', data)
-                                /*更新tags*/
-                                this.$store.state.imageTags.filter((n) => n.id == currentId)[0].title = title
-                            })
+                            if (target != title) {
+                                this.https.updateImageTags({currentId: currentId, title: title}).then(({data}) => {
+                                    /*更新Tag tree*/
+                                    console.log('更新图片标签名称成功', data)
+                                    /*更新tags*/
+                                    this.$store.state.imageTags.filter((n) => n.id == currentId)[0].title = title
+                                })
+                            }
                             break;
                     }
                 }
             },
             /*节点展开*/
             handleNodeExpand(data, node, e) {
-                if(node.level == 1){
-                   if(node.data.id == "tagImages"){
-                       this.currentFirstLevelNodeId = 12
-                   }else if(node.data.id == "noteBooks"){
-                       this.currentFirstLevelNodeId = 13
-                   }else if(node.data.id == "allTags"){
-                       this.currentFirstLevelNodeId = 11
-                   }
+
+                if (node.level == 1) {
+                    if (node.data.id == "tagImages") {
+                        this.currentFirstLevelNodeId = 12
+                    } else if (node.data.id == "noteBooks") {
+                        this.currentFirstLevelNodeId = 13
+                    } else if (node.data.id == "allTags") {
+                        this.currentFirstLevelNodeId = 11
+                    }
                 }
             },
             /*节点点击  传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
@@ -334,7 +389,7 @@
                             this.initCurrentNoteListByName("noteBookNameId", data.id);
                         } else if (firstLevelTitle == '标签') {
                             this.initTagNotesListByTagNode(data)
-                        }else {
+                        } else {
                             this.$store.state.currentImageUrlList = [1, 2, 3]
                             this.initImageListByTagNode(data)
                         }
@@ -569,7 +624,7 @@
                 }
             },
             getChildrenNotes(treeNode, res) {
-                if (treeNode.children.length > 0) {
+                if (treeNode.children && treeNode.children.length > 0) {
                     treeNode.children.forEach((n) => {
                         this.getChildrenNotes(n, res)
                     })
@@ -611,7 +666,7 @@
             },
             getTagChildrenIds(tagIds, data) {
                 tagIds.push(data.id)
-                if (data.children.length > 0) {
+                if (data.children && data.children.length > 0) {
                     data.children.forEach((n) => {
                         this.getTagChildrenIds(tagIds, n)
                     })
