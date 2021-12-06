@@ -12,14 +12,12 @@
                             </span>
                             <el-button @click="clearAllWasteNotes" style="padding: 6px 7px;" size="mini" type="danger"
                                        round
-                                       v-if="$store.state.currentNoteBook.title == '废纸篓'"
-                            >
+                                       v-if="$store.state.currentNoteBook.title == '废纸篓'">
                                 清空
                             </el-button>
                             <el-button @click="recoverAllNote" style="padding: 6px 7px;" size="mini" type="primary"
                                        round
-                                       v-if="$store.state.currentNoteBook.title == '废纸篓'"
-                            >
+                                       v-if="$store.state.currentNoteBook.title == '废纸篓'">
                                 恢复
                             </el-button>
                             <el-button round style="padding: 6px 7px;" size="mini"
@@ -28,14 +26,6 @@
                                        @mouseenter.native="iconMouseLeave = false">
                                 <i class="el-icon-sort"></i>
                             </el-button>
-                        </el-col>
-
-
-                        <!--排序图标-->
-                        <el-col :span="8" style="text-align: right;">
-                            <div>
-
-                            </div>
                         </el-col>
                     </el-row>
 

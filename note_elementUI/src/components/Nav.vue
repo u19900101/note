@@ -43,7 +43,10 @@
             </el-scrollbar>
         </el-aside>
         <!--右键菜单-->
-        <div  v-if="showContextmenu" :style="{left:menuLeft + 'px',top:menuTop + 'px'}" style="position: absolute;z-index: 2001">
+        <div v-if="showContextmenu"
+             @mouseleave="menuMouseLeave = true"
+             @mouseenter="menuMouseLeave = false"
+             :style="{left:menuLeft + 'px',top:menuTop + 'px'}" style="position: absolute;z-index: 2001">
             <el-menu
                     default-active="2"
                     class="el-menu-vertical-demo"
@@ -52,7 +55,7 @@
                     active-text-color="#ffd04b">
                 <el-menu-item index="2">
                     <i class="el-icon-edit"></i>
-                    <span slot="title" @click="reNameNode">重命名</span>
+                    <span slot="title" @click.prevent="reNameNode">重命名</span>
                 </el-menu-item>
                 <el-menu-item index="3">
                     <i class="el-icon-delete"></i>
@@ -99,6 +102,7 @@
                 menuLeft: 0, //菜单定位
                 menuTop: 0,
                 currentNodeData: {}, //当前节点的值
+                menuMouseLeave: true, //
             };
         },
         methods: {
@@ -126,17 +130,31 @@
             },
             /* event、传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
             handleNodeContextmenu(e, data, node) {
-                console.log('右键点击了节点',  node.data.title)
-                /*显示右键菜单  增删改*/
+                console.log('右键点击了节点', node.data.title,)
+                /*右键非一级节点时 显示右键菜单  增删改*/
+                if (node.level != 1) {
+                    let charL = data.title.replace(/[^\x00-\xff]/g, '**').length;
+                    this.menuLeft = charL * 6 + 70 //菜单定位
+                    this.menuTop = e.clientY + 168 < document.body.clientHeight ? e.clientY : document.body.clientHeight - 168 //菜单定位
+                    this.showContextmenu = true
+                    this.currentNodeData = data
 
-                let charL = data.title.replace(/[^\x00-\xff]/g, '**').length;
-                this.menuLeft = charL*6 + 70 //菜单定位
-                this.menuTop = e.clientY + 168 < document.body.clientHeight ? e.clientY : document.body.clientHeight-168 //菜单定位
-                this.showContextmenu = true
-                this.currentNodeData = data
+                    // 面板出现就开始监控鼠标按下  利用延时解决mousedown事件覆盖click事件
+                    setTimeout(() => {
+                        document.addEventListener('mousedown', this.mouseDown)
+                    }, 200);
+                }
             },
 
-            reNameNode(){
+            // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
+            mouseDown() {
+                if (this.menuMouseLeave) {
+                    this.showContextmenu = false
+                    document.removeEventListener('mousedown', this.mouseDown)
+                }
+            },
+
+            reNameNode() {
                 this.showContextmenu = false //隐藏菜单
                 this.noteCountTemp = this.currentNodeData.title.split(" ")[1]
                 this.currentNodeData.title = this.currentNodeData.title.split(" ")[0]
@@ -673,6 +691,7 @@
         height: 40px !important;
         line-height: 40px !important;
     }
+
     .nav {
         background: #2a333c;
         height: 100%;
