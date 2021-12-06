@@ -1,27 +1,20 @@
 package ppppp.evernote.controller;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
 import org.springframework.web.bind.annotation.RestController;
 import ppppp.evernote.entity.Note;
-import ppppp.evernote.entity.Notebook;
-import ppppp.evernote.entity.Tag;
 import ppppp.evernote.entity.Tag;
 import ppppp.evernote.service.NoteService;
 import ppppp.evernote.service.TagService;
 import ppppp.evernote.util.ResultUtil;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static jdk.nashorn.internal.objects.NativeString.substring;
-import static jdk.nashorn.internal.runtime.ScriptObject.setGlobalObjectProto;
-import static ppppp.evernote.util.RequestUtils.sendPostRequest;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * <p>
@@ -84,7 +77,7 @@ public class TagController {
         /*得到所有的子id*/
         ArrayList<Integer> tagIds = new ArrayList<>();
         getAllChildernTagIds(tag, tagIds);
-        List<Note> allNotes = noteService.lambdaQuery().list();
+        List<Note> allNotes = noteService.lambdaQuery().select(Note::getId,Note::getTagUid).list();
         for (Note note : allNotes) {
             String tagUid = note.getTagUid();
             if (tagUid == null || tagUid.length() < 2) {
@@ -114,8 +107,7 @@ public class TagController {
             tagService.removeById(tagId);
         }
 
-
-        return ResultUtil.successWithData("");
+        return getAllTags();
     }
 
 
@@ -183,7 +175,7 @@ public class TagController {
 
         /*遍历所有的笔记 计算出包含该标签及其子标签的笔记数量*/
         int count = 0;
-        List<Note> allNotes = noteService.lambdaQuery().list();
+        List<Note> allNotes = noteService.lambdaQuery().select(Note::getId,Note::getTagUid).list();
         for (Note note : allNotes) {
             if (note.getTagUid() != null && note.getTagUid().length() > 1) {
                 /*判断两者是否有交集*/

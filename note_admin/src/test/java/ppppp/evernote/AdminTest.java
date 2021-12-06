@@ -33,6 +33,12 @@ public class AdminTest {
         List<ImageTag> list = imageTagService.lambdaQuery().list();
         System.out.println(list);
     }
+
+    @Test
+    public void T_getAllNote(){
+        List<Note> allNotes = noteService.lambdaQuery().select(Note::getId,Note::getTagUid).list();
+        System.out.println(allNotes.size());
+    }
     @Test  /*lambdaQuery 会查询出逻辑删除*/
     public void 交换pic经纬度(){
         List<Picture> all = pictureService.lambdaQuery().list();

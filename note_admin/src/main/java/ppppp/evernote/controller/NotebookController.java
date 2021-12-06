@@ -2,17 +2,14 @@ package ppppp.evernote.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.extension.service.additional.update.impl.LambdaUpdateChainWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.web.bind.annotation.*;
-
-
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import ppppp.evernote.entity.Note;
 import ppppp.evernote.entity.Notebook;
-
-import ppppp.evernote.entity.Tag;
 import ppppp.evernote.mapper.NoteMapper;
 import ppppp.evernote.service.NoteService;
 import ppppp.evernote.service.NotebookService;
@@ -166,7 +163,7 @@ public class NotebookController {
         if (newPid != null) updateNewNoteBooks = updateNoteCountWrapper(newPid, count);
         //旧笔记本级联 -count
         if (oldPid != null) updateOldNotebook = updateNoteCountWrapper(oldPid, -count);
-        return ResultUtil.successWithData(getNoteBooksTree());
+        return allNotebooks();
     }
 
     private boolean updateNoteCountWrapper(Integer noteBookId, int count) {

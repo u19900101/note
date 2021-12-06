@@ -62,14 +62,14 @@ public class ImageTagController {
         return ResultUtil.successWithData(newTag);
     }
 
-    @PostMapping("/deleteTag")
-    public String deleteTag(@RequestBody ImageTag tag) {
+    @PostMapping("/deleteImageTag")
+    public String deleteImageTag(@RequestBody ImageTag tag) {
 
         /*1.删除笔记中相关的标签id*/
         /*得到所有的子id*/
         ArrayList<Integer> tagIds = new ArrayList<>();
         getAllChildernTagIds(tag, tagIds);
-        List<Picture> allPictures = pictureService.lambdaQuery().list();
+        List<Picture> allPictures = pictureService.lambdaQuery().select(Picture::getId,Picture::getTagUid).list();
         for (Picture picture : allPictures) {
             String tagUid = picture.getTagUid();
             if (tagUid == null || tagUid.length() < 2) {
@@ -86,8 +86,6 @@ public class ImageTagController {
             }
         }
 
-
-
         /*2.更新父标签数量*/
         tag = imageTagService.getById(tag.getId());
         if (tag.getPid() != null) {
@@ -100,7 +98,7 @@ public class ImageTagController {
         }
 
 
-        return ResultUtil.successWithData("");
+        return getImageTags();
     }
 
 
@@ -176,7 +174,7 @@ public class ImageTagController {
 
         /*遍历所有的笔记 计算出包含该标签及其子标签的笔记数量*/
         int count = 0;
-        List<Picture> allPictures = pictureService.lambdaQuery().list();
+        List<Picture> allPictures = pictureService.lambdaQuery().select(Picture::getId,Picture::getTagUid).list();
         for (Picture picture : allPictures) {
             if (picture.getTagUid() != null && picture.getTagUid().length() > 1) {
                 /*判断两者是否有交集*/

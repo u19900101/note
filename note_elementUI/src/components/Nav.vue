@@ -2,15 +2,16 @@
     <el-container>
         <!--点击逻辑
     点击上级菜单时 1.显示对应菜单的笔记(标签) 2.不展开子项目
-    点击 三角符号时 收起或折叠子项 accordion   default-expand-all-->
+    点击 三角符号时 收起或折叠子项 accordion   default-expand-all   :expand-on-click-node=false-->
         <el-aside :style="{width: navWidth + 'px'}">
             <el-scrollbar class="page-scroll">
                 <el-tree :data="data"
                          ref="mytree"
                          node-key="id"
-                         :expand-on-click-node=false
+                         :default-expanded-keys="[expandedKeyId]"
                          :highlight-current="true"
                          @node-click="handleNodeClick"
+                         @node-expand="handleNodeExpand"
                          @node-drag-start="handleDragStart"
                          @node-drag-enter="handleDragEnter"
                          @node-drag-leave="handleDragLeave"
@@ -53,11 +54,11 @@
                     background-color="#545c64"
                     text-color="#fff"
                     active-text-color="#ffd04b">
-                <el-menu-item index="2">
+                <el-menu-item index="2" @click="reNameNode">
                     <i class="el-icon-edit"></i>
-                    <span slot="title" @click.prevent="reNameNode">重命名</span>
+                    <span slot="title">重命名</span>
                 </el-menu-item>
-                <el-menu-item index="3">
+                <el-menu-item index="3" @click="deleteNode">
                     <i class="el-icon-delete"></i>
                     <span slot="title">删除</span>
                 </el-menu-item>
@@ -67,8 +68,6 @@
                 </el-menu-item>
             </el-menu>
         </div>
-
-
         <!--导航栏宽度可拖拽组件-->
         <el-aside width="4px">
             <borderLine @widthChange="widthChange"/>
@@ -103,6 +102,8 @@
                 menuTop: 0,
                 currentNodeData: {}, //当前节点的值
                 menuMouseLeave: true, //
+                expandedKeyId: '', //默认展开的节点id
+                currentFirstLevelNodeId: -1,//当前一级节点的id
             };
         },
         methods: {
@@ -130,7 +131,7 @@
             },
             /* event、传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
             handleNodeContextmenu(e, data, node) {
-                console.log('右键点击了节点', node.data.title,)
+                console.log('右键点击了节点', node.data.title)
                 /*右键非一级节点时 显示右键菜单  增删改*/
                 if (node.level != 1) {
                     let charL = data.title.replace(/[^\x00-\xff]/g, '**').length;
@@ -146,20 +147,78 @@
                 }
             },
 
-            // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
-            mouseDown() {
-                if (this.menuMouseLeave) {
-                    this.showContextmenu = false
-                    document.removeEventListener('mousedown', this.mouseDown)
-                }
-            },
+            /*删除节点*/
+            deleteNode() {
+                console.log('currentNoteBook', this.$store.state.currentNoteBook.title)
+                console.log("delete", this.currentNodeData)
+                /*1.页面变化*/
+                /*获取当前被选中节点的 data，若没有节点被选中则返回 null*/
+                this.$refs.mytree.remove(this.currentNodeData)
+                this.showContextmenu = false
+                /*2.修改数据库 返回imagetree 更新tree*/
+                let deleteTargetId = this.currentNodeData.id
+                /*删除笔记标签*/
+                if (this.currentFirstLevelNodeId  == 11) {
+                    this.expandedKeyId = 'allTags'
+                    this.https.deleteTag({id: deleteTargetId}).then(({data}) => {
+                        /* 将标签数据 封装上笔记的数量*/
+                        this.$store.state.tagsTree = data.data[0];
+                        this.$store.state.tagsTreePure = JSON.parse(JSON.stringify(data.data[0]));
+                        this.$store.state.tableData = this.$store.state.tagsTreePure
+                        this.$store.state.tags = data.data[1];
+                        this.tool.addNoteCount(this.$store.state.tagsTree)
+                    })
+                }else if (this.currentFirstLevelNodeId == 12) {
+                    this.expandedKeyId = 'tagImages'
+                    this.https.deleteImageTag({id: deleteTargetId}).then(({data}) => {
+                        /* 将标签数据 封装上笔记的数量*/
+                        this.$store.state.imageTagsTree = data.data[0];
+                        // this.$store.state.imageTags = JSON.parse(JSON.stringify(data.data[0]));
+                        // this.$store.state.tableData = this.$store.state.tagsTreePure
+                        this.$store.state.imageTags = data.data[1];
+                        this.tool.addNoteCount(this.$store.state.imageTagsTree)
+                    })
+                }else
+                    if (this.currentFirstLevelNodeId == 13) {
+                    this.expandedKeyId = 'noteBooks'
+                    /*2.删除笔记本 将包含该 id的所有笔记都移动到废纸篓 同时删除该id对应的笔记本 */
+                    this.https.deleteNotebook({id: deleteTargetId}).then(({data}) => {
+                        this.$store.state.noteBooks = data.data[0]
+                        /*默认初始化选择所有笔记*/
+                        this.$store.state.currentNoteBook = data.data[0][0]
+                        /*1.更新 $store.state.tableData*/
+                        this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data[1]))
+                        this.$store.state.tableData = this.$store.state.noteBooksTreePure
 
+                        this.tool.addNoteCount(data.data[1])
+                        this.$store.state.noteBooksTree = data.data[1]
+
+                        /*2.更新废纸篓*/
+                        this.https.getWastepaperNotes().then(({data}) => {
+                            this.$store.state.wastepaperNotesList = data.data
+                        })
+                        console.log('删除笔记本成功',)
+                    })
+                }
+                this.$message({type: 'success', message: '成功!', duration: 1000,});
+
+            },
+            /*对节点重命名*/
             reNameNode() {
                 this.showContextmenu = false //隐藏菜单
                 this.noteCountTemp = this.currentNodeData.title.split(" ")[1]
                 this.currentNodeData.title = this.currentNodeData.title.split(" ")[0]
                 this.currentNodeData.isEdit = true
             },
+            // 当鼠标离开排序区(图标区 + 排序面板区 )后 点击任意位置 排序框消失
+            mouseDown() {
+                if (this.menuMouseLeave) {
+                    this.showContextmenu = false
+                    document.removeEventListener('mousedown', this.mouseDown)
+                    console.log('remove mouseDown EventListener ')
+                }
+            },
+
             /*节点失去焦点时  修改节点名称*/
             NodeBlur(node, data) {
                 console.log(data.title, ' 节点失去焦点')
@@ -205,9 +264,19 @@
                     }
                 }
             },
-            /*
-            * 传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。
-            * */
+            /*节点展开*/
+            handleNodeExpand(data, node, e) {
+                if(node.level == 1){
+                   if(node.data.id == "tagImages"){
+                       this.currentFirstLevelNodeId = 12
+                   }else if(node.data.id == "noteBooks"){
+                       this.currentFirstLevelNodeId = 13
+                   }else if(node.data.id == "allTags"){
+                       this.currentFirstLevelNodeId = 11
+                   }
+                }
+            },
+            /*节点点击  传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
             handleNodeClick(data, node, e) {
                 /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
                 /*关闭搜索模式*/
@@ -248,11 +317,9 @@
                         // this.$store.state.currentNoteList =  this.$store.state.fileList
                         this.initCurrentNoteListByName("fileList", 9);
                         break; /* 收藏的图片 */
-                    case 'tagImages':
+                    /*case 'tagImages':
                         console.log('tagImages ...')
-                        // this.$store.state.currentNoteList =  this.$store.state.fileList
-                        // this.initCurrentNoteListByName("fileList", 9);
-                        break; /* 收藏的图片 */
+                        break; /!* 收藏的图片 *!/*/
                     case 'recycleBin':
                         this.$store.state.fileMode = true
                         this.$store.state.listAndNoteShow = false
@@ -267,7 +334,7 @@
                             this.initCurrentNoteListByName("noteBookNameId", data.id);
                         } else if (firstLevelTitle == '标签') {
                             this.initTagNotesListByTagNode(data)
-                        } else if (firstLevelTitle == '图片标签') {
+                        }else {
                             this.$store.state.currentImageUrlList = [1, 2, 3]
                             this.initImageListByTagNode(data)
                         }
@@ -291,7 +358,7 @@
                     // 修改相应笔记本的笔记数量  和树形列表的显示
                     this.$store.state.noteBooks.filter(item => item.id == pid)[0].noteCount += 1
                     // 树形  更新本节点和所有父节点的数量
-                    //  选择笔记本的情况下 需要对notes 进行追加，因为此时 currentNoteList 指向为当前笔记本
+                    //  选择笔this.$store.state.noteBooks.filter((n) => n.id == 12)[0]记本的情况下 需要对notes 进行追加，因为此时 currentNoteList 指向为当前笔记本
                     //    3.将新建笔记加入notes中
                     if (this.$store.state.currentNoteBook.id > 2) {
                         this.$store.state.notes.unshift(newNote)
@@ -525,9 +592,8 @@
                     this.$store.state.currentImage = this.$store.state.currentImageList[0].images[0]
                     this.$store.state.currentIndex = 0
                 }
-                /*给title去掉括号*/
-                let title = tagNodeData.title.split(' ')[0]
-                this.$store.state.currentNoteBook = {title: title}
+                /*初始化笔记本 便于展开tree*/
+                this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 12)[0]
             },
 
             initTagNotesListByTagNode(tagNodeData) {
@@ -649,7 +715,7 @@
                         },
                         /*图片标签*/
                         {
-                            id: 'imageTags',
+                            id: 'tagImages',
                             title: '图片标签',
                             children: this.$store.state.imageTagsTree
                         },
