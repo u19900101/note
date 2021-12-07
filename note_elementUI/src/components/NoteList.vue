@@ -70,7 +70,7 @@
                                         <el-row>
                                             <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
                                             <div v-else class='titleInList'>
-                                                {{note.title}}
+                                                <strong>{{note.title}}</strong>
                                             </div>
                                         </el-row>
                                         <!--标签 & 内容-->
@@ -79,7 +79,8 @@
                                             <div class="more-line">
                                                 <span style="color: #49a2de">{{getTagList(note)}}</span>
                                                 <span v-if="$store.state.isSearchMode" v-html="note.content"></span>
-                                                <span v-else> {{note.content.replace("# " + note.title + "\n\n","")}}</span>
+                                                <span v-else> {{note.summary}}</span>
+                                                <!--replace("# " + note.title + "\n\n","")-->
                                             </div>
                                         </el-row>
 
@@ -448,7 +449,7 @@
         text-overflow: ellipsis;
         word-break: break-all;
         -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 2; /*行数的设置*/
     }
 
 

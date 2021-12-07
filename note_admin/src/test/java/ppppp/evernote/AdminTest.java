@@ -28,6 +28,27 @@ public class AdminTest {
 
     @Autowired
     ImageTagService imageTagService;
+
+    @Test
+    public void T_setSummary(){
+
+        List<Note> noteList = noteService.lambdaQuery().select(Note::getId,Note::getContent).list();/*.last("limit 30")*/
+        int count = 1;
+        for (Note note : noteList) {
+            String content = note.getContent();
+            int i = content.indexOf('\n') + 1; //去掉标题
+            String replaceAll = content.substring(i).replaceAll("\\<img.*?\\>|\\<video.*?video\\>|\\n","");
+            int end = 50 > replaceAll.length() ? replaceAll.length() : 50;
+            String summary = replaceAll.substring(0, end);
+            note.setSummary(summary);
+            note.setContent(null);
+            System.out.println(count + " " +summary);
+            count++;
+        }
+        noteService.updateBatchById(noteList);
+    }
+
+
     @Test
     public void T_imageTagService(){
         List<ImageTag> list = imageTagService.lambdaQuery().list();

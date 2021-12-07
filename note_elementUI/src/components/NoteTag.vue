@@ -29,6 +29,7 @@
                 size="small"
                 :closable="false"
                 :disable-transitions="false">
+            +
         </el-tag>
     </div>
 </template>
