@@ -7,9 +7,9 @@
                     <el-row>
                         <!--列表显示的名称  笔记本名称 或者 标签名称 -->
                         <el-col class="listTitle" style="text-align: center">
-                            <span>{{$store.state.listTitle}}
-                            <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
-                            </span>
+                            <div style="margin-left: 10px">{{$store.state.listTitle}}
+                                <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
+                            </div>
                             <el-button @click="clearAllWasteNotes" style="padding: 6px 7px;" size="mini" type="danger"
                                        round
                                        v-if="$store.state.currentNoteBook.title == '废纸篓'">

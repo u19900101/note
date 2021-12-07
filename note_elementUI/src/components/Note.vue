@@ -1,7 +1,7 @@
 <template>
     <el-container style="width: 1000px">
         <!--标题 & 工具栏-->
-        <el-header v-if="!$store.state.fileMode">
+        <el-header v-if="!$store.state.fileMode" style="padding: 0 5px;">
             <!--标题-->
             <!-- <el-row>
                  <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
@@ -66,7 +66,7 @@
 
 
                 <!--日期 -->
-                <div class="mydate">
+                <div class="mydate" style="margin-left: 10px">
                     <el-date-picker
                             style="width: 150px;"
                             v-model="createTime"
@@ -79,11 +79,10 @@
                 </div>
 
                 <!--位置-->
-                <div style="padding-right: 10px">
+                <div style="margin-left: 10px">
                     <i class="el-icon-location-information"></i>
                     <a href="#">{{location}}</a>
                 </div>
-
             </el-row>
         </el-header>
 
@@ -401,12 +400,8 @@
 </script>
 
 <style>
-    .mydate .el-input--mini .el-input__inner {
-        height: 28px;
-        line-height: 28px;
+    .mydate .el-date-editor.el-input{
         width: 150px !important;
-        padding-left: 30px;
-        padding-right: 0px;
     }
 
     /*自定义提示框的宽度*/

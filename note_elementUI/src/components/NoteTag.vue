@@ -24,7 +24,12 @@
         ></el-autocomplete>
 
         <!--新增标签按钮-->
-        <el-button v-else :disabled="$store.state.currentNote.wastepaper" class="button-new-tag" size="mini" @click="showInput">+</el-button>
+        <el-tag
+                @click="showInput"
+                size="small"
+                :closable="false"
+                :disable-transitions="false">
+        </el-tag>
     </div>
 </template>
 
@@ -168,14 +173,6 @@
 <style>
     .el-tag + .el-tag {
         margin-left: 10px;
-    }
-
-    .button-new-tag {
-
-        margin-left: 10px;
-        line-height: 30px;
-        padding-top: 0;
-        padding-bottom: 0;
     }
 
     .input-new-tag {
