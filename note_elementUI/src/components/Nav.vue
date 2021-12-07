@@ -50,18 +50,22 @@
                     text-color="#fff"
                     active-text-color="#ffd04b">
                 <el-menu-item index="2" @click="reNameNode"
-                              :disabled="['noteBooks','allTags','tagImages'].indexOf(currentNode.data.id) != -1">
+                              :disabled="menuEnable()">
                     <i class="el-icon-edit"></i>
                     <span slot="title">重命名</span>
                 </el-menu-item>
                 <el-menu-item index="3" @click="deleteNode"
-                              :disabled="['noteBooks','allTags','tagImages'].indexOf(currentNode.data.id) != -1">
+                              :disabled="menuEnable()">
                     <i class="el-icon-delete"></i>
                     <span slot="title">删除</span>
                 </el-menu-item>
                 <el-menu-item index="4" @click="addChildNode">
                     <i class="el-icon-folder-add"></i>
                     <span slot="title">添加子项目</span>
+                </el-menu-item>
+                <el-menu-item v-if="menuEnable()" index="5" @click="manage">
+                    <i class="el-icon-s-tools"></i>
+                    <span slot="title">管理</span>
                 </el-menu-item>
             </el-menu>
         </div>
@@ -104,28 +108,6 @@
             };
         },
         methods: {
-            /*导航栏宽度可拖拽组件*/
-            widthChange(movement) {
-                this.navWidth -= movement
-                if (this.navWidth < this.navMin || this.navWidth > this.navMax) {
-                    this.navWidth = this.navWidth > this.navMin ? this.navMax : this.navMin
-                }
-                /*将导航栏的宽度写进数据库*/
-
-                if (this.lastTime == 0) {
-                    this.exeWidthChange(this.navWidth)
-                } else {
-                    clearTimeout(this.lastTime)
-                    this.exeWidthChange(this.navWidth)
-                }
-            },
-            exeWidthChange(navWidth) {
-                this.lastTime = setTimeout(() => {
-                    this.https.updateSortWay({id: 1, navWidth: navWidth}).then(({data}) => {
-                        console.log(data)
-                    })
-                }, 2000)
-            },
             /* 右键  传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
             handleNodeContextmenu(e, data, node) {
                 console.log('右键节点', node.data.id, node)
@@ -144,7 +126,86 @@
                     }, 200);
                 }
             },
+            /*节点点击  传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
+            handleNodeClick(data, node, e) {
+                /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
+                /*关闭搜索模式*/
+                this.currentNode = node
+                this.$store.state.listTitle = data.title.split(" ")[0]
+                if (this.$store.state.isSearchMode) this.turnOffSearchMode()
+                if (!this.$store.state.listAndNoteShow) this.$store.state.listAndNoteShow = true
+                /*默认文件视图模式关闭*/
+                if (this.$store.state.fileMode) this.$store.state.fileMode = false
+                switch (data.id) {
+                    case 'insertNote':
+                        this.insertNote();
+                        break;
+                    case 'allStarNotes':
+                        this.initCurrentNoteListByName("starNotesList", 1);
+                        break; // 收藏笔记
+                    case 'noteBooks': //'笔记本'
+                        break;
+                    case 'allNotes'://所有笔记
+                        this.initCurrentNoteListByName("notes", 0);
+                        break;
+                    case 'allTags':
+                        break;
+                    case 'wastePaper':
+                        this.initCurrentNoteListByName("wastepaperNotesList", 2);
+                        break; /*'废纸篓' */
+                    case 'images': /*todo 优化结构*/
+                        this.$store.state.fileMode = true
+                        this.$store.state.listAndNoteShow = false
+                        // this.$store.state.currentNoteList =  this.$store.state.fileList
+                        this.initCurrentNoteListByName("fileList", 8);
+                        break; /* 文件 */
+                    case 'starImages':
+                        this.$store.state.fileMode = true
+                        this.$store.state.listAndNoteShow = false
+                        // this.$store.state.currentNoteList =  this.$store.state.fileList
+                        this.initCurrentNoteListByName("fileList", 9);
+                        break; /* 收藏的图片 */
+                    /*case 'tagImages':
+                        console.log('tagImages ...')
+                        break; /!* 收藏的图片 *!/*/
+                    case 'recycleBin':
+                        this.$store.state.fileMode = true
+                        this.$store.state.listAndNoteShow = false
+                        // this.$store.state.currentNoteList =  this.$store.state.fileList
+                        this.initCurrentNoteListByName("fileList", 10);
+                        break; /* 图片回收站 */
 
+                    default:
+                        /*区分是 点击的是笔记本 还是 标签*/
+                        let firstLevelTitle = this.getfirstLevelTitle(node)
+                        if (firstLevelTitle == '笔记本') {
+                            this.initCurrentNoteListByName("noteBookNameId", data.id);
+                        } else if (firstLevelTitle == '标签') {
+                            this.initTagNotesListByTagNode(data)
+                        } else {
+                            this.$store.state.currentImageUrlList = [1, 2, 3]
+                            this.initImageListByTagNode(data)
+                        }
+                }
+            },
+            /*控制菜单项的显示*/
+            menuEnable(){
+                return  ['noteBooks','allTags','tagImages'].indexOf(this.currentNode.data.id) != -1
+            },
+            /*以列表的方式对 笔记本 标签 图片标签进行管理*/
+            manage(){
+                this.showContextmenu = false //隐藏菜单
+                if(this.currentNode.data.id == 'noteBooks'){
+                    this.$store.state.tableData = this.$store.state.noteBooksTreePure
+                    this.$store.state.listAndNoteShow = false
+                }else if(this.currentNode.data.id == 'allTags'){
+                    this.$store.state.tableData = this.$store.state.tagsTreePure
+                    this.$store.state.listAndNoteShow = false
+                }else if(this.currentNode.data.id == 'tagImages'){
+                    console.log('on the way')
+                }
+
+            },
             /*删除节点*/
             deleteNode() {
                 /*1.页面变化*/
@@ -319,72 +380,7 @@
                     }
                 }
             },
-            /*节点点击  传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。*/
-            handleNodeClick(data, node, e) {
-                /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
-                /*关闭搜索模式*/
-                this.$store.state.listTitle = data.title.split(" ")[0]
-                if (this.$store.state.isSearchMode) this.turnOffSearchMode()
-                if (!this.$store.state.listAndNoteShow) this.$store.state.listAndNoteShow = true
-                /*默认文件视图模式关闭*/
-                if (this.$store.state.fileMode) this.$store.state.fileMode = false
-                switch (data.id) {
-                    case 'insertNote':
-                        this.insertNote();
-                        break;
-                    case 'allStarNotes':
-                        this.initCurrentNoteListByName("starNotesList", 1);
-                        break; // 收藏笔记
-                    case 'noteBooks': //'笔记本'
-                        this.$store.state.tableData = this.$store.state.noteBooksTreePure
-                        this.$store.state.listAndNoteShow = false
-                        break;
-                    case 'allNotes'://所有笔记
-                        this.initCurrentNoteListByName("notes", 0);
-                        break;
-                    case 'allTags':
-                        this.$store.state.tableData = this.$store.state.tagsTreePure
-                        this.$store.state.listAndNoteShow = false
-                        break;
-                    case 'wastePaper':
-                        this.initCurrentNoteListByName("wastepaperNotesList", 2);
-                        break; /*'废纸篓' */
-                    case 'images': /*todo 优化结构*/
-                        this.$store.state.fileMode = true
-                        this.$store.state.listAndNoteShow = false
-                        // this.$store.state.currentNoteList =  this.$store.state.fileList
-                        this.initCurrentNoteListByName("fileList", 8);
-                        break; /* 文件 */
-                    case 'starImages':
-                        this.$store.state.fileMode = true
-                        this.$store.state.listAndNoteShow = false
-                        // this.$store.state.currentNoteList =  this.$store.state.fileList
-                        this.initCurrentNoteListByName("fileList", 9);
-                        break; /* 收藏的图片 */
-                    /*case 'tagImages':
-                        console.log('tagImages ...')
-                        break; /!* 收藏的图片 *!/*/
-                    case 'recycleBin':
-                        this.$store.state.fileMode = true
-                        this.$store.state.listAndNoteShow = false
-                        // this.$store.state.currentNoteList =  this.$store.state.fileList
-                        this.initCurrentNoteListByName("fileList", 10);
-                        break; /* 图片回收站 */
 
-                    default:
-                        /*区分是 点击的是笔记本 还是 标签*/
-                        let firstLevelTitle = this.getfirstLevelTitle(node)
-                        if (firstLevelTitle == '笔记本') {
-                            this.initCurrentNoteListByName("noteBookNameId", data.id);
-                        } else if (firstLevelTitle == '标签') {
-                            this.initTagNotesListByTagNode(data)
-                        } else {
-                            this.$store.state.currentImageUrlList = [1, 2, 3]
-                            this.initImageListByTagNode(data)
-                        }
-
-                }
-            },
             insertNote() {
                 console.log('insertNote')
                 /* 若当前笔记 所有笔记、收藏、废纸篓 则指定 id = 3 (我的抗战)笔记本为本次默认笔记本*/
@@ -454,7 +450,37 @@
                     this.$store.state.currentIndex = 0
                 }
             },
+            /*初始化 图片列表 */
+            initImageListByTagNode(tagNodeData) {
+                /*视图控制*/
+                this.$store.state.fileMode = true
+                this.$store.state.listAndNoteShow = false
 
+                let dayImages = this.tool.groupImages("day", this.getImageListByTagNode(tagNodeData))
+                this.$store.state.currentImageList = dayImages
+
+
+                /*3.初始化 currentNote currentNoteBook*/
+                if (this.$store.state.currentImageList.length > 0) {
+                    this.$store.state.currentImage = this.$store.state.currentImageList[0].images[0]
+                    this.$store.state.currentIndex = 0
+                }
+                /*初始化笔记本 便于展开tree*/
+                this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 12)[0]
+            },
+
+            initTagNotesListByTagNode(tagNodeData) {
+                /*3.初始化 currentNoteList */
+                this.$store.state.currentNoteList = this.getNoteListByTagNode(tagNodeData)
+
+                /*3.初始化 currentNote currentNoteBook*/
+                if (this.$store.state.currentNoteList.length > 0) {
+                    this.$store.state.currentNote = this.$store.state.currentNoteList[0]
+                    this.$store.state.currentIndex = 0
+                }
+                /*给title去掉括号*/
+                let title = tagNodeData.title.split(' ')[0]
+            },
             /*获取拖拽节点的 {preId, currentId, nextId}*/
             getIds(draggingNode) {
                 let [preId, currentId, nextId, currentIndex] = ["0", "0", "0", "0"]
@@ -619,37 +645,7 @@
                 res.push(treeNode.id)
 
             },
-            /*初始化 图片列表 */
-            initImageListByTagNode(tagNodeData) {
-                /*视图控制*/
-                this.$store.state.fileMode = true
-                this.$store.state.listAndNoteShow = false
 
-                let dayImages = this.tool.groupImages("day", this.getImageListByTagNode(tagNodeData))
-                this.$store.state.currentImageList = dayImages
-
-
-                /*3.初始化 currentNote currentNoteBook*/
-                if (this.$store.state.currentImageList.length > 0) {
-                    this.$store.state.currentImage = this.$store.state.currentImageList[0].images[0]
-                    this.$store.state.currentIndex = 0
-                }
-                /*初始化笔记本 便于展开tree*/
-                this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 12)[0]
-            },
-
-            initTagNotesListByTagNode(tagNodeData) {
-                /*3.初始化 currentNoteList */
-                this.$store.state.currentNoteList = this.getNoteListByTagNode(tagNodeData)
-
-                /*3.初始化 currentNote currentNoteBook*/
-                if (this.$store.state.currentNoteList.length > 0) {
-                    this.$store.state.currentNote = this.$store.state.currentNoteList[0]
-                    this.$store.state.currentIndex = 0
-                }
-                /*给title去掉括号*/
-                let title = tagNodeData.title.split(' ')[0]
-            },
             getTagChildrenIds(tagIds, data) {
                 tagIds.push(data.id)
                 if (data.children && data.children.length > 0) {
@@ -709,7 +705,29 @@
                 this.$store.state.isSearchMode = false
                 this.$store.state.isTitleEditMode = true
                 this.$store.state.isContentEditMode = true
-            }
+            },
+            /*导航栏宽度可拖拽组件*/
+            widthChange(movement) {
+                this.navWidth -= movement
+                if (this.navWidth < this.navMin || this.navWidth > this.navMax) {
+                    this.navWidth = this.navWidth > this.navMin ? this.navMax : this.navMin
+                }
+                /*将导航栏的宽度写进数据库*/
+
+                if (this.lastTime == 0) {
+                    this.exeWidthChange(this.navWidth)
+                } else {
+                    clearTimeout(this.lastTime)
+                    this.exeWidthChange(this.navWidth)
+                }
+            },
+            exeWidthChange(navWidth) {
+                this.lastTime = setTimeout(() => {
+                    this.https.updateSortWay({id: 1, navWidth: navWidth}).then(({data}) => {
+                        console.log(data)
+                    })
+                }, 2000)
+            },
         },
         computed: {
             data: {

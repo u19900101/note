@@ -32,6 +32,7 @@
             <!--笔记和标签页面展示-->
             <el-main style="padding: 0 0 20px 0" v-else>
                 <imageList v-if="$store.state.fileMode"></imageList>
+                <!--笔记本和标签页面-->
                 <noteBook_tag v-else></noteBook_tag>
             </el-main>
         </el-container>
