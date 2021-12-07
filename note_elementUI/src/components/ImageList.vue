@@ -38,7 +38,7 @@
                 <imageTag class="imgTag" ref="noteTag"></imageTag>
             </div>
 
-            <!--年月日 大中小 视图-->
+            <!--年月日 大中小 视图  当前图片分组名称-->
             <div style="text-align: center">
                 <el-button @click="showImageByTimeType('year')" style="float:left;" size="mini" round>年</el-button>
                 <el-button @click="showImageByTimeType('month')" style="float:left;" size="mini" round>月</el-button>

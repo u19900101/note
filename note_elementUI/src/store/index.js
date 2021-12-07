@@ -13,6 +13,7 @@ const mutations = {}
 const state = {
     /**导航栏**/
     currentNode: {},  //当前拖拽的节点
+    expandedKeyId: '',//默认展开的节点id
 
     /**笔记本**/
     noteBooks: [],  //所有笔记本列表

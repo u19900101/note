@@ -67,24 +67,11 @@
         },
         methods: {
             /*移除笔记中的某一标签*/
-            handleClose(tag) {
+            handleClose(inputTag) {
                 /*修改页面*/
-                this.$store.state.currentImage.tagList = this.$store.state.currentImage.tagList.filter((n) => n.title != tag.title)
+                this.$store.state.currentImage.tagList = this.$store.state.currentImage.tagList.filter((n) => n.title != inputTag.title)
                 /*更新数据库*/
-                /*更新笔记*/
-                this.https.updateImage({id: this.$store.state.currentImage.id, tagUid: this.$store.state.currentImage.tagUid.replace(tag.id + ",","") }).then(({data}) => {
-                    console.log("移除笔记中的某一标签 ", data);
-                    /*删除笔记中某一标签*/
-                    /*oldPid = 0 使其中一个不更新*/
-                   /* this.https.updateTag({
-                        pid: tag.id,
-                        oldPid: 0
-                    }).then(({data}) => {
-                        /!*更新Tag tree*!/
-                        this.$store.state.tagsTree = data.data
-                        this.tool.addNoteCount(this.$store.state.tagsTree)
-                    })*/
-                })
+                this.updateData(inputTag,'remove')
             },
 
             /*标签的搜索*/
@@ -145,16 +132,16 @@
                                 inputTag = data.data;
                                 this.$store.state.currentImage.tagList.push(inputTag)
                                 /*3.后台数据更新*/
-                                this.updateData(inputTag)
+                                this.updateData(inputTag,'add')
                             })
                         }else { //存在异步的情况
-                            this.$store.state.currentImage.tagList.push(inputTag)
+                            this.$store.state.currentImage.tagList.push(inputTag,'add')
                         }
                     }
                 } else {  /*2.添加标签已经存在的标签*/
                     /*1.更新页面*/
                     this.$store.state.currentImage.tagList.push({id: inputTag.id, title: inputTag.value})
-                    this.updateData(inputTag)
+                    this.updateData(inputTag,'add')
                 }
 
                 this.inputVisible = false;
@@ -173,22 +160,30 @@
             },
 
             /*数据更新*/
-            updateData(inputTag) {
+            updateData(inputTag,type) {
+                /*添加标签*/
                 let tagUid = this.$store.state.currentImage.tagUid + inputTag.id + ','
+                /*移除标签*/
+                if(type == 'remove'){
+                    tagUid = this.$store.state.currentImage.tagUid.replace(inputTag.id + ",","")
+                }
+
                 this.https.updateImage({id: this.$store.state.currentImage.id, tagUid: tagUid}).then(({data}) => {
                     console.log("给照片添加标签 ", data);
+
                     /*删除笔记中某一标签*/
                     /*oldPid = 0 使其中一个不更新*/
-                   /* this.https.updateImageTag({
+                    this.https.updateImageTags({
                         pid: inputTag.id,
                         oldPid: 0
                     }).then(({data}) => {
-                        /!*更新Tag tree*!/
-                        this.$store.state.tagsTree = data.data
-                        this.tool.addNoteCount(this.$store.state.tagsTree)
-                    })*/
+                        /*更新Tag tree*/
+                        this.$store.state.imageTagsTree = data.data
+                        this.tool.addNoteCount(this.$store.state.imageTagsTree, 'imageTag')
+                        this.$store.state.expandedKeyId = 'tagImages'
+                    })
                 })
-            }
+            },
         }
     }
 </script>

@@ -8,7 +8,7 @@
                 <el-tree :data="data"
                          ref="mytree"
                          node-key="id"
-                         :default-expanded-keys="[expandedKeyId]"
+                         :default-expanded-keys="[$store.state.expandedKeyId]"
                          :highlight-current="true"
                          @node-click="handleNodeClick"
                          @node-expand="handleNodeExpand"
@@ -100,7 +100,6 @@
                 menuTop: 0,
                 currentNode: {data: {id: -1}}, //当前节点
                 menuMouseLeave: true, //
-                expandedKeyId: '', //默认展开的节点id
                 currentFirstLevelNodeId: -1,//当前一级节点的id
             };
         },
@@ -132,7 +131,7 @@
                 console.log('右键节点', node.data.id, node)
                 this.currentNode = node
                 /*右键节点同时展开该节点*/
-                this.expandedKeyId = node.data.id
+                this.$store.state.expandedKeyId = node.data.id
                 /*右键非一级节点时 显示右键菜单  增删改*/
                 if (node.level != 1 || ['noteBooks', 'allTags', 'tagImages'].indexOf(node.data.id) != -1) {
                     let charL = data.title.replace(/[^\x00-\xff]/g, '**').length;
@@ -156,7 +155,7 @@
                 let deleteTargetId = this.currentNode.data.id.split('_')[0]
                 /*删除笔记标签*/
                 if (this.currentFirstLevelNodeId == 11) {
-                    this.expandedKeyId = 'allTags'
+                    this.$store.state.expandedKeyId = 'allTags'
                     this.https.deleteTag({id: deleteTargetId}).then(({data}) => {
                         /* 将标签数据 封装上笔记的数量*/
                         this.$store.state.tagsTree = data.data[0];
@@ -166,7 +165,7 @@
                         this.tool.addNoteCount(this.$store.state.tagsTree, 'noteTag')
                     })
                 } else if (this.currentFirstLevelNodeId == 12) {
-                    this.expandedKeyId = 'tagImages'
+                    this.$store.state.expandedKeyId = 'tagImages'
                     this.https.deleteImageTag({id: deleteTargetId}).then(({data}) => {
                         /* 将标签数据 封装上笔记的数量*/
                         this.$store.state.imageTagsTree = data.data[0];
@@ -176,7 +175,7 @@
                         this.tool.addNoteCount(this.$store.state.imageTagsTree, 'imageTag')
                     })
                 } else if (this.currentFirstLevelNodeId == 13) {
-                    this.expandedKeyId = 'noteBooks'
+                    this.$store.state.expandedKeyId = 'noteBooks'
                     /*2.删除笔记本 将包含该 id的所有笔记都移动到废纸篓 同时删除该id对应的笔记本 */
                     this.https.deleteNotebook({id: deleteTargetId}).then(({data}) => {
                         this.$store.state.noteBooks = data.data[0]
@@ -324,6 +323,7 @@
             handleNodeClick(data, node, e) {
                 /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
                 /*关闭搜索模式*/
+                this.$store.state.currentNoteBook.title = data.title.split(" ")[0]
                 if (this.$store.state.isSearchMode) this.turnOffSearchMode()
                 if (!this.$store.state.listAndNoteShow) this.$store.state.listAndNoteShow = true
                 /*默认文件视图模式关闭*/
@@ -457,7 +457,7 @@
 
             /*获取拖拽节点的 {preId, currentId, nextId}*/
             getIds(draggingNode) {
-                let [preId, currentId, nextId, currentIndex] = ["0", "0","0","0"]
+                let [preId, currentId, nextId, currentIndex] = ["0", "0", "0", "0"]
                 let brotherNotes = this.$refs.mytree.getNode(draggingNode.data.id).parent.data.children
                 /* console.log(brotherNotes)*/
                 if (brotherNotes.length == 1) {
@@ -521,8 +521,7 @@
                             this.$store.state.noteBooksTree = data.data
                             this.tool.addNoteCount(this.$store.state.noteBooksTree, 'notebook')
                         })
-                    } else
-                    if (firstLevelTitle == '标签') {  // 拖拽标签 新旧两个分支 全父节点更新
+                    } else if (firstLevelTitle == '标签') {  // 拖拽标签 新旧两个分支 全父节点更新
                         this.https.updateTag(obj).then(({data}) => {
                             /*更新Tag tree*/
                             console.log('更新标签成功', data)
@@ -531,19 +530,18 @@
                             this.$store.state.tableData = this.$store.state.tagsTreePure
 
                             this.$store.state.tagsTree = data.data
-                            this.tool.addNoteCount(this.$store.state.tagsTree)
+                            this.tool.addNoteCount(this.$store.state.tagsTree, 'noteTag')
                         })
                     } else if (firstLevelTitle == '图片标签') {  // 拖拽图片标签 新旧两个分支 全父节点更新
-                        /*this.https.updateTag(obj).then(({data}) => {
-                            /!*更新Tag tree*!/
+                        this.https.updateImageTags(obj).then(({data}) => {
+                            /*更新Tag tree*/
                             console.log('更新标签成功', data)
-                            /!*更新列表*!/
-                            this.$store.state.tagsTreePure = JSON.parse(JSON.stringify(data.data))
-                            this.$store.state.tableData = this.$store.state.tagsTreePure
-
-                            this.$store.state.tagsTree = data.data
-                            this.tool.addNoteCount(this.$store.state.tagsTree)
-                        })*/
+                            /*更新列表*/
+                            /*  this.$store.state.tagsTreePure = JSON.parse(JSON.stringify(data.data))
+                              this.$store.state.tableData = this.$store.state.tagsTreePure*/
+                            this.$store.state.imageTagsTree = data.data
+                            this.tool.addNoteCount(this.$store.state.imageTagsTree, 'imageTag')
+                        })
                     }
                 } else { //不在树内  手动恢复树的形状(可能出现的节点逃逸)
                     if (firstLevelTitle == '笔记本') {
@@ -562,7 +560,7 @@
                     }
                 }
                 /*手动展开当前节点*/
-                this.expandedKeyId = dropNode.data.id
+                this.$store.state.expandedKeyId = dropNode.data.id
             },
             allowDrop(draggingNode, dropNode, type) {
                 /*console.log('allowDrop...',draggingNode, dropNode)*/
@@ -688,7 +686,7 @@
                     /*判断两者的tagList是否有交集*/
                     if (n.tagList.length > 0) {
                         let resIds = n.tagList.filter((v) => {
-                                return tagIds.indexOf(v.id) != -1
+                                return tagIds.indexOf(v.id + '_imageTag') != -1
                             }
                         )
                         return resIds.length > 0

@@ -60,19 +60,7 @@
                 this.$store.state.currentNote.tagList = this.$store.state.currentNote.tagList.filter((n) => n.title != tag.title)
                 /*更新数据库*/
                 /*更新笔记*/
-                this.https.updateNote({id: this.$store.state.currentNote.id, tagUid: this.$store.state.currentNote.tagUid.replace(tag.id + ",","") }).then(({data}) => {
-                    console.log("移除笔记中的某一标签 ", data);
-                    /*删除笔记中某一标签*/
-                    /*oldPid = 0 使其中一个不更新*/
-                    this.https.updateTag({
-                        pid: tag.id,
-                        oldPid: 0
-                    }).then(({data}) => {
-                        /*更新Tag tree*/
-                        this.$store.state.tagsTree = data.data
-                        this.tool.addNoteCount(this.$store.state.tagsTree,'noteTag')
-                    })
-                })
+                this.updateData(tag,'remove')
             },
 
             /*标签的搜索*/
@@ -88,7 +76,6 @@
                     return (h.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
                 };
             },
-
 
             handleSelect(item) {
                 this.inputValue = item.value
@@ -123,7 +110,7 @@
                                 inputTag = data.data;
                                 this.$store.state.currentNote.tagList.push(inputTag)
                                 /*3.后台数据更新*/
-                                this.updateData(inputTag)
+                                this.updateData(inputTag,'add')
                             })
                         }else { //存在异步的情况
                             this.$store.state.currentNote.tagList.push(inputTag)
@@ -132,7 +119,7 @@
                 } else {  /*2.添加标签已经存在的标签*/
                     /*1.更新页面*/
                     this.$store.state.currentNote.tagList.push({id: inputTag.id, title: inputTag.value})
-                    this.updateData(inputTag)
+                    this.updateData(inputTag,'add')
                 }
 
                 this.inputVisible = false;
@@ -150,9 +137,15 @@
                 }, 500)
             },
 
-            /*数据更新*/
-            updateData(inputTag) {
+            /*笔记标签数据更新*/
+            updateData(inputTag,type) {
+                /*添加标签*/
                 let tagUid = this.$store.state.currentNote.tagUid + inputTag.id + ','
+                /*移除标签*/
+                if(type == 'remove'){
+                    tagUid = this.$store.state.currentNote.tagUid.replace(inputTag.id + ",","")
+                }
+
                 this.https.updateNote({id: this.$store.state.currentNote.id, tagUid: tagUid}).then(({data}) => {
                     console.log("给笔记添加标签 ", data);
                     /*删除笔记中某一标签*/
@@ -164,6 +157,7 @@
                         /*更新Tag tree*/
                         this.$store.state.tagsTree = data.data
                         this.tool.addNoteCount(this.$store.state.tagsTree,'noteTag')
+                        this.$store.state.expandedKeyId = 'allTags'
                     })
                 })
             }
