@@ -44,7 +44,7 @@
                 <el-button @click="showImageByTimeType('month')" style="float:left;" size="mini" round>月</el-button>
                 <el-button @click="showImageByTimeType('day')" style="float:left;" size="mini" round>日</el-button>
 
-                {{$store.state.currentNoteBook.title}}
+                {{$store.state.listTitle}}
                 <span style="color: rgba(40,59,55,0.77)">(共{{currentImagesCount}}条)</span>
 
                 <!--小视图-->

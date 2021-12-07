@@ -323,7 +323,7 @@
             handleNodeClick(data, node, e) {
                 /*  收藏-1 全部笔记-2 笔记本-3 标签-4 废纸篓-5 新建-6 */
                 /*关闭搜索模式*/
-                this.$store.state.currentNoteBook.title = data.title.split(" ")[0]
+                this.$store.state.listTitle = data.title.split(" ")[0]
                 if (this.$store.state.isSearchMode) this.turnOffSearchMode()
                 if (!this.$store.state.listAndNoteShow) this.$store.state.listAndNoteShow = true
                 /*默认文件视图模式关闭*/
@@ -421,7 +421,8 @@
                     // console.log('noteBookId is ', noteBookId);
                     /*获取所有子笔记*/
                     let parentIds = this.getChildrenIds(noteBookId, this.$store.state.noteBooksTree)
-                    this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid))
+                    this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid + '_notebook'))
+                    this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => (n.id + '_notebook') == noteBookId)[0]
                     this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
                 } else { //其他一级标题  如 wastepaperNotesList
                     if (noteBookId == 8 || noteBookId == 9 || noteBookId == 10) {
@@ -442,17 +443,16 @@
                         this.$store.state.currentImageList = dayImages
                         /*初始化预览 给占个位 不然第一次点击时不出现大图*/
                         this.$store.state.currentImageUrlList = [1, 2, 3]
-                    } else {
+                    }
+                    else {
                         this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
                         this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
                     }
-
                 }
                 if (this.$store.state.currentNoteList.length > 0) {
                     this.$store.state.currentNote = this.$store.state.currentNoteList[0]
                     this.$store.state.currentIndex = 0
                 }
-                this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == noteBookId)[0]
             },
 
             /*获取拖拽节点的 {preId, currentId, nextId}*/
@@ -649,7 +649,6 @@
                 }
                 /*给title去掉括号*/
                 let title = tagNodeData.title.split(' ')[0]
-                this.$store.state.currentNoteBook = {title: title}
             },
             getTagChildrenIds(tagIds, data) {
                 tagIds.push(data.id)
@@ -669,7 +668,7 @@
                     /*判断两者的tagList是否有交集*/
                     if (n.tagList.length > 0) {
                         let resIds = n.tagList.filter(function (v) {
-                            return tagIds.indexOf(v.id) != -1
+                            return tagIds.indexOf(v.id + '_noteTag') != -1
                         })
                         return resIds.length > 0
                     }

@@ -32,7 +32,26 @@ public class SyncTag {
     @Autowired
     PictureService pictureService;
 
-
+    @Test
+    public void T_syncImageTag() {
+        List<ImageTag> tagList = imageTagService.lambdaQuery().select(ImageTag::getId).list();
+        List<Picture> allNotes = pictureService.lambdaQuery().select(Picture::getId,Picture::getTagUid).list();
+        for (ImageTag tag : tagList) {
+            /*得到所有的子id*/
+            ArrayList<Integer> tagIds = new ArrayList<>();
+            getAllChildernImageTagIds(tag, tagIds);
+            /*遍历所有的笔记 计算出包含该标签及其子标签的笔记数量*/
+            int count = 0;
+            for (Picture note : allNotes) {
+                if (note.getTagUid() != null && note.getTagUid().length() > 1) {
+                    /*判断两者是否有交集*/
+                    if (isIntersection(note.getTagUid(), tagIds).size() > 0) count++;
+                }
+            }
+            tag.setNoteCount(count);
+            imageTagService.updateById(tag);
+        }
+    }
 
     @Test
     public void T_noteTag_sync() {
@@ -85,26 +104,7 @@ public class SyncTag {
 
 
 
-    @Test
-    public void T_syncImageTag() {
-        List<ImageTag> tagList = imageTagService.lambdaQuery().select(ImageTag::getId).list();
-        List<Picture> allNotes = pictureService.lambdaQuery().select(Picture::getId,Picture::getTagUid).list();
-        for (ImageTag tag : tagList) {
-            /*得到所有的子id*/
-            ArrayList<Integer> tagIds = new ArrayList<>();
-            getAllChildernImageTagIds(tag, tagIds);
-            /*遍历所有的笔记 计算出包含该标签及其子标签的笔记数量*/
-            int count = 0;
-            for (Picture note : allNotes) {
-                if (note.getTagUid() != null && note.getTagUid().length() > 1) {
-                    /*判断两者是否有交集*/
-                    if (isIntersection(note.getTagUid(), tagIds).size() > 0) count++;
-                }
-            }
-            tag.setNoteCount(count);
-            imageTagService.updateById(tag);
-        }
-    }
+
 
 
 

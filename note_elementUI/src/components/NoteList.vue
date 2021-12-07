@@ -5,9 +5,9 @@
                 <!--笔记本名称 && 笔记排序按钮 搜索-->
                 <div v-if="!$store.state.fileMode">
                     <el-row>
-                        <!--笔记本名称-->
+                        <!--列表显示的名称  笔记本名称 或者 标签名称 -->
                         <el-col class="listTitle" style="text-align: center">
-                            <span>{{$store.state.currentNoteBook.title}}
+                            <span>{{$store.state.listTitle}}
                             <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
                             </span>
                             <el-button @click="clearAllWasteNotes" style="padding: 6px 7px;" size="mini" type="danger"
