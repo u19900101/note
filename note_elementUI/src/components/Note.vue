@@ -204,7 +204,7 @@
                         // 进行全量更新树  级联更新自己和新笔记本 显示的笔记数量
                         // 放弃局部更新树(遍历判断树的次数更频繁)
                         this.$store.state.noteBooksTree = data.data
-                        this.tool.addNoteCount(this.$store.state.noteBooksTree)
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree,'notebook')
                     })
                 }
             },
@@ -333,7 +333,7 @@
                     console.log("删除成功", data);
                     /*更新笔记本中笔记的数量 更新树形展示*/
                     this.$store.state.noteBooksTree = data.data
-                    this.tool.addNoteCount(data.data)
+                    this.tool.addNoteCount(data.data,'notebook')
 
                     /* 1.更新所有笔记*/
                     this.removeCurrentNoteByTypeName('notes')
@@ -379,7 +379,7 @@
                 setTimeout(() => {
                     this.https.getNoteBooksTree().then(({data}) => {
                         this.$store.state.noteBooksTree = data.data
-                        this.tool.addNoteCount(this.$store.state.noteBooksTree)
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree,'notebook')
                     })
                 }, 1000)
 

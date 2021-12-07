@@ -70,7 +70,7 @@
                     }).then(({data}) => {
                         /*更新Tag tree*/
                         this.$store.state.tagsTree = data.data
-                        this.tool.addNoteCount(this.$store.state.tagsTree)
+                        this.tool.addNoteCount(this.$store.state.tagsTree,'noteTag')
                     })
                 })
             },
@@ -163,7 +163,7 @@
                     }).then(({data}) => {
                         /*更新Tag tree*/
                         this.$store.state.tagsTree = data.data
-                        this.tool.addNoteCount(this.$store.state.tagsTree)
+                        this.tool.addNoteCount(this.$store.state.tagsTree,'noteTag')
                     })
                 })
             }

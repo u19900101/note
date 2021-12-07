@@ -194,7 +194,7 @@
                 setTimeout(() => {
                     this.https.getNoteBooksTree().then(({data}) => {
                         this.$store.state.noteBooksTree = data.data
-                        this.tool.addNoteCount(this.$store.state.noteBooksTree)
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree,'notebook')
                     })
                 }, 1000)
 

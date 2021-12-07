@@ -165,19 +165,23 @@ function getTime(strTime) {
 
 /**给笔记本名称后封装数量的显示*/
 //遍历树 更新全部的笔记数量
-function addNoteCount(treeData) {
+function addNoteCount(treeData,typeStr) {
     treeData.forEach((n) => {
-        n.title += ' (' + n.noteCount + ')'
-        if (n.children.length > 0) this.addNoteCount(n.children)
+        let title = n.title + ' (' + n.noteCount + ')'
+        let id  =  n.id + '_' + typeStr
+        n.title = title
+        n.id = id
+        /*给树id设置唯一标识符 便于树的展开*/
+        if (n.children.length > 0) this.addNoteCount(n.children,typeStr)
     })
 }
 
 //去掉括号里的数量
-function removeNoteCount(treeData) {
+function removeNoteCount(treeData,typeStr) {
     treeData.forEach((n) => {
         let t = n.title.split(" ")[0]
         n.title = t
-        if (n.children.length > 0) this.addNoteCount(n.children)
+        if (n.children.length > 0) this.addNoteCount(n.children,typeStr)
     })
 }
 

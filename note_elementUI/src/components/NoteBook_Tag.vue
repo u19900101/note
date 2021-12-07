@@ -115,7 +115,7 @@
                                 this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data[1]))
                                 this.$store.state.tableData = this.$store.state.noteBooksTreePure
 
-                                this.tool.addNoteCount(data.data[1])
+                                this.tool.addNoteCount(data.data[1],'notebook')
                                 this.$store.state.noteBooksTree = data.data[1]
 
                                 /*2.更新废纸篓*/
@@ -134,7 +134,7 @@
                                 this.$store.state.tagsTreePure = JSON.parse(JSON.stringify(data.data[0]));
                                 this.$store.state.tableData = this.$store.state.tagsTreePure
                                 this.$store.state.tags = data.data[1];
-                                this.tool.addNoteCount(this.$store.state.tagsTree)
+                                this.tool.addNoteCount(this.$store.state.tagsTree,'notebook')
                             })
                         })
                     }

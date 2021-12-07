@@ -71,7 +71,7 @@
                     this.$store.state.currentNoteBook = data.data[0][0]
                     /* 将noteBookTree 封装上笔记的数量*/
                     this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data[1]))
-                    this.tool.addNoteCount(data.data[1])
+                    this.tool.addNoteCount(data.data[1],'notebook')
                     this.$store.state.noteBooksTree = data.data[1]
 
                     // console.log('kkkk',data.data[1])
@@ -102,7 +102,7 @@
                         this.$store.state.imageTags = data.data[1]
                         /* 将标签数据 封装上笔记的数量*/
                         this.$store.state.imageTreePure = JSON.parse(JSON.stringify(data.data[0]));
-                        this.tool.addNoteCount(this.$store.state.imageTagsTree)
+                        this.tool.addNoteCount(this.$store.state.imageTagsTree,'imageTag')
                     })
 
                 }).then(() => {
@@ -122,7 +122,7 @@
                             this.$store.state.tagsTree = data.data[0];
                             this.$store.state.tagsTreePure = JSON.parse(JSON.stringify(data.data[0]));
                             this.$store.state.tags = data.data[1];
-                            this.tool.addNoteCount(this.$store.state.tagsTree)
+                            this.tool.addNoteCount(this.$store.state.tagsTree,'noteTag')
                         }).then(() => {
                             // 创建页面时初始化
                             // 1.先初始化 列表  在列表排序中初始化 noteId
