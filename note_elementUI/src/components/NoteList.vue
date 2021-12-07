@@ -471,7 +471,10 @@
     .page-scroll .el-scrollbar__wrap {
         overflow-x: hidden;
     }
-
+    /*以免出现丑陋的滑动条*/
+    .el-scrollbar__wrap{
+        margin-right: -200px !important;
+    }
 
     /*给排序图标按钮指定大小*/
     .sortButton .el-button.is-round {
