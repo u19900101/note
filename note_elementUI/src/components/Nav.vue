@@ -146,11 +146,13 @@
                     case 'noteBooks': //'笔记本'
                         break;
                     case 'allNotes'://所有笔记
+                        this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 0)[0]
                         this.initCurrentNoteListByName("notes", 0);
                         break;
                     case 'allTags':
                         break;
                     case 'wastePaper':
+                        this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 2)[0]
                         this.initCurrentNoteListByName("wastepaperNotesList", 2);
                         break; /*'废纸篓' */
                     case 'images': /*todo 优化结构*/

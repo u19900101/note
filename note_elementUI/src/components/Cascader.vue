@@ -1,11 +1,10 @@
 <template>
     <div v-show="isSortShow">
-        <!-- value  初始绑定的值-->
+        <!-- value  初始绑定的值  -->
         <el-cascader-panel :options="options"
                            :props="props"
                            v-model="currentSortWays"
-
-                           style="position: absolute;z-index: 1990;background: #f2f2f2"
+                           style="position: absolute;z-index: 1990;margin-top: 32px;margin-left: -67px;background: #f2f2f2"
                            @change="sortChanged"
                            ref="panel"
         ></el-cascader-panel>

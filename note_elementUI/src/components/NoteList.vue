@@ -1,44 +1,42 @@
 <template>
     <el-container id="noteList">
+        <!--笔记排序 级联面板--> <!-- :style="{'margin-left': (noteListWidth-30) + 'px'}"-->
         <el-aside :style="{width: noteListWidth + 'px'}">
             <el-scrollbar class="page-scroll">
                 <!--笔记本名称 && 笔记排序按钮 搜索-->
-                <div v-if="!$store.state.fileMode">
-                    <el-row>
+                <div v-if="!$store.state.fileMode"> <!---->
+                    <el-row  :style="{width: noteListWidth + 'px'}" class="listTitle">
                         <!--列表显示的名称  笔记本名称 或者 标签名称 -->
-                        <el-col class="listTitle" style="text-align: center">
-                            <div style="margin-left: 10px">{{$store.state.listTitle}}
-                                <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
-                            </div>
-                            <el-button @click="clearAllWasteNotes" style="padding: 6px 7px;" size="mini" type="danger"
-                                       round
-                                       v-if="$store.state.currentNoteBook.title == '废纸篓'">
-                                清空
-                            </el-button>
-                            <el-button @click="recoverAllNote" style="padding: 6px 7px;" size="mini" type="primary"
-                                       round
-                                       v-if="$store.state.currentNoteBook.title == '废纸篓'">
-                                恢复
-                            </el-button>
-                            <el-button round style="padding: 6px 7px;" size="mini"
-                                       @click="sortClick(-1)"
-                                       @mouseleave.native="iconMouseLeave = true"
-                                       @mouseenter.native="iconMouseLeave = false">
-                                <i class="el-icon-sort"></i>
-                            </el-button>
-                        </el-col>
+                        <span >{{$store.state.listTitle}}
+                            <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
+                        </span>
+
+                        <el-button @click="clearAllWasteNotes" style="padding: 6px 7px;" size="mini" type="danger"
+                                   round
+                                   :disabled="$store.state.currentNoteList.length == 0 "
+                                   v-if="$store.state.currentNoteBook.title == '废纸篓'" >
+                            清空
+                        </el-button>
+                        <el-button @click="recoverAllNote" style="padding: 6px 7px;" size="mini" type="primary"
+                                   round
+                                   :disabled="$store.state.currentNoteList.length == 0 "
+                                   v-if="$store.state.currentNoteBook.title == '废纸篓'">
+                            恢复
+                        </el-button>
+
+                        <!--排序-->
+                        <el-button round style="padding: 6px 7px;" size="mini"
+                                   :disabled="$store.state.currentNoteList.length == 0 "
+                                   @click="sortClick(-1)"
+                                   @mouseleave.native="iconMouseLeave = true"
+                                   @mouseenter.native="iconMouseLeave = false">
+                            <i class="el-icon-sort"></i>
+                            排序
+                        </el-button>
                     </el-row>
 
-                    <!--笔记排序 级联面板-->
-                    <cascader :isSortShow="isSortShow"
-                              @sortClick="sortClick"
-                              @mouseleave.native="sortPanelMouseLeave = true"
-                              @mouseenter.native="sortPanelMouseLeave = false"
-                              :style="{'margin-left': (noteListWidth-30) + 'px'}">
-                    </cascader>
-
                     <!--搜索入口-->
-                    <el-row class="search">
+                    <el-row class="search" :style="{width: noteListWidth + 'px'}">
                         <!--带历史记录的输入框-->
                         <el-autocomplete
                                 v-model="searchValue"
@@ -59,13 +57,14 @@
                                         @mousedown.native="$store.state.currentIndex = index"
                                         @mouseenter.native="enterIndex = index"
                                         :id="index"
-                                        :style="{  backgroundColor:getBgColor(index),
-                                             border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'
-                                    }"
+                                        :style="{
+                                            width: noteListWidth + 'px',
+                                            backgroundColor:getBgColor(index),
+                                             border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
                                         style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
                                         type="flex">
 
-                                    <el-col :span="note.mediaUid ?16:24">
+                                    <el-col :span="note.mediaUid ?16:24" >
                                         <!--标题-->
                                         <el-row>
                                             <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
@@ -120,6 +119,11 @@
         <el-aside width="4px">
             <borderLine @widthChange="noteListWidthChange"/>
         </el-aside>
+        <cascader :isSortShow="isSortShow"
+                  @sortClick="sortClick"
+                  @mouseleave.native="sortPanelMouseLeave = true"
+                  @mouseenter.native="sortPanelMouseLeave = false">
+        </cascader>
     </el-container>
 </template>
 
@@ -426,14 +430,16 @@
     .listTitle {
         margin: 5px 0px;
         display: flex;
-        justify-content: flex-start; /*主轴上靠左 flex-start*/
         flex-wrap: wrap; /*不换行*/
-        justify-content: space-between; /**无法实现开头和结尾对其 *!*/
+        justify-content: space-between; /**无法实现开头和结尾对其 */
         align-items: center; /*侧轴上居中*/
         /*width: 600px; !*适配手机预览*!*/
         width: 100%;
     }
 
+    .el-scrollbar__wrap{
+       /* width: 400px;*/
+    }
     .innerCenter {
         /*background: aqua;*/
         display: flex;
