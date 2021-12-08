@@ -452,7 +452,7 @@
         margin: 5px 0px;
         display: flex;
         flex-wrap: wrap; /*不换行*/
-        justify-content: space-between; /**无法实现开头和结尾对其 */
+        justify-content: space-between;
         align-items: center; /*侧轴上居中*/
         /*width: 600px; !*适配手机预览*!*/
         width: 100%;
