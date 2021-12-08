@@ -1,129 +1,138 @@
 <template>
     <el-container id="noteList">
-        <!--笔记排序 级联面板--> <!-- :style="{'margin-left': (noteListWidth-30) + 'px'}"-->
-        <el-aside :style="{width: noteListWidth + 'px'}">
-            <el-scrollbar class="page-scroll">
-                <!--笔记本名称 && 笔记排序按钮 搜索-->
-                <div v-if="!$store.state.fileMode"> <!---->
-                    <el-row  :style="{width: noteListWidth + 'px'}" class="listTitle">
-                        <!--列表显示的名称  笔记本名称 或者 标签名称 -->
-                        <span >{{$store.state.listTitle}}
+        <el-container id = "kkkk"  :style="{height:noteListH}">
+            <el-header style="height:64px;background-color: #FFFFFF;padding: 0px">
+                <div  :style="{width: noteListWidth + 'px'}" class="listTitle">
+                    <!--列表显示的名称  笔记本名称 或者 标签名称 -->
+                    <span >{{$store.state.listTitle}}
                             <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
                         </span>
 
-                        <el-button @click="clearAllWasteNotes" style="padding: 6px 7px;" size="mini" type="danger"
-                                   round
-                                   :disabled="$store.state.currentNoteList.length == 0 "
-                                   v-if="$store.state.currentNoteBook.title == '废纸篓'" >
-                            清空
-                        </el-button>
-                        <el-button @click="recoverAllNote" style="padding: 6px 7px;" size="mini" type="primary"
-                                   round
-                                   :disabled="$store.state.currentNoteList.length == 0 "
-                                   v-if="$store.state.currentNoteBook.title == '废纸篓'">
-                            恢复
-                        </el-button>
+                    <el-button @click="clearAllWasteNotes" style="padding: 6px 7px;" size="mini" type="danger"
+                               round
+                               :disabled="$store.state.currentNoteList.length == 0 "
+                               v-if="$store.state.currentNoteBook.title == '废纸篓'" >
+                        清空
+                    </el-button>
+                    <el-button @click="recoverAllNote" style="padding: 6px 7px;" size="mini" type="primary"
+                               round
+                               :disabled="$store.state.currentNoteList.length == 0 "
+                               v-if="$store.state.currentNoteBook.title == '废纸篓'">
+                        恢复
+                    </el-button>
 
-                        <!--排序-->
-                        <el-button round style="padding: 6px 7px;" size="mini"
-                                   :disabled="$store.state.currentNoteList.length == 0 "
-                                   @click="sortClick(-1)"
-                                   @mouseleave.native="iconMouseLeave = true"
-                                   @mouseenter.native="iconMouseLeave = false">
-                            <i class="el-icon-sort"></i>
-                            排序
-                        </el-button>
-                    </el-row>
+                    <!--排序-->
+                    <el-button round style="padding: 6px 7px;" size="mini"
+                               :disabled="$store.state.currentNoteList.length == 0 "
+                               @click="sortClick(-1)"
+                               @mouseleave.native="iconMouseLeave = true"
+                               @mouseenter.native="iconMouseLeave = false">
+                        <i class="el-icon-sort"></i>
+                        排序
+                    </el-button>
+                </div>
+                <!--搜索入口-->
+                <el-row class="search" :style="{width: noteListWidth + 'px'}">
+                    <!--带历史记录的输入框-->
+                    <el-autocomplete
+                            v-model="searchValue"
+                            clearable
+                            :fetch-suggestions="querySearch"
+                            placeholder="搜索"
+                            @select="handleSelect"
+                            prefix-icon="el-icon-search"
+                            style="width: 100%;"></el-autocomplete>
+                </el-row>
+            </el-header>
 
-                    <!--搜索入口-->
-                    <el-row class="search" :style="{width: noteListWidth + 'px'}">
-                        <!--带历史记录的输入框-->
-                        <el-autocomplete
-                                v-model="searchValue"
-                                clearable
-                                :fetch-suggestions="querySearch"
-                                placeholder="搜索"
-                                @select="handleSelect"
-                                prefix-icon="el-icon-search"
-                                style="width: 100%;"></el-autocomplete>
-                    </el-row>
-                    <!--笔记列表-->
-                    <el-container>
-                        <el-aside :style="{width: noteListWidth + 'px'}">
-                            <div v-for="(note,index) in $store.state.currentNoteList">
-                                <!-- type="flex" 为了让图片居中 -->
-                                <!--列表区  标题  标签  内容-->
-                                <el-row @click.native="noteClick(note,index)"
-                                        @mousedown.native="$store.state.currentIndex = index"
-                                        @mouseenter.native="enterIndex = index"
-                                        :id="index"
-                                        :style="{
+            <el-container>
+                <el-aside :style="{width: noteListWidth + 'px'}" >
+                    <el-scrollbar class="page-scroll">
+                        <!--笔记本名称 && 笔记排序按钮 搜索-->
+                        <div v-if="!$store.state.fileMode">
+                            <!--笔记列表-->
+                            <el-container>
+                                <el-aside :style="{width: noteListWidth + 'px'}">
+                                    <div v-for="(note,index) in $store.state.currentNoteList">
+                                        <!-- type="flex" 为了让图片居中 -->
+                                        <!--列表区  标题  标签  内容-->
+                                        <el-row @click.native="noteClick(note,index)"
+                                                @mousedown.native="$store.state.currentIndex = index"
+                                                @mouseenter.native="enterIndex = index"
+                                                :id="index"
+                                                :style="{
                                             width: noteListWidth + 'px',
                                             backgroundColor:getBgColor(index),
                                              border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
-                                        style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
-                                        type="flex">
+                                                style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
+                                                type="flex">
 
-                                    <el-col :span="note.mediaUid ?16:24" >
-                                        <!--标题-->
-                                        <el-row>
-                                            <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
-                                            <div v-else class='titleInList'>
-                                                <strong>{{note.title}}</strong>
-                                            </div>
-                                        </el-row>
-                                        <!--标签 & 内容-->
-                                        <el-row>
-                                            <!-- 给多行省略符 元素动态设置背景色-->
-                                            <div class="more-line">
-                                                <span style="color: #49a2de">{{getTagList(note)}}</span>
-                                                <span v-if="$store.state.isSearchMode" v-html="note.content"></span>
-                                                <span v-else> {{note.summary}}</span>
-                                                <!--replace("# " + note.title + "\n\n","")-->
-                                            </div>
-                                        </el-row>
+                                            <el-col :span="note.mediaUid ?16:24" >
+                                                <!--标题-->
+                                                <el-row>
+                                                    <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
+                                                    <div v-else class='titleInList'>
+                                                        <strong>{{note.title}}</strong>
+                                                    </div>
+                                                </el-row>
+                                                <!--标签 & 内容-->
+                                                <el-row>
+                                                    <!-- 给多行省略符 元素动态设置背景色-->
+                                                    <div class="more-line">
+                                                        <span style="color: #49a2de">{{getTagList(note)}}</span>
+                                                        <span v-if="$store.state.isSearchMode" v-html="note.content"></span>
+                                                        <span v-else> {{note.summary}}</span>
+                                                        <!--replace("# " + note.title + "\n\n","")-->
+                                                    </div>
+                                                </el-row>
 
-                                        <!--时间-->
-                                        <el-row>
-                                            <!--根据排序方式来决定显示的时间类型 note.createTime -->
-                                            <span style="font-size: mini;color: #49a2de">
+                                                <!--时间-->
+                                                <el-row>
+                                                    <!--根据排序方式来决定显示的时间类型 note.createTime -->
+                                                    <span style="font-size: mini;color: #49a2de">
                                             {{$store.state.sortWay.updateTime ? '更新时间' : '创建时间'}}
-                                                <!--若有别名字段就显示别名-->
+                                                        <!--若有别名字段就显示别名-->
                                             {{
                                             $store.state.sortWay.updateTime
                                             ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
                                             : (note.createTimeAlias ? note.createTimeAlias:note.createTime)
                                             }}
                                         </span>
+                                                </el-row>
+                                            </el-col>
+                                            <!--图片-->
+                                            <el-col v-if="note.mediaUid" :span="8" class="innerCenter">
+                                                <el-image style="width: 100px;height: 100px"
+                                                          :src="note.mediaUid"
+                                                          fit="cover">
+                                                </el-image>
+                                                <!--  <el-image v-else
+                                                            :src="require('../assets/images/gofree.jpg')"
+                                                            fit="cover">
+                                                  </el-image>-->
+                                            </el-col>
                                         </el-row>
-                                    </el-col>
-                                    <!--图片-->
-                                    <el-col v-if="note.mediaUid" :span="8" class="innerCenter">
-                                        <el-image style="width: 100px;height: 100px"
-                                                  :src="note.mediaUid"
-                                                  fit="cover">
-                                        </el-image>
-                                      <!--  <el-image v-else
-                                                  :src="require('../assets/images/gofree.jpg')"
-                                                  fit="cover">
-                                        </el-image>-->
-                                    </el-col>
-                                </el-row>
-                            </div>
-                        </el-aside>
-                    </el-container>
-                </div>
-            </el-scrollbar>
-        </el-aside>
-        <!--拉动线-->
-        <el-aside width="4px">
-            <borderLine @widthChange="noteListWidthChange"/>
-        </el-aside>
+                                    </div>
+                                </el-aside>
+                            </el-container>
+                        </div>
+                    </el-scrollbar>
+                </el-aside>
+
+            </el-container>
+
+        </el-container>
+        <!--笔记排序 级联面板-->
         <cascader :isSortShow="isSortShow"
                   @sortClick="sortClick"
                   @mouseleave.native="sortPanelMouseLeave = true"
                   @mouseenter.native="sortPanelMouseLeave = false">
         </cascader>
+
+        <!--拉动线-->
+        <el-aside width="4px">
+            <borderLine @widthChange="noteListWidthChange"/>
+        </el-aside>
     </el-container>
 </template>
 
@@ -151,9 +160,9 @@
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 lastTime: 0, //定时器的初始值
                 widthLastTime: 0,
+                noteListH :document.body.clientHeight - 64  + 'px', //列表滑框的高度
             }
         },
-
         methods: {
             /*清空废纸篓*/
             clearAllWasteNotes() {
@@ -421,6 +430,18 @@
                 }
             }
             ,
+        },
+        mounted() {
+            let lastPixelRatio = window.devicePixelRatio;
+            let vm = this
+            window.addEventListener('resize', function () {
+                let currentPixelRatio = window.devicePixelRatio;
+                if (currentPixelRatio !== lastPixelRatio) {
+                    vm.noteListH = document.body.clientHeight - 64  + 'px'
+                    console.log('页面缩放变化了', vm.noteListH,document.body.clientHeight);
+                }
+                lastPixelRatio = currentPixelRatio;
+            });
         }
     }
 </script>
