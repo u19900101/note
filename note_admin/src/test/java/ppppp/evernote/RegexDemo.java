@@ -49,12 +49,26 @@ public class RegexDemo {
 
     @Test
     public void T_replaeAll(){
-        String content = "ddddddddddddddddddddd<img xxxxx/> sssssssssssss<img xxxxx/>ssssssss<video controls dddddffff></video> gggggggg<video controls dddddffff>视频</video>gggggggg";
+        String content = "ddddddddddddddddddddd<img 第一个/> sssssssssssss<img xxxxx/>ssssssss<video controls dddddffff></video> gggggggg<video controls dddddffff>视频</video>gggggggg";
         // String replaceAll = content.replaceAll("^\\<img.*?\\>$","替换");
         String replaceAll = content.replaceAll("\\<img.*?\\>|\\<video.*?video\\>","替换");
         System.out.println(replaceAll);
     }
 
+    @Test
+    public void T_搜索(){
+        String content = "dddddddddd<img src=\"http://lpgogo.xxxxxreensdddd9.png\" style=\"zoom:30%;\"/>\nggggg";
+        Pattern p = Pattern.compile("\\<img.*?\\>");
+        Matcher m = p.matcher(content);
+        while (m.find()) {
+            String sub = content.substring(m.start(), m.end());
+            System.out.println(sub);
+            String s = sub.substring(sub.indexOf("\"") + 1);
+            String s1 = s.substring(0, s.indexOf("\""));
+            System.out.println(s1);
+            break;
+        }
+    }
     @Test
     public void T_非贪婪匹配(){
         Pattern pattern = Pattern.compile("(\\d+?)(0*)");

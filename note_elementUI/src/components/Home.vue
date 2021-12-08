@@ -70,6 +70,7 @@
                     this.$store.state.noteBooks = data.data[0]
                     /*默认初始化选择所有笔记*/
                     this.$store.state.currentNoteBook = data.data[0][0]
+                    this.$store.state.listTitle = data.data[0][0].title
                     /* 将noteBookTree 封装上笔记的数量*/
                     this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data[1]))
                     this.tool.addNoteCount(data.data[1],'notebook')

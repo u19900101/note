@@ -13,6 +13,8 @@ import ppppp.evernote.util.ResultUtil;
 
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static ppppp.evernote.util.RequestUtils.sendGetRequest;
 
@@ -29,6 +31,29 @@ public class AdminTest {
     @Autowired
     ImageTagService imageTagService;
 
+    @Test
+    public void T_setMediaUid(){
+        List<Note> noteList = noteService.lambdaQuery().select(Note::getId,Note::getContent).list();/*.last("limit 30")*/
+        int count = 1;
+        Pattern p = Pattern.compile("\\<img.*?\\>");
+
+        for (Note note : noteList) {
+            String content = note.getContent();
+            Matcher m = p.matcher(content);
+            while (m.find()) {
+                String sub = content.substring(m.start(), m.end());
+                String s = sub.substring(sub.indexOf("\"") + 1);
+                String s1 = s.substring(0, s.indexOf("\""));
+                System.out.println(count + " " +s1);
+                note.setMediaUid(s1);
+                note.setContent(null);
+                break;
+            }
+            count++;
+        }
+        noteService.updateBatchById(noteList);
+      
+    }
     @Test
     public void T_setSummary(){
 

@@ -1,5 +1,5 @@
 <template>
-    <div class="order">
+    <div class="order" style="margin-right: 10px">
         <div id="vditor"></div>
     </div>
 </template>
@@ -9,7 +9,8 @@
     export default {
         data() {
             return {
-                contentEditor: ""
+                contentEditor: "",
+                // clientWidth : document.body.clientWidth, //页面的宽度
             }
         },
         mounted() {
@@ -86,6 +87,17 @@
                     this.contentEditor.setTheme(this.$store.state.sortWay.editortheme ?"light": "dark",
                         this.$store.state.sortWay.contenttheme ? "light": "dark",
                         "dark")
+                    /*控制边距 todo*/
+                    /*let lastPixelRatio = window.devicePixelRatio;
+                    window.addEventListener('resize', function () {
+                        let currentPixelRatio = window.devicePixelRatio;
+                        if (currentPixelRatio !== lastPixelRatio) {
+                            console.log('页面缩放变化了',document.body.clientWidth -  vm.$store.state.sortWay.navWidth - vm.$store.state.sortWay.listWidth - 100);
+                            // vm.contentEditor.vditor.options.width = document.body.clientWidth -  100 - vm.$store.state.sortWay.navWidth - vm.$store.state.sortWay.listWidth + 'px'
+                            vm.contentEditor.vditor.options.width = 500 + 'px'
+                        }
+                        lastPixelRatio = currentPixelRatio;
+                    });*/
                 },
                 /*监听输入框发生变化时保存修改*/
                 input(content) {
@@ -108,8 +120,18 @@
                         console.log("修改数据库成功", data);
                     })
                 },
+                width: "80%",  /*编辑器总宽度，支持 %*/
             })
+
+
+
         },
+       /* computed:{
+            getMdWidth(){
+                console.log('kkk   ',this.clientWidth)
+                return  this.clientWidth - this.$store.state.sortWay.navWidth - this.$store.state.sortWay.listWidth
+            },
+        },*/
         methods: {
             onloadCallback(oEvent) {
                 const currentTarget = oEvent.currentTarget
@@ -155,4 +177,9 @@
     }
 </script>
 <style scoped>
+    /*控制内容的边距 todo 无法控制边距*/
+   /* .vditor-reset{
+        padding: 10px 38.5px !important;
+    }*/
+
 </style>

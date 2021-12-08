@@ -65,7 +65,7 @@
                                         style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
                                         type="flex">
 
-                                    <el-col :span="16">
+                                    <el-col :span="note.mediaUid ?16:24">
                                         <!--标题-->
                                         <el-row>
                                             <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
@@ -99,15 +99,15 @@
                                         </el-row>
                                     </el-col>
                                     <!--图片-->
-                                    <el-col :span="8" class="innerCenter">
-                                        <el-image v-if="note.mediaUid"
-                                                  :src="require('../assets/images/'+ note.mediaUid)"
+                                    <el-col v-if="note.mediaUid" :span="8" class="innerCenter">
+                                        <el-image style="width: 100px;height: 100px"
+                                                  :src="note.mediaUid"
                                                   fit="cover">
                                         </el-image>
-                                        <el-image v-else
+                                      <!--  <el-image v-else
                                                   :src="require('../assets/images/gofree.jpg')"
                                                   fit="cover">
-                                        </el-image>
+                                        </el-image>-->
                                     </el-col>
                                 </el-row>
                             </div>
