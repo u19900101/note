@@ -1,23 +1,23 @@
 <template>
-    <el-container id="noteList">
-        <el-container id = "kkkk"  :style="{height:noteListH}">
-            <el-header style="height:64px;background-color: #FFFFFF;padding: 0px">
-                <div  :style="{width: noteListWidth + 'px'}" class="listTitle">
+    <el-container id="noteList" :style="{height: $store.state.clientH}" style="background-color: #FFFFFF;">
+        <el-container id="kkkk" :style="{height:noteListH}">
+            <el-header style="height:64px;padding: 0px">
+                <div :style="{width: noteListWidth + 'px'}" class="listTitle">
                     <!--列表显示的名称  笔记本名称 或者 标签名称 -->
-                    <span >{{$store.state.listTitle}}
+                    <span>{{$store.state.listTitle}}
                             <span style="color: rgba(40,59,55,0.77)">(共{{$store.state.currentNoteList.length}}条)</span>
                         </span>
 
                     <el-button @click="clearAllWasteNotes" style="padding: 6px 7px;" size="mini" type="danger"
                                round
                                :disabled="$store.state.currentNoteList.length == 0 "
-                               v-if="$store.state.currentNoteBook.title == '废纸篓'" >
+                               v-if="$store.state.listTitle == '废纸篓'">
                         清空
                     </el-button>
                     <el-button @click="recoverAllNote" style="padding: 6px 7px;" size="mini" type="primary"
                                round
                                :disabled="$store.state.currentNoteList.length == 0 "
-                               v-if="$store.state.currentNoteBook.title == '废纸篓'">
+                               v-if="$store.state.listTitle == '废纸篓'">
                         恢复
                     </el-button>
 
@@ -46,7 +46,7 @@
             </el-header>
 
             <el-container>
-                <el-aside :style="{width: noteListWidth + 'px'}" >
+                <el-aside id="innner" :style="{width: noteListWidth + 'px'}">
                     <el-scrollbar class="page-scroll">
                         <!--笔记本名称 && 笔记排序按钮 搜索-->
                         <div v-if="!$store.state.fileMode">
@@ -67,7 +67,7 @@
                                                 style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
                                                 type="flex">
 
-                                            <el-col :span="note.mediaUid ?16:24" >
+                                            <el-col :span="note.mediaUid ?16:24">
                                                 <!--标题-->
                                                 <el-row>
                                                     <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
@@ -80,7 +80,8 @@
                                                     <!-- 给多行省略符 元素动态设置背景色-->
                                                     <div class="more-line">
                                                         <span style="color: #49a2de">{{getTagList(note)}}</span>
-                                                        <span v-if="$store.state.isSearchMode" v-html="note.content"></span>
+                                                        <span v-if="$store.state.isSearchMode"
+                                                              v-html="note.content"></span>
                                                         <span v-else> {{note.summary}}</span>
                                                         <!--replace("# " + note.title + "\n\n","")-->
                                                     </div>
@@ -118,7 +119,6 @@
                         </div>
                     </el-scrollbar>
                 </el-aside>
-
             </el-container>
 
         </el-container>
@@ -160,7 +160,8 @@
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 lastTime: 0, //定时器的初始值
                 widthLastTime: 0,
-                noteListH :document.body.clientHeight - 64  + 'px', //列表滑框的高度
+                noteListH: document.body.clientHeight - 64 + 'px', //列表滑框的高度
+                clientH: document.body.clientHeight +  'px', //列表滑框的高度
             }
         },
         methods: {
@@ -208,7 +209,7 @@
                 setTimeout(() => {
                     this.https.getNoteBooksTree().then(({data}) => {
                         this.$store.state.noteBooksTree = data.data
-                        this.tool.addNoteCount(this.$store.state.noteBooksTree,'notebook')
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree, 'notebook')
                     })
                 }, 1000)
 
@@ -416,8 +417,7 @@
                     })
                 }, 2000)
             }
-        }
-        ,
+        },
         watch: {
             /*监听用户停止输入*/
             searchValue(searchValue) {
@@ -437,8 +437,9 @@
             window.addEventListener('resize', function () {
                 let currentPixelRatio = window.devicePixelRatio;
                 if (currentPixelRatio !== lastPixelRatio) {
-                    vm.noteListH = document.body.clientHeight - 64  + 'px'
-                    console.log('页面缩放变化了', vm.noteListH,document.body.clientHeight);
+                    vm.noteListH = document.body.clientHeight - 64 + 'px'
+                    vm.$store.state.clientH = document.body.clientHeight  + 'px'
+                    console.log('页面缩放变化了', vm.noteListH, document.body.clientHeight);
                 }
                 lastPixelRatio = currentPixelRatio;
             });
@@ -458,9 +459,10 @@
         width: 100%;
     }
 
-    .el-scrollbar__wrap{
-       /* width: 400px;*/
+    .el-scrollbar__wrap {
+        /* width: 400px;*/
     }
+
     .innerCenter {
         /*background: aqua;*/
         display: flex;
@@ -499,8 +501,9 @@
     .page-scroll .el-scrollbar__wrap {
         overflow-x: hidden;
     }
+
     /*以免出现丑陋的滑动条*/
-    .el-scrollbar__wrap{
+    .el-scrollbar__wrap {
         margin-right: -200px !important;
     }
 

@@ -72,9 +72,9 @@ const state = {
     imageTags:[], //图片标签
     imageTagsTree:[], //图片标签
     /*************页面显示控制*************/
-    listAndNoteShow: true,  //显示列表区和笔记区
     tableData: [],           //封装笔记本和标签展示区
     listTitle : '',         //列表区的名称
+    clientH: document.body.clientHeight + 'px',
 }
 
 //创建并暴露store

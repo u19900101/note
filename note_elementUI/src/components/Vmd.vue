@@ -181,5 +181,11 @@
    /* .vditor-reset{
         padding: 10px 38.5px !important;
     }*/
+    /*解决滑动内容时出现的条纹阴影bug*/
+    .vditor {
+        display: flex;
+        flex-direction: column;
+        border: -7px solid var(--border-color) !important;
+    }
 
 </style>

@@ -133,9 +133,7 @@
                 this.currentNode = node
                 this.$store.state.listTitle = data.title.split(" ")[0]
                 if (this.$store.state.isSearchMode) this.turnOffSearchMode()
-                if (!this.$store.state.listAndNoteShow) this.$store.state.listAndNoteShow = true
                 /*默认文件视图模式关闭*/
-                if (this.$store.state.fileMode) this.$store.state.fileMode = false
                 switch (data.id) {
                     case 'insertNote':
                         this.insertNote();
@@ -150,20 +148,19 @@
                         this.initCurrentNoteListByName("notes", 0);
                         break;
                     case 'allTags':
+                        this.toPage('notepage')
+                        this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 11)[0]
+                        this.initTagNotesListByTagNode(data)
                         break;
                     case 'wastePaper':
                         this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 2)[0]
                         this.initCurrentNoteListByName("wastepaperNotesList", 2);
                         break; /*'废纸篓' */
                     case 'images': /*todo 优化结构*/
-                        this.$store.state.fileMode = true
-                        this.$store.state.listAndNoteShow = false
                         // this.$store.state.currentNoteList =  this.$store.state.fileList
                         this.initCurrentNoteListByName("fileList", 8);
                         break; /* 文件 */
                     case 'starImages':
-                        this.$store.state.fileMode = true
-                        this.$store.state.listAndNoteShow = false
                         // this.$store.state.currentNoteList =  this.$store.state.fileList
                         this.initCurrentNoteListByName("fileList", 9);
                         break; /* 收藏的图片 */
@@ -171,8 +168,6 @@
                         console.log('tagImages ...')
                         break; /!* 收藏的图片 *!/*/
                     case 'recycleBin':
-                        this.$store.state.fileMode = true
-                        this.$store.state.listAndNoteShow = false
                         // this.$store.state.currentNoteList =  this.$store.state.fileList
                         this.initCurrentNoteListByName("fileList", 10);
                         break; /* 图片回收站 */
@@ -181,29 +176,96 @@
                         /*区分是 点击的是笔记本 还是 标签*/
                         let firstLevelTitle = this.getfirstLevelTitle(node)
                         if (firstLevelTitle == '笔记本') {
+                            this.toPage('notepage')
                             this.initCurrentNoteListByName("noteBookNameId", data.id);
                         } else if (firstLevelTitle == '标签') {
+                            this.toPage('notepage')
                             this.initTagNotesListByTagNode(data)
-                        } else {
+                        } else { // 图片标签
+                            this.toPage('imageList')
                             this.$store.state.currentImageUrlList = [1, 2, 3]
                             this.initImageListByTagNode(data)
                         }
                 }
             },
-            /*控制菜单项的显示*/
-            menuEnable(){
-                return  ['noteBooks','allTags','tagImages'].indexOf(this.currentNode.data.id) != -1
+            /*初始化笔记列表和笔记本*/
+            initCurrentNoteListByName(currentNoteBookName, noteBookId) {
+                //笔记本
+                if (currentNoteBookName == "noteBookNameId") {
+                    // console.log('noteBookId is ', noteBookId);
+                    /*获取所有子笔记*/
+                    if(noteBookId.indexOf('_notebook') == -1)noteBookId = noteBookId+ '_notebook'
+                    let parentIds = this.getChildrenIds(noteBookId, this.$store.state.noteBooksTree)
+                    this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid + '_notebook'))
+                    this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => (n.id + '_notebook') == noteBookId)[0]
+                    this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
+                } else { //其他一级标题  如 wastepaperNotesList
+                    if (noteBookId == 8 || noteBookId == 9 || noteBookId == 10) {
+                        this.toPage('imageList')
+                        let dayImages = []
+                        switch (noteBookId) {
+                            case 8:
+                                dayImages = this.$store.state.fileList;
+                                break;
+                            case 9:
+                                dayImages = this.$store.state.starImageList;
+                                break;
+                            case 10:
+                                dayImages = this.$store.state.wastepaperPictureList;
+                                break;
+                        }
+
+                        dayImages = this.tool.groupImages("day", dayImages)
+                        this.$store.state.currentImageList = dayImages
+                        /*初始化预览 给占个位 不然第一次点击时不出现大图*/
+                        this.$store.state.currentImageUrlList = [1, 2, 3]
+                    } else {
+                        this.toPage('notepage')
+                        this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
+                        this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
+                    }
+                }
+                if (this.$store.state.currentNoteList.length > 0) {
+                    this.$store.state.currentNote = this.$store.state.currentNoteList[0]
+                    this.$store.state.currentIndex = 0
+                }
             },
+            /*初始化 图片列表 */
+            initImageListByTagNode(tagNodeData) {
+                /*视图控制*/
+                let dayImages = this.tool.groupImages("day", this.getImageListByTagNode(tagNodeData))
+                this.$store.state.currentImageList = dayImages
+
+                /*3.初始化 currentNote currentNoteBook*/
+                if (this.$store.state.currentImageList.length > 0) {
+                    this.$store.state.currentImage = this.$store.state.currentImageList[0].images[0]
+                    this.$store.state.currentIndex = 0
+                }
+                /*初始化笔记本 便于展开tree*/
+                this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 12)[0]
+            },
+
+            initTagNotesListByTagNode(tagNodeData) {
+                /*3.初始化 currentNoteList */
+                this.$store.state.currentNoteList = this.getNoteListByTagNode(tagNodeData)
+
+                /*3.初始化 currentNote currentNoteBook*/
+                if (this.$store.state.currentNoteList.length > 0) {
+                    this.$store.state.currentNote = this.$store.state.currentNoteList[0]
+                    this.$store.state.currentIndex = 0
+                }
+            },
+
+
             /*以列表的方式对 笔记本 标签 图片标签进行管理*/
-            manage(){
+            manage() {
                 this.showContextmenu = false //隐藏菜单
-                if(this.currentNode.data.id == 'noteBooks'){
+                this.$router.push({name: 'noteBook_tag'})
+                if (this.currentNode.data.id == 'noteBooks') {
                     this.$store.state.tableData = this.$store.state.noteBooksTreePure
-                    this.$store.state.listAndNoteShow = false
-                }else if(this.currentNode.data.id == 'allTags'){
+                } else if (this.currentNode.data.id == 'allTags') {
                     this.$store.state.tableData = this.$store.state.tagsTreePure
-                    this.$store.state.listAndNoteShow = false
-                }else if(this.currentNode.data.id == 'tagImages'){
+                } else if (this.currentNode.data.id == 'tagImages') {
                     console.log('on the way')
                 }
 
@@ -412,77 +474,7 @@
                     })
                 })
             },
-            /*初始化笔记列表和笔记本*/
-            initCurrentNoteListByName(currentNoteBookName, noteBookId) {
-                //笔记本
-                if (currentNoteBookName == "noteBookNameId") {
-                    // console.log('noteBookId is ', noteBookId);
-                    /*获取所有子笔记*/
-                    let parentIds = this.getChildrenIds(noteBookId, this.$store.state.noteBooksTree)
-                    this.$store.state.currentNoteBookNoteList = this.$store.state.notes.filter((n) => parentIds.includes(n.pid + '_notebook'))
-                    this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => (n.id + '_notebook') == noteBookId)[0]
-                    this.$store.state.currentNoteList = this.$store.state.currentNoteBookNoteList
-                } else { //其他一级标题  如 wastepaperNotesList
-                    if (noteBookId == 8 || noteBookId == 9 || noteBookId == 10) {
-                        let dayImages = []
-                        switch (noteBookId) {
-                            case 8:
-                                dayImages = this.$store.state.fileList;
-                                break;
-                            case 9:
-                                dayImages = this.$store.state.starImageList;
-                                break;
-                            case 10:
-                                dayImages = this.$store.state.wastepaperPictureList;
-                                break;
-                        }
 
-                        dayImages = this.tool.groupImages("day", dayImages)
-                        this.$store.state.currentImageList = dayImages
-                        /*初始化预览 给占个位 不然第一次点击时不出现大图*/
-                        this.$store.state.currentImageUrlList = [1, 2, 3]
-                    }
-                    else {
-                        this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
-                        this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
-                    }
-                }
-                if (this.$store.state.currentNoteList.length > 0) {
-                    this.$store.state.currentNote = this.$store.state.currentNoteList[0]
-                    this.$store.state.currentIndex = 0
-                }
-            },
-            /*初始化 图片列表 */
-            initImageListByTagNode(tagNodeData) {
-                /*视图控制*/
-                this.$store.state.fileMode = true
-                this.$store.state.listAndNoteShow = false
-
-                let dayImages = this.tool.groupImages("day", this.getImageListByTagNode(tagNodeData))
-                this.$store.state.currentImageList = dayImages
-
-
-                /*3.初始化 currentNote currentNoteBook*/
-                if (this.$store.state.currentImageList.length > 0) {
-                    this.$store.state.currentImage = this.$store.state.currentImageList[0].images[0]
-                    this.$store.state.currentIndex = 0
-                }
-                /*初始化笔记本 便于展开tree*/
-                this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 12)[0]
-            },
-
-            initTagNotesListByTagNode(tagNodeData) {
-                /*3.初始化 currentNoteList */
-                this.$store.state.currentNoteList = this.getNoteListByTagNode(tagNodeData)
-
-                /*3.初始化 currentNote currentNoteBook*/
-                if (this.$store.state.currentNoteList.length > 0) {
-                    this.$store.state.currentNote = this.$store.state.currentNoteList[0]
-                    this.$store.state.currentIndex = 0
-                }
-                /*给title去掉括号*/
-                let title = tagNodeData.title.split(' ')[0]
-            },
             /*获取拖拽节点的 {preId, currentId, nextId}*/
             getIds(draggingNode) {
                 let [preId, currentId, nextId, currentIndex] = ["0", "0", "0", "0"]
@@ -515,7 +507,10 @@
                 }
                 return {preId, currentId, nextId}
             },
-
+            /*控制菜单项的显示*/
+            menuEnable() {
+                return ['noteBooks', 'allTags', 'tagImages'].indexOf(this.currentNode.data.id) != -1
+            },
             handleDrop(draggingNode, dropNode, dropType, ev) {
                 // console.log(dropNode.data.title, dropNode.data.id)
                 // 无法直接获取拖拽完成后的node父id，才用使用id获取当前节点的方式，间接获取pid，用于更新
@@ -730,6 +725,14 @@
                     })
                 }, 2000)
             },
+            toPage(routeName) {
+                /* if(routeName == 'imageList'){
+                     this.$router.history.current.name != 'imageList' ? this.$router.push({name:'imageList'}) : ''
+                 }else  if(routeName == 'notepage'){
+                     this.$router.history.current.name != 'notepage' ? this.$router.push({name:'notepage'}) : ''
+                 }*/
+                this.$router.history.current.name != routeName ? this.$router.push({name: routeName}) : ''
+            }
         },
         computed: {
             data: {

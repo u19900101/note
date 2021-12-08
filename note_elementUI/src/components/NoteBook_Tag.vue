@@ -195,13 +195,13 @@
             rowDblclick(row, column, event) {
                 /*处于编辑模式时双击不跳转*/
                 if (!this.titleOnEdit && column.property != 'delete') {
-                    this.$store.state.listAndNoteShow = true
                     if (this.$store.state.tableData == this.$store.state.noteBooksTreePure) {
                         this.$bus.$emit('initCurrentNoteListByName', "noteBookNameId", row.id)
                     } else {
                         let tagNodeData = this.getTagNodeDataById(row.id, this.$store.state.tagsTree)
                         this.$bus.$emit('initTagNotesListByTagNode', tagNodeData)
                     }
+                    this.$router.history.current.name != 'notepage' ? this.$router.push({name:'notepage'}) : ''
                 }
             },
             cellClick(row, column, cell, event) {

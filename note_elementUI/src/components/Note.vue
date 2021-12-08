@@ -1,105 +1,106 @@
 <template>
-    <el-container style="width: 1000px">
-        <!--标题 & 工具栏-->
-        <el-header v-if="!$store.state.fileMode" style="padding: 0 5px;">
-            <!--标题-->
-            <!-- <el-row>
-                 <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
-                 &lt;!&ndash; style="width: 560px" &ndash;&gt;
-                 <el-input
-                         v-else
-                         :disabled="$store.state.currentNote.wastepaper"
-                         size="mini"
-                         placeholder="请输入笔记标题"
-                         v-model="title">
-                 </el-input>
-             </el-row>-->
-            <!--笔记本 标签 收藏 删除  日期 位置-->
-            <el-row class="toolLeft"> <!--toolLeft 让笔记图标在div中居中-->
-                <!--笔记本和图标放一起-->
-                <i class="el-icon-notebook-2"></i>
-                <!--让下拉框随着内容的变化动态的改变宽带 字体的大小是 12 英文和中文的宽度不一样 粗略的进行计算 -->
-                <el-select v-model="currentNoteBook" filterable placeholder="请选择"
-                           size="mini"
-                           :disabled="$store.state.currentNote.wastepaper"
-                           :style="{width: getBt(currentNoteBook.label)*6 + 70+ 'px'}">
-                    <!--slice(3) 过滤掉 数据库中 所有笔记，收藏，废纸篓三项-->
-                    <el-option
-                            v-for="item in $store.state.noteBooks.slice(3)"
-                            :key="item.id"
-                            :label="item.title"
-                            :value="{ value: item.id, label: item.title }">
-                    </el-option>
-                </el-select>
+    <div>
+        <el-container v-if="$store.state.currentNoteList.length > 0" :style="{height :$store.state.clientH}" >
+            <!--标题 & 工具栏--> <!--$router.history.current.name != 'imageList'-->
+            <el-header v-if="$router.history.current.name == 'notepage'" style="padding: 0 5px;">
+                <!--标题-->
+                <!-- <el-row>
+                     <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
+                     &lt;!&ndash; style="width: 560px" &ndash;&gt;
+                     <el-input
+                             v-else
+                             :disabled="$store.state.currentNote.wastepaper"
+                             size="mini"
+                             placeholder="请输入笔记标题"
+                             v-model="title">
+                     </el-input>
+                 </el-row>-->
+                <!--笔记本 标签 收藏 删除  日期 位置-->
+                <el-row class="toolLeft"> <!--toolLeft 让笔记图标在div中居中-->
+                    <!--笔记本和图标放一起-->
+                    <i class="el-icon-notebook-2"></i>
+                    <!--让下拉框随着内容的变化动态的改变宽带 字体的大小是 12 英文和中文的宽度不一样 粗略的进行计算 -->
+                    <el-select v-model="currentNoteBook" filterable placeholder="请选择"
+                               size="mini"
+                               :disabled="$store.state.currentNote.wastepaper"
+                               :style="{width: getBt(currentNoteBook.label)*6 + 70+ 'px'}">
+                        <!--slice(3) 过滤掉 数据库中 所有笔记，收藏，废纸篓三项-->
+                        <el-option
+                                v-for="item in $store.state.noteBooks.slice(3)"
+                                :key="item.id"
+                                :label="item.title"
+                                :value="{ value: item.id, label: item.title }">
+                        </el-option>
+                    </el-select>
 
-                <!--收藏-->
-                <el-tooltip class="item"
-                            :disabled="$store.state.currentNote.wastepaper"
-                            :content="star ? '取消收藏': '收藏'"
-                            placement="bottom">
-                    <!--给图标单独设置大小 采用 i 设置时会影响全局-->
-                    <el-button :disabled="$store.state.currentNote.wastepaper" size="mini"
-                               style="margin-left: 10px;padding: 0px">
-                        <i @click="starClick" :class="star ? 'el-icon-star-on': 'el-icon-star-off' "
-                           style="font-size: 25px"></i>
+                    <!--收藏-->
+                    <el-tooltip class="item"
+                                :disabled="$store.state.currentNote.wastepaper"
+                                :content="star ? '取消收藏': '收藏'"
+                                placement="bottom">
+                        <!--给图标单独设置大小 采用 i 设置时会影响全局-->
+                        <el-button :disabled="$store.state.currentNote.wastepaper" size="mini"
+                                   style="margin-left: 10px;padding: 0px">
+                            <i @click="starClick" :class="star ? 'el-icon-star-on': 'el-icon-star-off' "
+                               style="font-size: 25px"></i>
+                        </el-button>
+                    </el-tooltip>
+
+                    <!--删除笔记-->
+                    <el-tooltip class="item"
+                                :content="$store.state.currentNote.wastepaper ? '彻底删除笔记' : '移入到废纸篓'"
+                                placement="bottom">
+                        <el-button size="mini" style="margin-left: 10px;padding: 0px">
+                            <i class="el-icon-delete" @click="deleteClick" style="font-size: 25px"></i>
+                        </el-button>
+                    </el-tooltip>
+
+                    <!--标签-->
+                    <noteTag style="margin-left: 10px" ref="noteTag"></noteTag>
+
+                    <!--恢复删除的笔记-->
+                    <el-button @click="recoverNote" size="mini" type="primary" round
+                               v-if="$store.state.currentNote.wastepaper"
+                               style="margin-left: 10px;">
+                        恢复笔记
                     </el-button>
-                </el-tooltip>
-
-                <!--删除笔记-->
-                <el-tooltip class="item"
-                            :content="$store.state.currentNote.wastepaper ? '彻底删除笔记' : '移入到废纸篓'"
-                            placement="bottom">
-                    <el-button size="mini" style="margin-left: 10px;padding: 0px">
-                        <i class="el-icon-delete" @click="deleteClick" style="font-size: 25px"></i>
-                    </el-button>
-                </el-tooltip>
-
-                <!--标签-->
-                <noteTag style="margin-left: 10px" ref="noteTag"></noteTag>
-
-                <!--恢复删除的笔记-->
-                <el-button @click="recoverNote" size="mini" type="primary" round
-                           v-if="$store.state.currentNote.wastepaper"
-                           style="margin-left: 10px;">
-                    恢复笔记
-                </el-button>
 
 
-                <!--日期 -->
-                <div class="mydate" style="margin-left: 10px">
-                    <el-date-picker
-                            style="width: 150px;"
-                            v-model="createTime"
-                            editable
-                            size="mini"
-                            type="datetime"
-                            placeholder="选择日期时间"
-                            :default-time="createTime.split(' ')[0]">
-                    </el-date-picker>
-                </div>
+                    <!--日期 -->
+                    <div class="mydate" style="margin-left: 10px">
+                        <el-date-picker
+                                style="width: 150px;"
+                                v-model="createTime"
+                                editable
+                                size="mini"
+                                type="datetime"
+                                placeholder="选择日期时间"
+                                :default-time="createTime.split(' ')[0]">
+                        </el-date-picker>
+                    </div>
 
-                <!--位置-->
-                <div style="margin-left: 10px">
-                    <i class="el-icon-location-information"></i>
-                    <a href="#">{{location}}</a>
-                </div>
-            </el-row>
-        </el-header>
+                    <!--位置-->
+                    <div style="margin-left: 10px">
+                        <i class="el-icon-location-information"></i>
+                        <a href="#">{{location}}</a>
+                    </div>
+                </el-row>
+            </el-header>
 
-        <el-main>
-            <el-scrollbar class="page-scroll">
-                <vmd v-if="!$store.state.fileMode"></vmd>
-                <div v-else>
-                    <!--上传图标-->
-                    <el-upload
-                            action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
-                            list-type="picture-card"
-                            multiple>
-                        <i slot="default" class="el-icon-plus"></i>
-                        <div slot="file" slot-scope="{file}">
-                            <img class="el-upload-list__item-thumbnail"
-                                 :src="file.url" alt="">
-                            <span class="el-upload-list__item-actions">
+            <el-main style="padding: 7px">
+                <el-scrollbar class="page-scroll">
+                    <vmd v-if="$router.history.current.name == 'notepage'"></vmd>
+                    <div v-else>
+                        <!--上传图标-->
+                        <el-upload
+                                action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
+                                list-type="picture-card"
+                                multiple>
+                            <i slot="default" class="el-icon-plus"></i>
+                            <div slot="file" slot-scope="{file}">
+                                <img class="el-upload-list__item-thumbnail"
+                                     :src="file.url" alt="">
+                                <span class="el-upload-list__item-actions">
                          <span class="el-upload-list__item-preview"
                                @click="handlePictureCardPreview(file)">
                              <i class="el-icon-zoom-in"></i>
@@ -110,15 +111,19 @@
                            <i class="el-icon-delete"></i>
                          </span>
                        </span>
-                        </div>
-                    </el-upload>
-                    <el-dialog :visible.sync="dialogVisible">
-                        <img width="100%" :src="dialogImageUrl" alt="">
-                    </el-dialog>
-                </div>
-            </el-scrollbar>
-        </el-main>
-    </el-container>
+                            </div>
+                        </el-upload>
+                        <el-dialog :visible.sync="dialogVisible">
+                            <img width="100%" :src="dialogImageUrl" alt="">
+                        </el-dialog>
+                    </div>
+                </el-scrollbar>
+            </el-main>
+        </el-container>
+        <div v-else style="text-align: center;width: 100%;">
+            <h1>空空如也 </h1>
+        </div>
+    </div>
 </template>
 
 <script>

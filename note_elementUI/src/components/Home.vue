@@ -1,5 +1,5 @@
 <template>
-    <el-container style="height: 100%;">
+    <el-container :style="{height: $store.state.clientH}">
         <!--数据加载-->
         <div v-if="loadingState" class="loadingImage"> <!--让图片居中显示-->
             <!--手动设置图片高度 让其占满整个屏幕  设置百分比无效-->
@@ -18,49 +18,42 @@
                 <noteNav/>
             </el-aside>
 
-            <el-container v-if="$store.state.listAndNoteShow">
-                <!--笔记列表-->
-                <el-aside class="widthSyncChild">
-                    <noteList/>
-                </el-aside>
-                <!--笔记内容-->
-                <note v-if="$store.state.fileMode || $store.state.currentNoteList.length > 0"></note>
-                <div v-else style="text-align: center;width: 100%;">
-                    <h1>空空如也 </h1>
-                </div>
-            </el-container>
+            <!--笔记列表 和 笔记内容-->
+            <router-view name="notepage"></router-view>
+
             <!--笔记和标签页面展示-->
-            <el-main style="padding: 0 0 20px 0" v-else>
-                <imageList v-if="$store.state.fileMode"></imageList>
+            <el-main style="padding: 0">
+                <router-view name="imageList"></router-view>
+                <router-view name="noteBook_tag"></router-view>
+               <!-- <imageList v-if="$store.state.fileMode"></imageList>-->
                 <!--笔记本和标签页面-->
-                <noteBook_tag v-else></noteBook_tag>
+              <!--  <noteBook_tag v-else></noteBook_tag>-->
             </el-main>
         </el-container>
     </el-container>
 </template>
 <script>
-    import note from "./Note";
+
     import borderLine from "./BorderLine";
-    import noteList from "./NoteList";
+
     import noteNav from "./Nav";
     import noteBook_tag from "./NoteBook_Tag";
     import imageList from "./ImageList";
+    import notepage from "./Notepage";
     import {getImageTags} from "../server";
 
     export default {
         name: 'home',
         components: {
             borderLine,
-            noteList,
             imageList,
             noteNav,
-            note,
             noteBook_tag,
+            notepage
         },
         data() {
             return {
                 loadingState: true,  //数据是否正在加载
-
             }
         },
         methods: {
@@ -154,7 +147,9 @@
         created() {
             this.getData()
         },
-
+        mounted() {
+            this.$router.push({name: 'notepage'})
+        }
     }
 </script>
 
