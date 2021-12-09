@@ -71,6 +71,7 @@ const state = {
     wastepaperPictureList: [],//回收站中的图片
     imageTags:[], //图片标签
     imageTagsTree:[], //图片标签
+    uploadImageList:[], //上传的图片列表
     /*************页面显示控制*************/
     tableData: [],           //封装笔记本和标签展示区
     listTitle : '',         //列表区的名称

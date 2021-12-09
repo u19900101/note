@@ -38,8 +38,8 @@
                 <imageTag class="imgTag" ref="noteTag"></imageTag>
             </div>
 
-            <!--年月日 大中小 视图  当前图片分组名称-->
-            <div style="text-align: center">
+            <!--年月日 图片上传 大中小 视图  当前图片分组名称-->
+            <div style="text-align: center;">
                 <el-button @click="showImageByTimeType('year')" style="float:left;" size="mini" round>年</el-button>
                 <el-button @click="showImageByTimeType('month')" style="float:left;" size="mini" round>月</el-button>
                 <el-button @click="showImageByTimeType('day')" style="float:left;" size="mini" round>日</el-button>
@@ -65,6 +65,17 @@
                     <i @click="sortClick" class="el-icon-sort"
                        :style="{borderBottom: !$store.state.sortWay.reverse?'4px solid blue':''}"
                        style="font-size: 30px;"></i>
+                </el-tooltip>
+
+                <!--图片上传-->
+                <el-tooltip class="item" style="float: right" content="上传" placement="bottom">
+                    <el-upload
+                            action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
+                            :on-success="uploadSuccess"
+                            :show-file-list = "false"
+                            multiple>
+                        <i slot="default" class="el-icon-upload" @click="uploadClick" :style="{color: uploading ? '#1d9351' : '#000000'}" style="font-size: 30px;"></i>
+                    </el-upload>
                 </el-tooltip>
             </div>
 
@@ -184,6 +195,8 @@
                 enterIndex: 0, // 鼠标移入的index
                 imageCreateTimeLastTime: 0, //修改照片名称的定时器
                 imageNameLastTime: 0, //修改照片名称的定时器
+                imageUploadLastTime:0, //上传图片的定时器
+                uploading : false, //控制上传的状态
                 removeIcons: false,// 动态移除 删除和收藏图标
                 lastImage: {}, // 上一张图片 用于 动态加载喜欢标签时是否重新创建
             }
@@ -235,6 +248,35 @@
             }
         },
         methods: {
+            /*文件上传成功时的钩子 response.data 为单个picture*/
+            uploadSuccess(response, file, fileList) {
+                // console.log(response, file, fileList)
+                console.log('正在上传')
+                this.uploading = !this.uploading
+                this.$store.state.uploadImageList.push(response.data)
+                /*使用定时器来检测是否全部上传完毕*/
+                this.setTimeoutUpdate(this.initUploadImageList, this.imageUploadLastTime, this.$store.state.uploadImageList)
+                // console.log(this.$store.state.uploadImageList)
+            },
+            /*初始化上传页面*/
+            initUploadImageList(dayImages) {
+                this.imageUploadLastTime = setTimeout(() => {
+                    console.log('')
+                    dayImages = this.tool.groupImages("day", dayImages)
+                    this.$store.state.currentImageList = dayImages
+                    this.$store.state.listTitle = '本次上传'
+                    /*更新所有图片的数据 涉及到排序所以直接请求服务器*/
+                    this.https.getFiles().then(({data}) => {
+                        this.$store.state.fileList = data.data;
+                    })
+                    this.$message({type: 'success', message: '上传成功!', duration: 1000,});
+                }, 1000)
+            },
+            uploadClick(){
+                console.log('清空上一次的列表')
+                /*清空上一次的列表*/
+                this.$store.state.uploadImageList = []
+            },
             /*全选*/
             handleCheckAllChange(allChecked) {
                 /*添加当前日期聚合的照片id到选中列表中*/
@@ -847,4 +889,14 @@
         overflow-x: hidden;
     }
 
+    /*图片上传*/
+    .el-upload--picture-card {
+        width: 32px !important;
+        height: 28px !important;
+    }
+
+    .el-upload--picture-card i {
+        font-size: 28px !important;
+        color: #000000 !important;
+    }
 </style>

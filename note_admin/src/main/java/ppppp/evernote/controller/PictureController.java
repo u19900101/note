@@ -108,36 +108,42 @@ public class PictureController {
 
     /*每张照片都发送一次请求上传*/
     @PostMapping("/uploadFileAndInsert")
-    public void uploadFileAndInsert(HttpServletRequest request) throws Exception {
+    public String uploadFileAndInsert(HttpServletRequest request) throws Exception {
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
         MultipartFile multipartFile = multiRequest.getFile("file");
         Picture picture = getPictureInfo(multipartFile);
         String uploadDir = new SimpleDateFormat("yyyy-MM-dd").format(picture.getCreateTime());
 
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
-                    String fileName = sftp.uploadFile("/mydata/nginx/html/img", "/" + uploadDir, multipartFile, picture.getTitle());
-                    sftp.release();
-                    if (!fileName.equals("error")) {
-                        System.out.println("上传成功 " + fileName);
-
-                        // 若重名，则重新命名文件
-                        if (!fileName.equals(picture.getTitle())) {
-                            picture.setTitle(fileName);
-                        }
-                        String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
-                        picture.setUrl(imgUrl);
-                        // 保存文件信息到数据库
-                        boolean save = pictureService.save(picture);
+        ArrayList<Picture> res = new ArrayList<>();
+        Thread thread = new Thread(() -> {
+            try {
+                sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
+                String fileName = sftp.uploadFile("/mydata/nginx/html/img", "/" + uploadDir, multipartFile, picture.getTitle());
+                sftp.release();
+                if (!fileName.equals("error")) {
+                    System.out.println("上传成功 " + fileName);
+                    // 若重名，则重新命名文件
+                    if (!fileName.equals(picture.getTitle())) {
+                        picture.setTitle(fileName);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
+                    picture.setUrl(imgUrl);
+                    // 保存文件信息到数据库
+                    boolean save = pictureService.save(picture);
+                    if (save) {
+                        res.add(picture);
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }.start();
+        });
+        thread.start();
+        thread.join();
+        if(res.size() == 1){
+            return ResultUtil.successWithData(res.get(0));
+        }
+        return ResultUtil.errorWithMessage("上传错误...");
     }
 
 

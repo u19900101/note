@@ -5,7 +5,6 @@ import  home from '../components/Home'
 import ImageList from "../components/ImageList";
 import NoteBook_Tag from "../components/NoteBook_Tag";
 import Notepage from "../components/Notepage";
-import Calendar from "../components/Calendar";
 import  C from "../components/C";
 
 

@@ -89,34 +89,7 @@
 
             <el-main style="padding: 7px">
                 <el-scrollbar class="page-scroll">
-                    <vmd v-if="$router.history.current.name == 'notepage'"></vmd>
-                    <div v-else>
-                        <!--上传图标-->
-                        <el-upload
-                                action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
-                                list-type="picture-card"
-                                multiple>
-                            <i slot="default" class="el-icon-plus"></i>
-                            <div slot="file" slot-scope="{file}">
-                                <img class="el-upload-list__item-thumbnail"
-                                     :src="file.url" alt="">
-                                <span class="el-upload-list__item-actions">
-                         <span class="el-upload-list__item-preview"
-                               @click="handlePictureCardPreview(file)">
-                             <i class="el-icon-zoom-in"></i>
-                         </span>
-                         <span v-if="!disabled"
-                               class="el-upload-list__item-delete"
-                               @click="handleRemove(file)">
-                           <i class="el-icon-delete"></i>
-                         </span>
-                       </span>
-                            </div>
-                        </el-upload>
-                        <el-dialog :visible.sync="dialogVisible">
-                            <img width="100%" :src="dialogImageUrl" alt="">
-                        </el-dialog>
-                    </div>
+                    <vmd ></vmd>
                 </el-scrollbar>
             </el-main>
         </el-container>
@@ -139,8 +112,7 @@
         },
         data() {
             return {
-                dialogImageUrl: '',
-                dialogVisible: false,
+
             }
         },
 
@@ -243,17 +215,6 @@
             },
         },
         methods: {
-            /*文件上传*/
-            handleRemove(file) {
-                console.log('handleDownload', file);
-            },
-            handlePictureCardPreview(file) {
-                this.dialogImageUrl = file.url;
-                this.dialogVisible = true;
-            },
-            handleDownload(file) {
-                console.log('handleDownload', file);
-            },
             /*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
             getBt(str) {
                 let char = str.replace(/[^\x00-\xff]/g, '**');
