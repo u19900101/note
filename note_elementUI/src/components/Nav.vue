@@ -138,16 +138,19 @@
                     case 'insertNote':
                         this.insertNote();
                         break;
-                    case 'allStarNotes':
+                    case 'allStarNotes': // 收藏笔记
                         this.initCurrentNoteListByName("starNotesList", 1);
-                        break; // 收藏笔记
+                        break;
+                    case 'calendar': // 日历视图
+                        this.toPage('calendar')
+                        break;
                     case 'noteBooks': //'笔记本'
                         break;
                     case 'allNotes'://所有笔记
                         this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 0)[0]
                         this.initCurrentNoteListByName("notes", 0);
                         break;
-                    case 'allTags':
+                    case 'allTags': //笔记标签
                         this.toPage('notepage')
                         this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 11)[0]
                         this.initTagNotesListByTagNode(data)
@@ -745,6 +748,10 @@
                         {
                             id: 'allStarNotes',
                             title: '收藏 (' + this.$store.state.starNotesList.length + ')'
+                        },
+                        {
+                            id: 'calendar',
+                            title: '日历 (xxx)'
                         },
                         {
                             id: 'allNotes',
