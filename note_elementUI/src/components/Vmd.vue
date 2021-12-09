@@ -6,11 +6,12 @@
 <script>
     import Vditor from "vditor"
     import "vditor/dist/index.css"
+
     export default {
         data() {
             return {
                 contentEditor: "",
-                // clientWidth : document.body.clientWidth, //页面的宽度
+                mdImageUploadLastTime : 0,
             }
         },
         mounted() {
@@ -62,15 +63,15 @@
                     max: 1024 * 1024 * 1024,
                     multiple: true, //上传文件是否为多个
                     handler(file) {  //自定义上传，当发生错误时返回错误信息
-                        let formData = new FormData()
                         for (let i in file) {
+                            let formData = new FormData()
                             formData.append('file', file[i])
+                            let request = new XMLHttpRequest()
+                            // 图片上传路径
+                            request.open('POST', "http://lpgogo.top/api/admin/file/uploadFileAndInsert")
+                            request.onload = vm.onloadCallback
+                            request.send(formData)
                         }
-                        let request = new XMLHttpRequest()
-                        // 图片上传路径
-                        request.open('POST', "http://lpgogo.top/api/admin/note/uploadFile")
-                        request.onload = vm.onloadCallback
-                        request.send(formData)
                     },
                 },
                 toolbarConfig: {
@@ -122,9 +123,6 @@
                 },
                 width: "80%",  /*编辑器总宽度，支持 %*/
             })
-
-
-
         },
        /* computed:{
             getMdWidth(){
@@ -133,6 +131,7 @@
             },
         },*/
         methods: {
+            /*上传成功后的回调*/
             onloadCallback(oEvent) {
                 const currentTarget = oEvent.currentTarget
                 if (currentTarget.status !== 200) {
@@ -143,28 +142,34 @@
                 }
                 let resp = JSON.parse(currentTarget.response)
                 let mdStr = ''
-                if (resp.uploaded !== 1) {
-                    return this.$message({
-                        type: 'error',
-                        message: resp.errorMessage
-                    })
+                if (resp.code == 'error') {
+                    this.$message({type: 'error', message: '上传失败!', duration: 1000,});
                 }
-                if (resp.uploaded === 1) {
-                    for (let i of resp.item){
-                        // imgMdStr += `![${i.fileName}](${i.url})`
-                        let reg_img=/.+\.(jpg|jpeg|gif|bmp|png)$/;
-                        let reg_video=/.+\.(avi|wmv|mpeg|mp4|m4v|mov|asf|flv|f4v|rmvb|rm|3gp|vob)$/;
-                        if(reg_img.test(i.fileName)){  // 缩放图片
-                            mdStr += `\n\n&lt;img src="${i.url}" alt = "${i.fileName}" style="zoom:30%;"/&gt\n\n`
-                        }else if(reg_video.test(i.fileName)){  // 上传视频文件
-                            mdStr += `\n\n&lt;video controls preload="auto" src="${i.url}">${i.fileName}&lt;/video>\n\n`
-                        }else{    // 其他格式文件，可以提供下载
-                            mdStr += `[${i.fileName}](${i.url})`
-                        }
+                else {
+                    let i = resp.data
+                    let reg_img=/.+\.(jpg|jpeg|gif|bmp|png)$/;
+                    let reg_video=/.+\.(avi|wmv|mpeg|mp4|m4v|mov|asf|flv|f4v|rmvb|rm|3gp|vob)$/;
+                    if(reg_img.test(i.title)){  // 缩放图片
+                        mdStr += `\n\n&lt;img src="${i.url}" alt = "${i.title}" style="zoom:30%;"/&gt\n\n`
+                    }else if(reg_video.test(i.title)){  // 上传视频文件
+                        mdStr += `\n\n&lt;video controls preload="auto" src="${i.url}">${i.title}&lt;/video>\n\n`
+                    }else{    // 其他格式文件，可以提供下载
+                        mdStr += `![${i.title}](${i.url})\n\n`
                     }
                 }
                 this.contentEditor.insertValue(mdStr);
+                /*使用定时器对图片列表进行更新操作*/
+                this.tool.setTimeoutUpdate(this.updateImageList, this.mdImageUploadLastTime)
             },
+            updateImageList(){
+                this.mdImageUploadLastTime = setTimeout(() => {
+                    /*更新所有图片的数据 涉及到排序所以直接请求服务器*/
+                    this.https.getFiles().then(({data}) => {
+                        this.$store.state.fileList = data.data;
+                    })
+                    this.$message({type: 'success', message: '上传成功!', duration: 1000,});
+                }, 2000)
+            }
         },
         watch: {
             '$store.state.currentNote'() {

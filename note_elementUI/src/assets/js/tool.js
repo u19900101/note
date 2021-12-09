@@ -10,7 +10,8 @@ export default {
             sortWay,
             addNoteCount,
             removeNoteCount,
-            groupImages
+            groupImages,
+            setTimeoutUpdate,
         }
     }
 }
@@ -183,5 +184,15 @@ function removeNoteCount(treeData,typeStr) {
         n.title = t
         if (n.children.length > 0) this.addNoteCount(n.children,typeStr)
     })
+}
+
+//定时器模板
+function setTimeoutUpdate(funcName, lastTimeType, ...param) {
+    if (lastTimeType == 0) {
+        funcName(...param)
+    } else {
+        clearTimeout(lastTimeType)
+        funcName(...param)
+    }
 }
 

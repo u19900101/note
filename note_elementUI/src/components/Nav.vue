@@ -217,7 +217,8 @@
                                 dayImages = this.$store.state.wastepaperPictureList;
                                 break;
                         }
-
+                        /*初始化笔记本*/
+                        this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == noteBookId)[0]
                         dayImages = this.tool.groupImages("day", dayImages)
                         this.$store.state.currentImageList = dayImages
                         /*初始化预览 给占个位 不然第一次点击时不出现大图*/

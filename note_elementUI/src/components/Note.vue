@@ -3,18 +3,6 @@
         <el-container v-if="$store.state.currentNoteList.length > 0" :style="{height :$store.state.clientH}" >
             <!--标题 & 工具栏--> <!--$router.history.current.name != 'imageList'-->
             <el-header v-if="$router.history.current.name == 'notepage'" style="padding: 0 5px;">
-                <!--标题-->
-                <!-- <el-row>
-                     <div v-if="!$store.state.isTitleEditMode" v-html="title" @click="titleClick"></div>
-                     &lt;!&ndash; style="width: 560px" &ndash;&gt;
-                     <el-input
-                             v-else
-                             :disabled="$store.state.currentNote.wastepaper"
-                             size="mini"
-                             placeholder="请输入笔记标题"
-                             v-model="title">
-                     </el-input>
-                 </el-row>-->
                 <!--笔记本 标签 收藏 删除  日期 位置-->
                 <el-row class="toolLeft"> <!--toolLeft 让笔记图标在div中居中-->
                     <!--笔记本和图标放一起-->
@@ -89,7 +77,7 @@
 
             <el-main style="padding: 7px">
                 <el-scrollbar class="page-scroll">
-                    <vmd ></vmd>
+                    <vmd></vmd>
                 </el-scrollbar>
             </el-main>
         </el-container>

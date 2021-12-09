@@ -40,11 +40,11 @@
 
             <!--年月日 图片上传 大中小 视图  当前图片分组名称-->
             <div style="text-align: center;">
-                <el-button @click="showImageByTimeType('year')" style="float:left;" size="mini" round>年</el-button>
-                <el-button @click="showImageByTimeType('month')" style="float:left;" size="mini" round>月</el-button>
-                <el-button @click="showImageByTimeType('day')" style="float:left;" size="mini" round>日</el-button>
-
-                {{$store.state.listTitle}}
+                <el-button @click="showImageByTimeType('year')" :disabled="disabledControl" style="float:left;" size="mini" round>年</el-button>
+                <el-button @click="showImageByTimeType('month')" :disabled="disabledControl" style="float:left;" size="mini" round>月</el-button>
+                <el-button @click="showImageByTimeType('day')" :disabled="disabledControl" style="float:left;" size="mini" round>日</el-button>
+                <!--项目标题-->
+                <strong>{{$store.state.listTitle}}</strong>
                 <span style="color: rgba(40,59,55,0.77)">(共{{currentImagesCount}}条)</span>
 
                 <!--小视图-->
@@ -72,6 +72,7 @@
                     <el-upload
                             action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
                             :on-success="uploadSuccess"
+                            :on-error="uploadFail"
                             :show-file-list = "false"
                             multiple>
                         <i slot="default" class="el-icon-upload" @click="uploadClick" :style="{color: uploading ? '#1d9351' : '#000000'}" style="font-size: 30px;"></i>
@@ -80,7 +81,7 @@
             </div>
 
             <!--题头信息显示  照片的总数量-->
-            <div v-if="checkedImages.length > 0" class="imageTitle">
+            <div v-if="checkedImages.length > 0" class="imageTitle" style="margin-left: 25px">
                 <span>已选中 {{checkedImages.length}}条 </span>
                 <!--批量删除-->
                 <el-button @click="deleteImageBatch" size="mini" style="margin-left: 10px;padding: 0px">
@@ -92,11 +93,13 @@
             <div class="imageTitle" style="left: 50%">
                 <!--清空回收站-->
                 <el-button @click="clearPictures" v-if="$store.state.currentNoteBook.title == '回收站'" size="mini"
+                           :disabled="disabledControl"
                            type="danger" round style="margin-left: 10px;">
                     清空回收站
                 </el-button>
                 <!-- 恢复所有-->
                 <el-button @click="recoverPictures" v-if="$store.state.currentNoteBook.title == '回收站'" size="mini"
+                           :disabled="disabledControl"
                            type="primary" round style="margin-left: 10px;">
                     {{checkedImages.length > 0 ?'恢复选中':'恢复所有' }}
                 </el-button>
@@ -208,6 +211,10 @@
                 return this.$store.state.currentImageList.reduce((total, currentValue) =>
                     total + currentValue.images.length, 0);
             },
+            /*图标禁用*/
+            disabledControl(){
+                return this.$store.state.currentImageList.length == 0
+            },
             imageName: {
                 get: function () {
                     return this.$store.state.currentImage.title.split('.')[0]
@@ -215,7 +222,7 @@
                 set: function (newImageName) {
                     this.$store.state.currentImage.title = newImageName + '.' + this.$store.state.currentImage.title.split('.')[1]
                     if (newImageName.length > 0) {
-                        this.setTimeoutUpdate(this.updateImageName, this.imageNameLastTime)
+                        this.tool.setTimeoutUpdate(this.updateImageName, this.imageNameLastTime)
                     }
                 }
             },
@@ -226,7 +233,7 @@
                 set: function (newValue) {
                     let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
                     this.$store.state.currentImage.createTime = formatTime
-                    this.setTimeoutUpdate(this.updateImageCreateTime, this.imageCreateTimeLastTime, newValue)
+                    this.tool.setTimeoutUpdate(this.updateImageCreateTime, this.imageCreateTimeLastTime, newValue)
                 }
             },
             star: {
@@ -255,8 +262,13 @@
                 this.uploading = !this.uploading
                 this.$store.state.uploadImageList.push(response.data)
                 /*使用定时器来检测是否全部上传完毕*/
-                this.setTimeoutUpdate(this.initUploadImageList, this.imageUploadLastTime, this.$store.state.uploadImageList)
+                this.tool.setTimeoutUpdate(this.initUploadImageList, this.imageUploadLastTime, this.$store.state.uploadImageList)
                 // console.log(this.$store.state.uploadImageList)
+            },
+            /*文件上传失败时的钩子	*/
+            uploadFail(err, file, fileList){
+                console.log('上传失败')
+                this.$message({type: 'error', message: '上传失败!', duration: 1000,});
             },
             /*初始化上传页面*/
             initUploadImageList(dayImages) {
@@ -429,7 +441,7 @@
                         dayImages = this.$store.state.wastepaperPictureList
                         addImageToRecyleBin = false
                     }else {
-                        this.$store.state.fileList = data.data; // 进入的笔记本列表数据
+                        this.$store.state.fileList = data.data; // 进入的图片列表数据
                         this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
                     }
 
@@ -462,14 +474,6 @@
                 })
                 this.$store.state.currentImageList = []
                 this.$store.state.wastepaperPictureList = []
-            },
-            setTimeoutUpdate(funcName, lastTimeType, ...param) {
-                if (lastTimeType == 0) {
-                    funcName(...param)
-                } else {
-                    clearTimeout(lastTimeType)
-                    funcName(...param)
-                }
             },
             updateImageName() {
                 this.imageNameLastTime = setTimeout(() => {
