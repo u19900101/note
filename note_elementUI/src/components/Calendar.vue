@@ -1,32 +1,31 @@
 <template>
     <div class="calendar">
-        <div class="banner">
-            <div class="arrow-wrap arrow-wrap--left">
+        <div class="banner" style=" height: 40px;text-align: center;" >
+            <div class="arrow-wrap arrow-wrap--left" >
                 <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toPreYearRange"></div>
                 <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toPreYear"></div>
                 <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toPreMonth"></div>
             </div>
 
             <!-- banner locale -->
-            <span v-show="yearPaneVisible">{{ localeYearRange }}</span>
-            <span v-show="!yearPaneVisible" @click="showYearPane">{{ localeYear }}</span>
-            <span v-show="datePaneVisible" @click="showMonthPane">{{ localeMonth }}</span>
+            <span class="bannerSpan" v-show="yearPaneVisible">{{ localeYearRange }}</span>
+            <span class="bannerSpan"v-show="!yearPaneVisible" @click="showYearPane">{{ localeYear }}</span>
+            <span class="bannerSpan"v-show="datePaneVisible" @click="showMonthPane">{{ localeMonth }}</span>
             <div class="arrow-wrap arrow-wrap--right">
                 <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toNextMonth"></div>
                 <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toNextYear"></div>
                 <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toNextYearRange"></div>
             </div>
         </div>
-        <div v-show="datePaneVisible" class="pane pane--date" style="height: 95%">
-            <!-- 周六的背景颜色  #FFFF00-->
-            <!-- 周天的背景颜色  #00B050-->
+        <div v-show="datePaneVisible" class="pane pane--date" style="height: 90%">
+            <!--星期-->
             <div class="week-text">
                 <div v-for="text in weekText" :key="text" class="date-item__week">
                     {{ text }}
                 </div>
             </div>
             <div style="height: 100%">
-                <!--每日div-->
+                <!--每日div-->      <!-- 周六的背景颜色  #FFFF00 周天的背景颜色  #00B050-->
                 <div
                         v-for="(item, j) in dateArr"
                         :key="'date' + j"
@@ -46,8 +45,8 @@
 
                         <!--自定义内容--> <!-- 动态设置行数 0.95 为高的比例 0.16为竖直6等分 -20 padding  /20为字高 -->
                         <div class="dayContent more-line"
-                             style="font-size: 20px"
-                             :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.95*0.16 - 20)/20 - 2)}"
+                             style="font-size: 18px;line-height: 18px;"
+                             :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.9*0.16 - 20)/20 )}"
                              :class="{'date-item-content-div': item.monthFlag !== 1,}">
                            <!-- <slot name="comment">
 
@@ -404,7 +403,7 @@
         box-sizing: border-box;
         width: 100%;
         height: 100%;
-        padding: 18px;
+        padding: 5px;
         color: #000;
         user-select: none;
     }
@@ -423,14 +422,16 @@
         border: 1px solid; /*设置边框线*/
     }
 
-   /* .calendar .date-item span {
+    /*年月选择的样式*/
+    .calendar .bannerSpan {
         box-sizing: content-box;
         display: inline-block;
-        width: 20px;
-        height: 20px;
-        padding: 8px;
-        margin: 6px;
-    }*/
+       /* color: #1d9351;*/
+        /*width: 20px;*/
+        height: 25px;
+       /* padding: 8px;
+        margin: 6px;*/
+    }
 
     .calendar .date-item div {
         box-sizing: content-box;
@@ -553,17 +554,16 @@
         color: #c0c4cc;
     }
 
-    /*.calendar span {
-        font-size: 16px;
-        line-height: 16px;
-        user-select: none;
-    }*/
-
+    /*年月水平布局*/
     .calendar .banner {
         position: relative;
-        font-size: 0;
-        line-height: 16px;
+        display: flex;
+        flex-wrap: wrap; /*不换行*/
+        justify-content: center;
+        align-items: center; /*侧轴上居中*/
+
         text-align: center;
+        font-size: 25px;
     }
 
     .calendar .banner span {
@@ -578,13 +578,12 @@
     /* arrow relevant */
     .arrow-wrap {
         display: inline-block;
-        position: relative;
         color: #607d8b;
     }
 
     .arrow-wrap--left {
-        position: absolute;
-        left: 4px;
+        /*position: absolute;*/
+        /*left: 4px;*/
     }
 
     .arrow-wrap--left .arrow--inner::before {
@@ -592,7 +591,7 @@
     }
 
     .arrow-wrap--left .arrow--outer {
-        position: relative;
+        /*position: relative;*/
     }
 
     .arrow-wrap--left .arrow--outer::after {
@@ -606,7 +605,7 @@
     }
 
     .arrow-wrap--right {
-        position: absolute;
+        /*position: absolute;*/
         right: 4px;
     }
 
@@ -615,7 +614,7 @@
     }
 
     .arrow-wrap--right .arrow--outer {
-        position: relative;
+        /*position: relative;*/
     }
 
     .arrow-wrap--right .arrow--outer::before {
@@ -628,10 +627,11 @@
         content: '>';
     }
 
+    /*箭头的大小*/
     .arrow-wrap .arrow {
         display: inline-block;
-        font-size: 16px;
-        line-height: 16px;
+        font-size: 25px;
+        line-height: 25px;
         margin: 0 16px;
         cursor: pointer;
     }

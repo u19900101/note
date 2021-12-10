@@ -442,6 +442,15 @@
                     console.log('页面缩放变化了', vm.noteListH, document.body.clientHeight);
                 }
                 lastPixelRatio = currentPixelRatio;
+                /*日历视图单元格高度计算 页面渲染的问题*/
+               /* vm.$nextTick(_ => {
+                    console.log('dateItemDivH',document.getElementsByClassName('date-item')[0].clientHeight) //96
+                    console.log('dayName',document.getElementsByClassName('date-item')[0].firstChild.firstChild.clientHeight)//19
+                    console.log('dayContentH',document.getElementsByClassName('date-item')[0].firstChild.firstChild.nextElementSibling.clientHeight)//19
+                 /!*   console.log('dateItemDivH',document.getElementsByClassName('date-item')[0])
+                    console.log('dateItemDivH',document.getElementsByClassName('date-item'))*!/
+                });*/
+
             });
         }
     }
