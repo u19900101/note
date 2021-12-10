@@ -44,12 +44,19 @@
                         <!--天数-->
                         <div class="dayName">{{ item.date }}</div>
 
-                        <!--自定义内容-->
-                        <div class="dayContent"
+                        <!--自定义内容--> <!-- 动态设置行数 0.95 为高的比例 0.16为竖直6等分 -20 padding  /20为字高 -->
+                        <div class="dayContent more-line"
+                             style="font-size: 20px"
+                             :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.95*0.16 - 20)/20 - 2)}"
                              :class="{'date-item-content-div': item.monthFlag !== 1,}">
-                            <slot name="comment">
+                           <!-- <slot name="comment">
 
-                            </slot>
+                            </slot>-->
+                            <span>
+                               kkk kkk kkk kkk kkk kkk
+                            {{item.content}}  kkk kkk kkk kkk kkk kkk
+                            </span>
+
                         </div>
 
                     </div>
@@ -355,7 +362,12 @@
                     dotted: monthFlag === 1 && this.dotArr[index],
                     isToday: this._getDateStr(this.today) === `${tarYear}-${tarMonth}-${index + beginDate}`,
                     dayOfWeek: getDayOfWeek(tarYear, tarMonth, index + beginDate),
+                    content: this.getContent(tarYear, tarMonth, index + beginDate),
                 }))
+            },
+            /*获取笔记内容*/
+            getContent(tarYear, tarMonth,tarDay){
+                return tarYear + 'xxx ' +  tarMonth + 'xxx '+ tarDay
             },
             _updateMonthArr() {
                 let maxDateOfPreMonth
@@ -374,11 +386,11 @@
                 const curDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth), 1)
                 const nextDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth + 1), 2)
 
-                // 5 line max: 5 * 7 = 35
+                // 6 line max: 6 * 7 = 42
                 this.dateArr = preDateArr
                     .concat(curDateArr)
                     .concat(nextDateArr)
-                    .slice(0, 35)
+                    .slice(0, 42)
             },
             _getDateStr(date) {
                 return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
@@ -388,6 +400,74 @@
 </script>
 
 <style>
+    .calendar {
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        padding: 18px;
+        color: #000;
+        user-select: none;
+    }
+
+    /* pane--date relevant */
+    .calendar .date-item {
+        position: relative;
+        box-sizing: border-box;
+        display: inline-block;
+        width: 14%;
+        height: 16%;
+        /*line-height: 16%;*/
+        color: #c0c4cc;
+        text-align: center;
+        user-select: none;
+        border: 1px solid; /*设置边框线*/
+    }
+
+   /* .calendar .date-item span {
+        box-sizing: content-box;
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        padding: 8px;
+        margin: 6px;
+    }*/
+
+    .calendar .date-item div {
+        box-sizing: content-box;
+        display: inline-block;
+        /* width: 20px;
+         height: 20px;*/
+        /* padding: 8px;
+         margin: 6px;*/
+    }
+
+    /*不适用line-height */
+    .calendar .date-item__week {
+        color: #000 !important;
+        position: relative;
+        box-sizing: border-box;
+        display: inline-block;
+        width: 14%;
+        height: 20%;
+        background-color: #B4C6E7;
+        text-align: center;
+        user-select: none;
+        font-weight: bold; /*粗体*/
+        border: 1px solid; /*设置边框线*/
+    }
+
+    .calendar .pane--date .date-item--current-month {
+        color: #000 !important;
+        height: 100%;
+        width: 100%;
+    }
+
+    .calendar .date-item--current-month:hover,.date-item-content-div:hover{
+        cursor: pointer;
+        background-color: #a8cdf3;
+        border-radius: 9px;
+    }
+
     .dayName {
         width: 100%;
         height: 20%;
@@ -401,26 +481,83 @@
     }
 
     .dayContent {
-        width: 100%;
-        height: 80% !important;
-        line-height: 120%; /*百分比的不准确性*/
+        text-indent: 2em; /*行首空格*/
+        /*line-height: 140%; !*百分比的不准确性*!*/
         /*background: #28c40c;*/
     }
 
-    .calendar {
-        box-sizing: border-box;
-        width: 100%;
-        height: 100%;
-        padding: 18px;
-        color: #000;
-        user-select: none;
+    /*笔记列表中的内容样式  多行截断  (超级简化版)*/
+    .calendar .more-line {
+        /*font-size: mini;*/
+        display: -webkit-box !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-all;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4; /*行数的设置*/
     }
 
-    .calendar span {
+    .calendar .pane--date .date-item--today {
+        color: #409eff !important;
+        background-color: #d8e7f7;
+        border-radius: 9px;
+
+    }
+
+    .calendar .pane--date .date-item--selected {
+        background-color: #409eff66 !important;
+        border-radius: 9px !important;
+    }
+
+    .calendar .date-item--dotted::after {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        content: '';
+        border: 1.5px solid #000;
+        border-radius: 50%;
+        transform: translateX(-50%);
+    }
+
+    /* pane--month relevant */
+    .calendar .pane--month,
+    .calendar .pane--year {
+        margin: 16px;
+        border-top: 1px solid #e7e6e6;
+    }
+
+    .calendar .pane--month .month-item,
+    .calendar .pane--year .year-item {
+        display: inline-block;
+        box-sizing: border-box;
+        width: 25%;
+        text-align: center;
+        padding: 16px;
+        margin: 16px 0;
+        color: #000;
+        cursor: pointer;
+    }
+
+    .calendar .pane--month .month-item:hover,
+    .calendar .pane--year .year-item:hover {
+        color: #409eff;
+    }
+
+    .calendar .pane--month .month-item--selected,
+    .calendar .pane--year .year-item--selected {
+        color: #409eff;
+        font-weight: bold;
+    }
+
+    .calendar .comment {
+        color: #c0c4cc;
+    }
+
+    /*.calendar span {
         font-size: 16px;
         line-height: 16px;
         user-select: none;
-    }
+    }*/
 
     .calendar .banner {
         position: relative;
@@ -501,119 +638,5 @@
 
     .arrow-wrap .arrow:hover {
         color: #409eff;
-    }
-
-    /* pane--date relevant */
-    .calendar .date-item {
-        position: relative;
-        box-sizing: border-box;
-        display: inline-block;
-        width: 14%;
-        height: 20%;
-        line-height: 20%;
-        color: #c0c4cc;
-        text-align: center;
-        user-select: none;
-        border: 1px solid; /*设置边框线*/
-    }
-
-    .calendar .date-item span {
-        box-sizing: content-box;
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        padding: 8px;
-        margin: 6px;
-    }
-
-    .calendar .date-item div {
-        box-sizing: content-box;
-        display: inline-block;
-        /* width: 20px;
-         height: 20px;*/
-        /* padding: 8px;
-         margin: 6px;*/
-    }
-
-    /*不适用line-height */
-    .calendar .date-item__week {
-        color: #000 !important;
-        position: relative;
-        box-sizing: border-box;
-        display: inline-block;
-        width: 14%;
-        height: 20%;
-        background-color: #B4C6E7;
-        text-align: center;
-        user-select: none;
-        border: 1px solid; /*设置边框线*/
-    }
-
-    .calendar .pane--date .date-item--current-month {
-        color: #000 !important;
-        height: 100%;
-        width: 100%;
-    }
-
-    .calendar .date-item--current-month:hover,.date-item-content-div:hover{
-        cursor: pointer;
-        background-color: #a8cdf3;
-        border-radius: 9px;
-    }
-
-    .calendar .pane--date .date-item--today {
-        color: #409eff !important;
-        background-color: #d8e7f7;
-        border-radius: 9px;
-
-    }
-
-    .calendar .pane--date .date-item--selected {
-        background-color: #409eff66 !important;
-        border-radius: 9px !important;
-    }
-
-    .calendar .date-item--dotted::after {
-        position: absolute;
-        bottom: 10px;
-        left: 50%;
-        content: '';
-        border: 1.5px solid #000;
-        border-radius: 50%;
-        transform: translateX(-50%);
-    }
-
-    /* pane--month relevant */
-    .calendar .pane--month,
-    .calendar .pane--year {
-        margin: 16px;
-        border-top: 1px solid #e7e6e6;
-    }
-
-    .calendar .pane--month .month-item,
-    .calendar .pane--year .year-item {
-        display: inline-block;
-        box-sizing: border-box;
-        width: 25%;
-        text-align: center;
-        padding: 16px;
-        margin: 16px 0;
-        color: #000;
-        cursor: pointer;
-    }
-
-    .calendar .pane--month .month-item:hover,
-    .calendar .pane--year .year-item:hover {
-        color: #409eff;
-    }
-
-    .calendar .pane--month .month-item--selected,
-    .calendar .pane--year .year-item--selected {
-        color: #409eff;
-        font-weight: bold;
-    }
-
-    .calendar .comment {
-        color: #c0c4cc;
     }
 </style>

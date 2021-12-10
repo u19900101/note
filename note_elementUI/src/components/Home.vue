@@ -1,5 +1,5 @@
 <template>
-    <el-container :style="{height: $store.state.clientH}">
+    <el-container :style="{height: $store.state.clientH + 'px'}">
         <!--数据加载-->
         <div v-if="loadingState" class="loadingImage"> <!--让图片居中显示-->
             <!--手动设置图片高度 让其占满整个屏幕  设置百分比无效-->

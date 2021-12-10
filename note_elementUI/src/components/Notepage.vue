@@ -1,5 +1,5 @@
 <template>
-    <div :style="{height :$store.state.clientH}">
+    <div :style="{height :$store.state.clientH + 'px'}">
         <el-container>
             <!--笔记列表-->
             <el-aside class="widthSyncChild" :style="{height :$store.state.clientH}">

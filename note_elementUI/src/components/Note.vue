@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-container v-if="$store.state.currentNoteList.length > 0" :style="{height :$store.state.clientH}" >
+        <el-container v-if="$store.state.currentNoteList.length > 0" :style="{height :$store.state.clientH + 'px'}" >
             <!--标题 & 工具栏--> <!--$router.history.current.name != 'imageList'-->
             <el-header v-if="$router.history.current.name == 'notepage'" style="padding: 0 5px;">
                 <!--笔记本 标签 收藏 删除  日期 位置-->

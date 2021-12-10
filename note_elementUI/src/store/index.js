@@ -75,7 +75,7 @@ const state = {
     /*************页面显示控制*************/
     tableData: [],           //封装笔记本和标签展示区
     listTitle : '',         //列表区的名称
-    clientH: document.body.clientHeight + 'px',
+    clientH: document.body.clientHeight,
 }
 
 //创建并暴露store

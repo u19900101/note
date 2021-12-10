@@ -1,5 +1,5 @@
 <template>
-    <el-container id="noteList" :style="{height: $store.state.clientH}" style="background-color: #FFFFFF;">
+    <el-container id="noteList" :style="{height: $store.state.clientH + 'px'}" style="background-color: #FFFFFF;">
         <el-container id="kkkk" :style="{height:noteListH}">
             <el-header style="height:64px;padding: 0px">
                 <div :style="{width: noteListWidth + 'px'}" class="listTitle">
@@ -438,7 +438,7 @@
                 let currentPixelRatio = window.devicePixelRatio;
                 if (currentPixelRatio !== lastPixelRatio) {
                     vm.noteListH = document.body.clientHeight - 64 + 'px'
-                    vm.$store.state.clientH = document.body.clientHeight  + 'px'
+                    vm.$store.state.clientH = document.body.clientHeight
                     console.log('页面缩放变化了', vm.noteListH, document.body.clientHeight);
                 }
                 lastPixelRatio = currentPixelRatio;
