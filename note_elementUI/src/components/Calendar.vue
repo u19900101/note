@@ -20,8 +20,8 @@
         <div v-show="datePaneVisible" class="pane pane--date" style="height: 95%">
             <!-- 周六的背景颜色  #FFFF00-->
             <!-- 周天的背景颜色  #00B050-->
-            <div class="week-text" style="background-color: #B4C6E7">
-                <div v-for="text in weekText" :key="text" class="date-item date-item__week">
+            <div class="week-text">
+                <div v-for="text in weekText" :key="text" class="date-item__week">
                     {{ text }}
                 </div>
             </div>
@@ -32,31 +32,27 @@
                         :key="'date' + j"
                         class="date-item"
                         :style="{background: item.monthFlag === 1 && item.dayOfWeek == 6 ?'#FFFF00':(item.monthFlag === 1 && item.dayOfWeek == 0 ?'#00B050':'')}"
-
                         @click="_handleDateItemSelect(item)">
-                <!--当前day-->
-                <span :class="{
-                  'date-item--current-month': item.monthFlag === 1,
-                  'date-item--today': item.isToday,
-                  'date-item--selected':
-                    item.monthFlag === 1 &&
-                    item.val === `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`,
-                  'date-item--dotted': item.dotted}">
-                    {{ item.date }}
-                </span>
+                    <!--当前day-->
                     <div :class="{
-                  'date-item--current-month': item.monthFlag === 1,
-                  'date-item--today': item.isToday,
-                  'date-item--selected':
-                    item.monthFlag === 1 &&
-                    item.val === `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`,
-                  'date-item--dotted': item.dotted}">
+                          'date-item--current-month': item.monthFlag === 1,
+                          'date-item--today': item.isToday,
+                           'date-item--selected':item.monthFlag === 1 && item.val === `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`,
+                          'date-item--dotted': item.dotted}"
+                         class="date-item-div"
+                         style=" height: 100%;width: 100%;">
+                        <!--天数-->
+                        <div class="dayName">{{ item.date }}</div>
 
-                        <slot name="comment">
+                        <!--自定义内容-->
+                        <div class="dayContent"
+                             :class="{'date-item-content-div': item.monthFlag !== 1,}">
+                            <slot name="comment">
 
-                        </slot>
+                            </slot>
+                        </div>
+
                     </div>
-
                 </div>
             </div>
         </div>
@@ -208,7 +204,8 @@
             weekText() {
                 switch (this.locale) {
                     case 'cn':
-                        return ['日', '一', '二', '三', '四', '五', '六']
+                        // return ['日', '一', '二', '三', '四', '五', '六']
+                        return ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
                     case 'en':
                         return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
                 }
@@ -391,6 +388,25 @@
 </script>
 
 <style>
+    .dayName {
+        width: 100%;
+        height: 20%;
+        line-height: 120%;
+        margin: 0 !important;
+        padding: 0 !important;
+        text-align: left;
+        /*background: aqua;*/
+        /*text-align: center;*/
+
+    }
+
+    .dayContent {
+        width: 100%;
+        height: 80% !important;
+        line-height: 120%; /*百分比的不准确性*/
+        /*background: #28c40c;*/
+    }
+
     .calendar {
         box-sizing: border-box;
         width: 100%;
@@ -498,6 +514,7 @@
         color: #c0c4cc;
         text-align: center;
         user-select: none;
+        border: 1px solid; /*设置边框线*/
     }
 
     .calendar .date-item span {
@@ -512,34 +529,48 @@
     .calendar .date-item div {
         box-sizing: content-box;
         display: inline-block;
-       /* width: 20px;
-        height: 20px;*/
-        padding: 8px;
-        margin: 6px;
+        /* width: 20px;
+         height: 20px;*/
+        /* padding: 8px;
+         margin: 6px;*/
     }
 
+    /*不适用line-height */
     .calendar .date-item__week {
         color: #000 !important;
+        position: relative;
+        box-sizing: border-box;
+        display: inline-block;
+        width: 14%;
+        height: 20%;
+        background-color: #B4C6E7;
+        text-align: center;
+        user-select: none;
+        border: 1px solid; /*设置边框线*/
     }
 
     .calendar .pane--date .date-item--current-month {
         color: #000 !important;
+        height: 100%;
+        width: 100%;
     }
 
-    .calendar .date-item--current-month:hover {
+    .calendar .date-item--current-month:hover,.date-item-content-div:hover{
         cursor: pointer;
-        background-color: #f2f8fe;
-        border-radius: 50%;
+        background-color: #a8cdf3;
+        border-radius: 9px;
     }
 
     .calendar .pane--date .date-item--today {
         color: #409eff !important;
+        background-color: #d8e7f7;
+        border-radius: 9px;
+
     }
 
     .calendar .pane--date .date-item--selected {
-        color: #fff !important;
-        background-color: #409eff !important;
-        border-radius: 50%;
+        background-color: #409eff66 !important;
+        border-radius: 9px !important;
     }
 
     .calendar .date-item--dotted::after {

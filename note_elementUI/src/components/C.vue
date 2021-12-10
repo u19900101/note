@@ -1,7 +1,7 @@
 <template>
     <Calendar ref="calendar" v-model="selectedDate">
         <template slot="comment">
-            html结构1
+            自定义
         </template>
     </Calendar>
 </template>
