@@ -1,72 +1,84 @@
 <template>
-    <div class="calendar">
-        <div class="banner" style=" height: 40px;text-align: center;" >
-            <div class="arrow-wrap arrow-wrap--left" >
-                <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toPreYearRange"></div>
-                <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toPreYear"></div>
-                <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toPreMonth"></div>
-            </div>
-
-            <!-- banner locale -->
-            <span class="bannerSpan" v-show="yearPaneVisible">{{ localeYearRange }}</span>
-            <span class="bannerSpan"v-show="!yearPaneVisible" @click="showYearPane">{{ localeYear }}</span>
-            <span class="bannerSpan"v-show="datePaneVisible" @click="showMonthPane">{{ localeMonth }}</span>
-            <div class="arrow-wrap arrow-wrap--right">
-                <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toNextMonth"></div>
-                <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toNextYear"></div>
-                <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toNextYearRange"></div>
+    <div style="height: 100%">
+        <!--周数的显示-->
+        <div class="weekNum" style="position: absolute;padding-left: 8px;top: 45px">
+            <el-button @click="changeWeek" round size="mini" class="weekButton" style="margin-left: -7px;width: 25px">
+                周
+            </el-button>
+            <div v-for="i in weekthArr"
+                 style="font-size: 12px;"
+                 :style="{height: $store.state.clientH*0.9*0.16 + 'px',
+                 lineHeight: $store.state.clientH*0.9*0.16 + 'px'}">
+                {{i}}
             </div>
         </div>
-        <div v-show="datePaneVisible" class="pane pane--date" style="height: 90%">
-            <!--星期-->
-            <div class="week-text">
-                <div v-for="text in weekText" :key="text" class="date-item__week">
-                    {{ text }}
+        <div class="calendar">
+            <div class="banner" style=" height: 40px;text-align: center;">
+                <div class="arrow-wrap arrow-wrap--left">
+                    <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toPreYearRange"></div>
+                    <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toPreYear"></div>
+                    <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toPreMonth"></div>
+                </div>
+
+                <!-- banner locale -->
+                <span class="bannerSpan" v-show="yearPaneVisible">{{ localeYearRange }}</span>
+                <span class="bannerSpan" v-show="!yearPaneVisible" @click="showYearPane">{{ localeYear }}</span>
+                <span class="bannerSpan" v-show="datePaneVisible" @click="showMonthPane">{{ localeMonth }}</span>
+                <div class="arrow-wrap arrow-wrap--right">
+                    <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toNextMonth"></div>
+                    <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toNextYear"></div>
+                    <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toNextYearRange"></div>
                 </div>
             </div>
-            <div style="height: 100%">
-                <!--每日div-->      <!-- 周六的背景颜色  #FFFF00 周天的背景颜色  #00B050-->
-                <div
-                        v-for="(item, j) in dateArr"
-                        :key="'date' + j"
-                        class="date-item"
-                        :style="{background: item.monthFlag === 1 && item.dayOfWeek == 6 ?'#FFFF00':(item.monthFlag === 1 && item.dayOfWeek == 0 ?'#00B050':'')}"
-                        @click="_handleDateItemSelect(item)">
-                    <!--当前day-->
-                    <div :class="{
+            <div v-show="datePaneVisible" class="pane pane--date" style="height: 90%">
+                <!--星期-->
+                <div class="week-text">
+                    <div v-for="text in weekText" :key="text" class="date-item__week">
+                        {{ text }}
+                    </div>
+                </div>
+                <div style="height: 100%">
+                    <!--每日div-->
+                    <div v-for="(item, j) in dateArr"
+                         :key="'date' + j"
+                         class="date-item"
+                         :style="{background: item.monthFlag === 1 && item.dayOfWeek == 0 ?'#FFFF00':(item.monthFlag === 1 && item.dayOfWeek == 6 ?'#00B050':'')}"
+                         @click="_handleDateItemSelect(item)">
+                        <!--当前day-->
+                        <div :class="{
                           'date-item--current-month': item.monthFlag === 1,
                           'date-item--today': item.isToday,
                            'date-item--selected':item.monthFlag === 1 && item.val === `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`,
                           'date-item--dotted': item.dotted}"
-                         class="date-item-div"
-                         style=" height: 100%;width: 100%;">
-                        <!--天数-->
-                        <div class="dayName">{{ item.date }}</div>
+                             class="date-item-div"
+                             style=" height: 100%;width: 100%;">
+                            <!--天数-->
+                            <div class="dayName">{{ item.date }}</div>
 
-                        <!--自定义内容--> <!-- 动态设置行数 0.95 为高的比例 0.16为竖直6等分 -20 padding  /20为字高 -->
-                        <div class="dayContent more-line"
-                             style="font-size: 18px;line-height: 18px;"
-                             :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.9*0.16 - 20)/20 )}"
-                             :class="{'date-item-content-div': item.monthFlag !== 1,}">
-                           <!-- <slot name="comment">
+                            <!--自定义内容--> <!-- 动态设置行数 0.95 为高的比例 0.16为竖直6等分 -20 padding  /20为字高 -->
+                            <div class="dayContent more-line"
+                                 style="font-size: 18px;line-height: 18px;"
+                                 :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.9*0.16 - 20)/20 )}"
+                                 :class="{'date-item-content-div': item.monthFlag !== 1,}">
+                                <!-- <slot name="comment">
 
-                            </slot>-->
-                            <span>
+                                 </slot>-->
+                                <span>
                                kkk kkk kkk kkk kkk kkk
                             {{item.content}}  kkk kkk kkk kkk kkk kkk
                             </span>
 
-                        </div>
+                            </div>
 
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div v-show="monthPaneVisible" class="pane pane--month">
-            <div
-                    v-for="(month, k) in monthArr"
-                    :key="'month' + k"
-                    :class="{
+            <div v-show="monthPaneVisible" class="pane pane--month">
+                <div
+                        v-for="(month, k) in monthArr"
+                        :key="'month' + k"
+                        :class="{
           'month-item': true,
           'month-item--selected':
             k === value.getMonth() &&
@@ -75,23 +87,25 @@
               ? 'bolder'
               : ''
         }"
-                    @click="_handleMonthItemSelect(k)"
-            >
-                {{ month }}
+                        @click="_handleMonthItemSelect(k)"
+                >
+                    {{ month }}
+                </div>
             </div>
-        </div>
-        <div v-show="yearPaneVisible" class="pane pane--year">
-            <div
-                    class="year-item"
-                    v-for="(year, l) in yearArr"
-                    :key="'year' + l"
-                    :class="{ 'year-item': true, 'year-item--selected': year === value.getFullYear() }"
-                    @click="_handleYearItemSelect(year)"
-            >
-                {{ year }}
+            <div v-show="yearPaneVisible" class="pane pane--year">
+                <div
+                        class="year-item"
+                        v-for="(year, l) in yearArr"
+                        :key="'year' + l"
+                        :class="{ 'year-item': true, 'year-item--selected': year === value.getFullYear() }"
+                        @click="_handleYearItemSelect(year)"
+                >
+                    {{ year }}
+                </div>
             </div>
         </div>
     </div>
+
 </template>
 
 <script>
@@ -162,7 +176,8 @@
                 curYearRangeStart: Math.floor(this.value.getFullYear() / 10) * 10,
                 curYearRangeEnd: Math.floor(this.value.getFullYear() / 10) * 10 + 9,
                 paneStatus: 0 /* 0 date-pane, 1 month-pane, 2 year-pane */,
-                dateArr: []
+                dateArr: [],
+                firstDayOfWeek: 1, //0:周日作为一周的开始 1：周一作为第一天
             }
         },
 
@@ -177,7 +192,7 @@
                 handler() {
                     this._updateMonthArr()
                 }
-            }
+            },
         },
 
         /*入口初始化数据*/
@@ -186,6 +201,19 @@
         },
 
         computed: {
+            weekthArr() {
+                let weekArr = []
+                let firstW = this.getWeekth(this.dateArr[6].val)
+                weekArr.push(firstW)
+                for (let i = 1; i < this.dateArr.length / 7; i++) {
+                    weekArr.push(firstW + i)
+                }
+                /*检测最后一天是否跨年了 若跨年则周数为1*/
+                let d1 = new Date(this.dateArr[6].val)
+                let d2 = new Date(this.dateArr[this.dateArr.length - 1].val)
+                if (d1.getFullYear() != d2.getFullYear()) weekArr[weekArr.length - 1] = 1
+                return weekArr
+            },
             localeYearRange() {
                 if (this.locale === 'cn') {
                     return `${this.curYearRangeStart}年-${this.curYearRangeEnd}年`
@@ -210,8 +238,9 @@
             weekText() {
                 switch (this.locale) {
                     case 'cn':
-                        // return ['日', '一', '二', '三', '四', '五', '六']
-                        return ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+                        let arr = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+                        this.firstDayOfWeek == 1 ? arr.push('星期日') : arr.unshift('星期日')
+                        return arr
                     case 'en':
                         return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
                 }
@@ -240,6 +269,31 @@
         },
 
         methods: {
+            changeWeek() {
+                this.firstDayOfWeek = this.firstDayOfWeek == 0 ? 1 : 0
+                this._updateMonthArr()
+            },
+            /*获取当前天数所在的周数  */
+            getWeekth(currentDay) {
+                // date = formatTimebytype(date, 'yyyy-MM-dd');//将日期转换成yyyy-mm-dd格式
+                currentDay = new Date(currentDay);
+                let firstDay = new Date(currentDay.getFullYear(), 0, 1);
+                let day2 = firstDay.getDay();
+
+                let day1 = currentDay.getDay();
+                if (day1 == 0) day1 = 7;
+
+                /*以周一作为一周的第一天*/
+                let deltDay = 0
+                if (this.firstDayOfWeek == 1) {
+                    if (day2 == 0) day2 = 7;
+                    deltDay = day2 - 1
+                } else {
+                    deltDay = day2
+                }
+                let d = Math.round((currentDay.getTime() - firstDay.getTime() + deltDay * (24 * 60 * 60 * 1000)) / 86400000);
+                return Math.ceil(d / 7);
+            },
             backToToday() {
                 this.curYear = this.today.getFullYear()
                 this.curMonth = this.today.getMonth() + 1
@@ -365,8 +419,8 @@
                 }))
             },
             /*获取笔记内容*/
-            getContent(tarYear, tarMonth,tarDay){
-                return tarYear + 'xxx ' +  tarMonth + 'xxx '+ tarDay
+            getContent(tarYear, tarMonth, tarDay) {
+                return tarYear + 'xxx ' + tarMonth + 'xxx ' + tarDay
             },
             _updateMonthArr() {
                 let maxDateOfPreMonth
@@ -385,11 +439,13 @@
                 const curDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth), 1)
                 const nextDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth + 1), 2)
 
-                // 6 line max: 6 * 7 = 42
+                // 6 line max: 6 * 7 = 42  根据月份选择显示几行日历数据
+
                 this.dateArr = preDateArr
                     .concat(curDateArr)
                     .concat(nextDateArr)
-                    .slice(0, 42)
+                    .slice(this.firstDayOfWeek, curDateArr.length + preDateArr.length - this.firstDayOfWeek > 35 ? 42 + this.firstDayOfWeek : 35 + this.firstDayOfWeek)
+
             },
             _getDateStr(date) {
                 return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
@@ -399,9 +455,15 @@
 </script>
 
 <style>
+
+    .weekButton span {
+        margin-left: -7px;
+    }
+
     .calendar {
         box-sizing: border-box;
-        width: 100%;
+        /*width: 90%;*/
+        margin-left: 25px;
         height: 100%;
         padding: 5px;
         color: #000;
@@ -426,11 +488,11 @@
     .calendar .bannerSpan {
         box-sizing: content-box;
         display: inline-block;
-       /* color: #1d9351;*/
+        /* color: #1d9351;*/
         /*width: 20px;*/
         height: 25px;
-       /* padding: 8px;
-        margin: 6px;*/
+        /* padding: 8px;
+         margin: 6px;*/
     }
 
     .calendar .date-item div {
@@ -463,7 +525,7 @@
         width: 100%;
     }
 
-    .calendar .date-item--current-month:hover,.date-item-content-div:hover{
+    .calendar .date-item--current-month:hover, .date-item-content-div:hover {
         cursor: pointer;
         background-color: #a8cdf3;
         border-radius: 9px;
