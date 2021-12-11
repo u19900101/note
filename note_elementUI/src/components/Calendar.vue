@@ -32,6 +32,8 @@
                         @keydown.native.enter="keyEnter"
                         v-model="selectedMonth"
                         type="month"
+                        format="yyyy年MM月"
+                        value-format="yyyy-MM-dd"
                         style="font-size: 25px;padding-left: 45px"
                         placeholder="yyyyMM">
                 </el-date-picker>
@@ -68,19 +70,20 @@
                             <div class="dayName">{{ item.date }}</div>
 
                             <!--自定义内容--> <!-- 动态设置行数 0.95 为高的比例 0.16为竖直6等分 -20 padding  /20为字高 -->
+                            <!-- -webkit-line-clamp :1-->
                             <div class="dayContent more-line"
                                  style="font-size: 18px;line-height: 18px;"
-                                 :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.9*0.16 - 20)/20 )}"
+                                 :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.9*0.16 - 20)/20)}"
                                  :class="{'date-item-content-div': item.monthFlag !== 1,}">
                                 <!-- <slot name="comment">
 
                                  </slot>-->
-                                <span>
-                                       {{item.content}}
-                              笔记内容
 
-                            </span>
 
+                                <span>{{item.content}} </span>
+                                <!--<span v-for="item in 10">&nbsp;</span>-->
+                                <span>  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                                </span>
                             </div>
 
                         </div>
@@ -184,14 +187,14 @@
 
         data() {
             return {
-                curYear: this.value.getFullYear(),
-                curMonth: this.value.getMonth() + 1,
-                curYearRangeStart: Math.floor(this.value.getFullYear() / 10) * 10,
-                curYearRangeEnd: Math.floor(this.value.getFullYear() / 10) * 10 + 9,
+                curYear: 2017,
+                curMonth: 1,
+                curYearRangeStart: Math.floor(2017 / 10) * 10,
+                curYearRangeEnd: Math.floor(2017 / 10) * 10 + 9,
                 paneStatus: 0 /* 0 date-pane, 1 month-pane, 2 year-pane */,
                 dateArr: [],
                 firstDayOfWeek: 1, //0:周日作为一周的开始 1：周一作为第一天
-                selectedMonth: new Date(),//选择的月份
+                selectedMonth: new Date(2017, 0, 1),//选择的月份
             }
         },
 
@@ -208,8 +211,8 @@
                 }
             },
             selectedMonth(value) {
-                if(value){
-                    console.log(value.getFullYear(),value.getMonth() + 1)
+                if (value) {
+                    console.log(value.getFullYear(), value.getMonth() + 1)
                     this.curYear = value.getFullYear()
                     this.curMonth = value.getMonth() + 1
                     this._updateMonthArr()
@@ -291,9 +294,53 @@
         },
 
         methods: {
+            /*获取笔记内容*/
+            getContent(tarYear, tarMonth, tarDay) {
+                /*转化为 yyyy-MM-dd 格式*/
+                tarMonth = tarMonth < 10 ? '-0' + tarMonth : '-' + tarMonth
+                tarDay = tarDay < 10 ? '-0' + tarDay : '-' + tarDay
+
+                let dateStr = tarYear + tarMonth + tarDay
+                let note = this.$store.state.notes.filter((n) => n.createTime.split(" ")[0] == dateStr)[0]
+                let title = ''
+                if (note) {
+                    title =  note.title.length < 30 ? note.title + title :note.title
+                }
+                // return note ? note.title : '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'
+                return title
+                // return tarDay == '-01' ? this.$store.state.notes[2].title:this.$store.state.notes[1].title
+            },
+            _updateMonthArr() {
+                if (!this.selectedMonth || this.selectedMonth.getFullYear() != this.curYear || this.selectedMonth.getMonth() != this.curMonth - 1) {
+                    this.selectedMonth = new Date(this.curYear, this.curMonth - 1)
+                }
+                let maxDateOfPreMonth
+                if (this.curMonth === 1) {
+                    maxDateOfPreMonth = getMonthMaxDate(this.curYear - 1, 12)
+                } else {
+                    maxDateOfPreMonth = getMonthMaxDate(this.curYear, this.curMonth - 1)
+                }
+                /*获取当前是周几*/
+                const firstDayOfCurMonth = getDayOfWeek(this.curYear, this.curMonth, 1)
+                const preDateArr = this._getDateArr(
+                    maxDateOfPreMonth - firstDayOfCurMonth + 1,
+                    maxDateOfPreMonth,
+                    0
+                )
+                const curDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth), 1)
+                const nextDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth + 1), 2)
+
+                // 6 line max: 6 * 7 = 42  根据月份选择显示几行日历数据
+
+                this.dateArr = preDateArr
+                    .concat(curDateArr)
+                    .concat(nextDateArr)
+                    .slice(this.firstDayOfWeek, curDateArr.length + preDateArr.length - this.firstDayOfWeek > 35 ? 42 + this.firstDayOfWeek : 35 + this.firstDayOfWeek)
+
+            },
             /*可手动输入 按下回车键跳转到月份*/
             keyEnter() {
-                let inputDate = document.getElementById('datePicker').value.replace("-","")
+                let inputDate = document.getElementById('datePicker').value.replace("-", "")
                 let year = parseInt(inputDate.substring(0, 4))
                 let month = parseInt(inputDate.substring(4, 6))
                 let date = new Date(year, month - 1, 1)
@@ -451,38 +498,7 @@
                     content: this.getContent(tarYear, tarMonth, index + beginDate),
                 }))
             },
-            /*获取笔记内容*/
-            getContent(tarYear, tarMonth, tarDay) {
-                return tarYear + '-' + tarMonth + '-' + tarDay
-            },
-            _updateMonthArr() {
-                if(!this.selectedMonth || this.selectedMonth.getFullYear()!=this.curYear || this.selectedMonth.getMonth()!=this.curMonth-1){
-                    this.selectedMonth = new Date(this.curYear,this.curMonth - 1)
-                }
-                let maxDateOfPreMonth
-                if (this.curMonth === 1) {
-                    maxDateOfPreMonth = getMonthMaxDate(this.curYear - 1, 12)
-                } else {
-                    maxDateOfPreMonth = getMonthMaxDate(this.curYear, this.curMonth - 1)
-                }
-                /*获取当前是周几*/
-                const firstDayOfCurMonth = getDayOfWeek(this.curYear, this.curMonth, 1)
-                const preDateArr = this._getDateArr(
-                    maxDateOfPreMonth - firstDayOfCurMonth + 1,
-                    maxDateOfPreMonth,
-                    0
-                )
-                const curDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth), 1)
-                const nextDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth + 1), 2)
 
-                // 6 line max: 6 * 7 = 42  根据月份选择显示几行日历数据
-
-                this.dateArr = preDateArr
-                    .concat(curDateArr)
-                    .concat(nextDateArr)
-                    .slice(this.firstDayOfWeek, curDateArr.length + preDateArr.length - this.firstDayOfWeek > 35 ? 42 + this.firstDayOfWeek : 35 + this.firstDayOfWeek)
-
-            },
             _getDateStr(date) {
                 return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
             }
@@ -583,6 +599,8 @@
         text-indent: 2em; /*行首空格*/
         /*line-height: 140%; !*百分比的不准确性*!*/
         /*background: #28c40c;*/
+        /*white-space:pre-wrap; !*保留空格 并换行*!*/
+        /*white-space:pre-wrap; !*保留空格 并换行*!*/
     }
 
     /*笔记列表中的内容样式  多行截断  (超级简化版)*/
