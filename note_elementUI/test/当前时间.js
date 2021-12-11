@@ -21,10 +21,15 @@ function format(date, fmt="yyyy-MM-dd hh:mm:ss") {
     }
     return fmt;
 }*/
-let dayjs = require('dayjs');
+/*let dayjs = require('dayjs');
 let nowDate = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss').split(" ")[0]
 let arr = nowDate.split("-")
 if(arr.length == 3){
     console.log(arr[0] + "年" + arr[1] + "月" +arr[2] + "日")
-}
+}*/
+let inputDate = '2009'
+let year = parseInt('20'+inputDate.substring(0,2))
+let month = parseInt(inputDate.substring(2,4))
+let date = new Date(year,month)
+console.log(year,month,date)
 

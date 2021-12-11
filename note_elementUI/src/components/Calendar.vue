@@ -2,7 +2,7 @@
     <div style="height: 100%">
         <!--周数的显示-->
         <div class="weekNum" style="position: absolute;padding-left: 8px;top: 45px">
-            <el-button @click="changeWeek" round size="mini" class="weekButton" style="margin-left: -7px;width: 25px">
+            <el-button @click="changeWeek" round size="mini" style="padding: 7px;margin-left: -7px">
                 周
             </el-button>
             <div v-for="i in weekthArr"
@@ -12,24 +12,36 @@
                 {{i}}
             </div>
         </div>
+
+        <!--日历主体-->
         <div class="calendar">
+            <!--年月选择-->
             <div class="banner" style=" height: 40px;text-align: center;">
+                <el-button @click="backToToday" round size="mini" style="padding: 7px;">
+                    今
+                </el-button>
                 <div class="arrow-wrap arrow-wrap--left">
                     <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toPreYearRange"></div>
                     <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toPreYear"></div>
                     <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toPreMonth"></div>
                 </div>
-
-                <!-- banner locale -->
-                <span class="bannerSpan" v-show="yearPaneVisible">{{ localeYearRange }}</span>
-                <span class="bannerSpan" v-show="!yearPaneVisible" @click="showYearPane">{{ localeYear }}</span>
-                <span class="bannerSpan" v-show="datePaneVisible" @click="showMonthPane">{{ localeMonth }}</span>
+                <!--月份选择-->
+                <el-date-picker
+                        ref="datePicker"
+                        id='datePicker'
+                        @keydown.native.enter="keyEnter"
+                        v-model="selectedMonth"
+                        type="month"
+                        style="font-size: 25px;padding-left: 45px"
+                        placeholder="yyyyMM">
+                </el-date-picker>
                 <div class="arrow-wrap arrow-wrap--right">
                     <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toNextMonth"></div>
                     <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toNextYear"></div>
                     <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toNextYearRange"></div>
                 </div>
             </div>
+            <!--日面板-->
             <div v-show="datePaneVisible" class="pane pane--date" style="height: 90%">
                 <!--星期-->
                 <div class="week-text">
@@ -42,7 +54,7 @@
                     <div v-for="(item, j) in dateArr"
                          :key="'date' + j"
                          class="date-item"
-                         :style="{background: item.monthFlag === 1 && item.dayOfWeek == 0 ?'#FFFF00':(item.monthFlag === 1 && item.dayOfWeek == 6 ?'#00B050':'')}"
+                         :style="{background: !item.isToday && item.monthFlag === 1 && item.dayOfWeek == 0 ?'#FFFF00':(!item.isToday && item.monthFlag === 1 && item.dayOfWeek == 6 ?'#00B050':'')}"
                          @click="_handleDateItemSelect(item)">
                         <!--当前day-->
                         <div :class="{
@@ -64,8 +76,9 @@
 
                                  </slot>-->
                                 <span>
-                               kkk kkk kkk kkk kkk kkk
-                            {{item.content}}  kkk kkk kkk kkk kkk kkk
+                                       {{item.content}}
+                              笔记内容
+
                             </span>
 
                             </div>
@@ -178,6 +191,7 @@
                 paneStatus: 0 /* 0 date-pane, 1 month-pane, 2 year-pane */,
                 dateArr: [],
                 firstDayOfWeek: 1, //0:周日作为一周的开始 1：周一作为第一天
+                selectedMonth: new Date(),//选择的月份
             }
         },
 
@@ -193,6 +207,14 @@
                     this._updateMonthArr()
                 }
             },
+            selectedMonth(value) {
+                if(value){
+                    console.log(value.getFullYear(),value.getMonth() + 1)
+                    this.curYear = value.getFullYear()
+                    this.curMonth = value.getMonth() + 1
+                    this._updateMonthArr()
+                }
+            }
         },
 
         /*入口初始化数据*/
@@ -269,6 +291,17 @@
         },
 
         methods: {
+            /*可手动输入 按下回车键跳转到月份*/
+            keyEnter() {
+                let inputDate = document.getElementById('datePicker').value.replace("-","")
+                let year = parseInt(inputDate.substring(0, 4))
+                let month = parseInt(inputDate.substring(4, 6))
+                let date = new Date(year, month - 1, 1)
+                this.selectedMonth = date
+                console.log(inputDate, this.selectedMonth)
+                /*手动收起日历视图*/
+                this.$refs['datePicker'].pickerVisible = false
+            },
             changeWeek() {
                 this.firstDayOfWeek = this.firstDayOfWeek == 0 ? 1 : 0
                 this._updateMonthArr()
@@ -420,9 +453,12 @@
             },
             /*获取笔记内容*/
             getContent(tarYear, tarMonth, tarDay) {
-                return tarYear + 'xxx ' + tarMonth + 'xxx ' + tarDay
+                return tarYear + '-' + tarMonth + '-' + tarDay
             },
             _updateMonthArr() {
+                if(!this.selectedMonth || this.selectedMonth.getFullYear()!=this.curYear || this.selectedMonth.getMonth()!=this.curMonth-1){
+                    this.selectedMonth = new Date(this.curYear,this.curMonth - 1)
+                }
                 let maxDateOfPreMonth
                 if (this.curMonth === 1) {
                     maxDateOfPreMonth = getMonthMaxDate(this.curYear - 1, 12)
@@ -479,7 +515,7 @@
         height: 16%;
         /*line-height: 16%;*/
         color: #c0c4cc;
-        text-align: center;
+        /*text-align: center;*/
         user-select: none;
         border: 1px solid; /*设置边框线*/
     }
@@ -561,8 +597,8 @@
     }
 
     .calendar .pane--date .date-item--today {
-        color: #409eff !important;
-        background-color: #d8e7f7;
+        color: #000000 !important;
+        background-color: #d8e7f7 !important;
         border-radius: 9px;
 
     }
@@ -629,7 +665,7 @@
     }
 
     .calendar .banner span {
-        margin: 0 8px;
+        /* margin: 0 8px;*/
     }
 
     .calendar .banner span:hover {

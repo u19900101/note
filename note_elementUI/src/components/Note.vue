@@ -57,6 +57,7 @@
                     <!--日期 -->
                     <div class="mydate" style="margin-left: 10px">
                         <el-date-picker
+                                ref="timePicker"
                                 style="width: 150px;"
                                 v-model="createTime"
                                 editable
@@ -179,6 +180,8 @@
                 set: function (newValue) {
                     let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
                     this.$store.state.currentNote.createTime = formatTime
+                    /*收起时间选择面板*/
+                    this.foldTimePicker()
                     console.log('更新笔记创建时间', this.$store.state.currentNote.title, formatTime)
                     this.https.updateNote({
                         id: this.$store.state.currentNote.id,
@@ -203,6 +206,11 @@
             },
         },
         methods: {
+            /*收起时间选择面板*/
+            foldTimePicker(){
+                this.$refs['timePicker'].pickerVisible = false
+            },
+
             /*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
             getBt(str) {
                 let char = str.replace(/[^\x00-\xff]/g, '**');

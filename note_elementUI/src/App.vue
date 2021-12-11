@@ -15,6 +15,14 @@
         components: {
             home
         },
+        data() {
+            return {
+
+            }
+        },
+        methods: {
+
+        }
     }
 </script>
 
