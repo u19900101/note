@@ -16,7 +16,7 @@
         <!--日历主体-->
         <div class="calendar">
             <!--年月选择-->
-            <div class="banner" style=" height: 40px;text-align: center;">
+            <div class="banner" style="height: 40px;text-align: center;">
                 <el-button @click="backToToday" round size="mini" style="padding: 7px;">
                     今
                 </el-button>
@@ -51,12 +51,14 @@
                         {{ text }}
                     </div>
                 </div>
-                <div style="height: 100%">
+                <!--使用flex换行布局 设置div高度 彻底解决缩放时的高度坍塌形变问题-->
+                <div style="display: flex;flex-wrap: wrap;">
                     <!--每日div-->
                     <div v-for="(item, j) in dateArr"
                          :key="'date' + j"
                          class="date-item"
-                         :style="{background: !item.isToday && item.monthFlag === 1 && item.dayOfWeek == 0 ?'#FFFF00':(!item.isToday && item.monthFlag === 1 && item.dayOfWeek == 6 ?'#00B050':'')}"
+                         :style="{background: !item.isToday && item.monthFlag === 1 && item.dayOfWeek == 0 ?'#FFFF00':(!item.isToday && item.monthFlag === 1 && item.dayOfWeek == 6 ?'#00B050':''),
+                                   height: 0.16*$store.state.clientH*0.9 + 'px'}"
                          @click="_handleDateItemSelect(item)">
                         <!--当前day-->
                         <div :class="{
@@ -70,7 +72,6 @@
                             <div class="dayName">{{ item.date }}</div>
 
                             <!--自定义内容--> <!-- 动态设置行数 0.95 为高的比例 0.16为竖直6等分 -20 padding  /20为字高 -->
-                            <!-- -webkit-line-clamp :1-->
                             <div class="dayContent more-line"
                                  style="font-size: 18px;line-height: 18px;"
                                  :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.9*0.16 - 20)/20)}"
@@ -78,12 +79,7 @@
                                 <!-- <slot name="comment">
 
                                  </slot>-->
-
-
                                 <span>{{item.content}} </span>
-                                <!--<span v-for="item in 10">&nbsp;</span>-->
-                                <span>  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-                                </span>
                             </div>
 
                         </div>

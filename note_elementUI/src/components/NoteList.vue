@@ -439,7 +439,7 @@
                 if (currentPixelRatio !== lastPixelRatio) {
                     vm.noteListH = document.body.clientHeight - 64 + 'px'
                     vm.$store.state.clientH = document.body.clientHeight
-                    console.log('页面缩放变化了', vm.noteListH, document.body.clientHeight);
+                    console.log('页面缩放变化了', vm.noteListH,'当前页面高度', document.body.clientHeight);
                 }
                 lastPixelRatio = currentPixelRatio;
                 /*日历视图单元格高度计算 页面渲染的问题*/
