@@ -20,9 +20,9 @@
                 <el-button @click="backToToday" round size="mini" style="padding: 7px;">
                     今
                 </el-button>
+                <!--上一年 上一月-->
                 <div class="arrow-wrap arrow-wrap--left">
-                    <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toPreYearRange"></div>
-                    <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toPreYear"></div>
+                    <div  class="arrow arrow--outer" @click="toPreYear"></div>
                     <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toPreMonth"></div>
                 </div>
                 <!--月份选择-->
@@ -37,6 +37,8 @@
                         style="font-size: 25px;padding-left: 45px"
                         placeholder="yyyyMM">
                 </el-date-picker>
+
+                <!--下一年 下一月-->
                 <div class="arrow-wrap arrow-wrap--right">
                     <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toNextMonth"></div>
                     <div v-show="!yearPaneVisible" class="arrow arrow--outer" @click="toNextYear"></div>
@@ -56,7 +58,7 @@
                     <!--每日div-->
                     <div v-for="(item, j) in dateArr"
                          :key="'date' + j"
-                         class="date-item"
+                         class="date-item date-item-content-div"
                          :style="{background: !item.isToday && item.monthFlag === 1 && item.dayOfWeek == 0 ?'#FFFF00':(!item.isToday && item.monthFlag === 1 && item.dayOfWeek == 6 ?'#00B050':''),
                                    height: 0.16*$store.state.clientH*0.9 + 'px'}"
                          @click="_handleDateItemSelect(item)">
@@ -74,8 +76,7 @@
                             <!--自定义内容--> <!-- 动态设置行数 0.95 为高的比例 0.16为竖直6等分 -20 padding  /20为字高 -->
                             <div class="dayContent more-line"
                                  style="font-size: 18px;line-height: 18px;"
-                                 :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.9*0.16 - 20)/20)}"
-                                 :class="{'date-item-content-div': item.monthFlag !== 1,}">
+                                 :style="{WebkitLineClamp: parseInt(($store.state.clientH*0.9*0.16 - 20)/20)}">
                                 <!-- <slot name="comment">
 
                                  </slot>-->
@@ -86,35 +87,7 @@
                     </div>
                 </div>
             </div>
-            <div v-show="monthPaneVisible" class="pane pane--month">
-                <div
-                        v-for="(month, k) in monthArr"
-                        :key="'month' + k"
-                        :class="{
-          'month-item': true,
-          'month-item--selected':
-            k === value.getMonth() &&
-            curMonth === value.getMonth() + 1 &&
-            curYear === value.getFullYear()
-              ? 'bolder'
-              : ''
-        }"
-                        @click="_handleMonthItemSelect(k)"
-                >
-                    {{ month }}
-                </div>
-            </div>
-            <div v-show="yearPaneVisible" class="pane pane--year">
-                <div
-                        class="year-item"
-                        v-for="(year, l) in yearArr"
-                        :key="'year' + l"
-                        :class="{ 'year-item': true, 'year-item--selected': year === value.getFullYear() }"
-                        @click="_handleYearItemSelect(year)"
-                >
-                    {{ year }}
-                </div>
-            </div>
+
         </div>
     </div>
 
@@ -188,9 +161,7 @@
                 curYearRangeStart: Math.floor(2017 / 10) * 10,
                 curYearRangeEnd: Math.floor(2017 / 10) * 10 + 9,
                 paneStatus: 0 /* 0 date-pane, 1 month-pane, 2 year-pane */,
-                dateArr: [],
                 firstDayOfWeek: 1, //0:周日作为一周的开始 1：周一作为第一天
-                selectedMonth: new Date(2017, 0, 1),//选择的月份
             }
         },
 
@@ -206,14 +177,6 @@
                     this._updateMonthArr()
                 }
             },
-            selectedMonth(value) {
-                if (value) {
-                    console.log(value.getFullYear(), value.getMonth() + 1)
-                    this.curYear = value.getFullYear()
-                    this.curMonth = value.getMonth() + 1
-                    this._updateMonthArr()
-                }
-            }
         },
 
         /*入口初始化数据*/
@@ -222,6 +185,21 @@
         },
 
         computed: {
+            dateArr(){
+                return this._updateMonthArr()
+            },
+
+            selectedMonth:{
+                get: function () {
+                    return new Date(this.curYear,this.curMonth -1)
+                },
+                set: function (newValue) {
+                    let items = newValue.split("-")
+                    this.curYear = items[0]
+                    this.curMonth = items[1]
+                    console.log(newValue)
+                }
+            },
             weekthArr() {
                 let weekArr = []
                 let firstW = this.getWeekth(this.dateArr[6].val)
@@ -307,9 +285,7 @@
                 // return tarDay == '-01' ? this.$store.state.notes[2].title:this.$store.state.notes[1].title
             },
             _updateMonthArr() {
-                if (!this.selectedMonth || this.selectedMonth.getFullYear() != this.curYear || this.selectedMonth.getMonth() != this.curMonth - 1) {
-                    this.selectedMonth = new Date(this.curYear, this.curMonth - 1)
-                }
+
                 let maxDateOfPreMonth
                 if (this.curMonth === 1) {
                     maxDateOfPreMonth = getMonthMaxDate(this.curYear - 1, 12)
@@ -317,7 +293,10 @@
                     maxDateOfPreMonth = getMonthMaxDate(this.curYear, this.curMonth - 1)
                 }
                 /*获取当前是周几*/
-                const firstDayOfCurMonth = getDayOfWeek(this.curYear, this.curMonth, 1)
+                let firstDayOfCurMonth = getDayOfWeek(this.curYear, this.curMonth, 1)
+                if(this.firstDayOfWeek == 1){
+                    if(firstDayOfCurMonth == 0)  firstDayOfCurMonth = 7
+                }
                 const preDateArr = this._getDateArr(
                     maxDateOfPreMonth - firstDayOfCurMonth + 1,
                     maxDateOfPreMonth,
@@ -328,11 +307,12 @@
 
                 // 6 line max: 6 * 7 = 42  根据月份选择显示几行日历数据
 
-                this.dateArr = preDateArr
+                let dateArr = preDateArr
                     .concat(curDateArr)
                     .concat(nextDateArr)
                     .slice(this.firstDayOfWeek, curDateArr.length + preDateArr.length - this.firstDayOfWeek > 35 ? 42 + this.firstDayOfWeek : 35 + this.firstDayOfWeek)
 
+                return dateArr
             },
             /*可手动输入 按下回车键跳转到月份*/
             keyEnter() {
@@ -402,8 +382,8 @@
             toPreYear() {
                 this.curYear--
                 this._updateMonthArr()
-                this.$emit('preyear', {year: this.curYear, month: this.curMonth})
-                this.showDatePane()
+                // this.$emit('preyear', {year: this.curYear, month: this.curMonth})
+                // this.showDatePane()
             },
             toNextYear() {
                 this.curYear++
