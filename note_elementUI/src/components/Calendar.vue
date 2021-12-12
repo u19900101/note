@@ -162,6 +162,8 @@
                 curYearRangeEnd: Math.floor(2017 / 10) * 10 + 9,
                 paneStatus: 0 /* 0 date-pane, 1 month-pane, 2 year-pane */,
                 firstDayOfWeek: 1, //0:周日作为一周的开始 1：周一作为第一天
+                selectedMonth : new Date(2017,0,1),
+                dateArr : []
             }
         },
 
@@ -169,14 +171,29 @@
             curYear(val) {
                 this.curYearRangeStart = Math.floor(val / 10) * 10
                 this.curYearRangeEnd = Math.floor(val / 10) * 10 + 9
+                this.selectedMonth = new Date(this.curYear,this.curMonth -1)
+                console.log(this.selectedMonth)
+            },
+            curMonth(val){
+                this.selectedMonth = new Date(this.curYear,this.curMonth -1)
+                console.log(this.selectedMonth)
             },
             dotArr: {
                 deep: true,
                 immediate: true,
                 handler() {
-                    this._updateMonthArr()
+                    // this._updateMonthArr()
                 }
             },
+            selectedMonth(newValue) {
+                    if(newValue && typeof newValue != "object"){
+                        let items = newValue.split("-")
+                        this.curYear = parseInt(items[0])
+                        this.curMonth = parseInt(items[1])
+                        this._updateMonthArr()
+                        console.log(newValue)
+                    }
+                },
         },
 
         /*入口初始化数据*/
@@ -185,21 +202,6 @@
         },
 
         computed: {
-            dateArr(){
-                return this._updateMonthArr()
-            },
-
-            selectedMonth:{
-                get: function () {
-                    return new Date(this.curYear,this.curMonth -1)
-                },
-                set: function (newValue) {
-                    let items = newValue.split("-")
-                    this.curYear = items[0]
-                    this.curMonth = items[1]
-                    console.log(newValue)
-                }
-            },
             weekthArr() {
                 let weekArr = []
                 let firstW = this.getWeekth(this.dateArr[6].val)
@@ -285,34 +287,34 @@
                 // return tarDay == '-01' ? this.$store.state.notes[2].title:this.$store.state.notes[1].title
             },
             _updateMonthArr() {
+                if(this.selectedMonth){
+                    let maxDateOfPreMonth
+                    if (this.curMonth == 1) {
+                        maxDateOfPreMonth = getMonthMaxDate(this.curYear - 1, 12)
+                    } else {
+                        maxDateOfPreMonth = getMonthMaxDate(this.curYear, this.curMonth - 1)
+                    }
+                    /*获取当前是周几*/
+                    let firstDayOfCurMonth = getDayOfWeek(this.curYear, this.curMonth, 1)
+                    if(this.firstDayOfWeek == 1){
+                        if(firstDayOfCurMonth == 0)  firstDayOfCurMonth = 7
+                    }
+                    const preDateArr = this._getDateArr(
+                        maxDateOfPreMonth - firstDayOfCurMonth + 1,
+                        maxDateOfPreMonth,
+                        0
+                    )
+                    const curDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth), 1)
+                    const nextDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth + 1), 2)
 
-                let maxDateOfPreMonth
-                if (this.curMonth === 1) {
-                    maxDateOfPreMonth = getMonthMaxDate(this.curYear - 1, 12)
-                } else {
-                    maxDateOfPreMonth = getMonthMaxDate(this.curYear, this.curMonth - 1)
+                    // 6 line max: 6 * 7 = 42  根据月份选择显示几行日历数据
+
+                    this.dateArr = preDateArr
+                        .concat(curDateArr)
+                        .concat(nextDateArr)
+                        .slice(this.firstDayOfWeek, curDateArr.length + preDateArr.length - this.firstDayOfWeek > 35 ? 42 + this.firstDayOfWeek : 35 + this.firstDayOfWeek)
                 }
-                /*获取当前是周几*/
-                let firstDayOfCurMonth = getDayOfWeek(this.curYear, this.curMonth, 1)
-                if(this.firstDayOfWeek == 1){
-                    if(firstDayOfCurMonth == 0)  firstDayOfCurMonth = 7
-                }
-                const preDateArr = this._getDateArr(
-                    maxDateOfPreMonth - firstDayOfCurMonth + 1,
-                    maxDateOfPreMonth,
-                    0
-                )
-                const curDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth), 1)
-                const nextDateArr = this._getDateArr(1, getMonthMaxDate(this.curYear, this.curMonth + 1), 2)
 
-                // 6 line max: 6 * 7 = 42  根据月份选择显示几行日历数据
-
-                let dateArr = preDateArr
-                    .concat(curDateArr)
-                    .concat(nextDateArr)
-                    .slice(this.firstDayOfWeek, curDateArr.length + preDateArr.length - this.firstDayOfWeek > 35 ? 42 + this.firstDayOfWeek : 35 + this.firstDayOfWeek)
-
-                return dateArr
             },
             /*可手动输入 按下回车键跳转到月份*/
             keyEnter() {
@@ -321,6 +323,9 @@
                 let month = parseInt(inputDate.substring(4, 6))
                 let date = new Date(year, month - 1, 1)
                 this.selectedMonth = date
+                this.curYear = year
+                this.curMonth = month
+                this._updateMonthArr()
                 console.log(inputDate, this.selectedMonth)
                 /*手动收起日历视图*/
                 this.$refs['datePicker'].pickerVisible = false

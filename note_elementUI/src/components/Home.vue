@@ -148,7 +148,8 @@
             this.getData()
         },
         mounted() {
-            this.$router.push({name: 'notepage'})
+            // this.$router.push({name: 'notepage'})
+            this.$router.push({name: 'calendar'})
         }
     }
 </script>
