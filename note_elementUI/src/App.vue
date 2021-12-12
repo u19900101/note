@@ -1,7 +1,7 @@
 <template>
     <div id="app">
         <div class="box">
-             <home/>
+            <home/>
         </div>
     </div>
 </template>

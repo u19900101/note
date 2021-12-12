@@ -47,73 +47,76 @@
 
             <el-container>
                 <el-aside id="innner" :style="{width: noteListWidth + 'px'}">
-                    <el-scrollbar class="page-scroll">
+                    <el-scrollbar class="page-scroll" ref="scroll">
                         <!--笔记本名称 && 笔记排序按钮 搜索-->
                         <div v-if="!$store.state.fileMode">
                             <!--笔记列表-->
                             <el-container>
-                                <el-aside :style="{width: noteListWidth + 'px'}">
-                                    <div v-for="(note,index) in $store.state.currentNoteList">
-                                        <!-- type="flex" 为了让图片居中 -->
-                                        <!--列表区  标题  标签  内容-->
-                                        <el-row @click.native="noteClick(note,index)"
-                                                @mousedown.native="$store.state.currentIndex = index"
-                                                @mouseenter.native="enterIndex = index"
-                                                :id="index"
-                                                :style="{
+                                <el-aside :style="{width: noteListWidth + 'px'}" >
+                                    <div>
+                                        <div v-for="(note,index) in $store.state.currentNoteList">
+                                            <!-- type="flex" 为了让图片居中 -->
+                                            <!--列表区  标题  标签  内容-->
+                                            <el-row @click.native="noteClick(note,index)"
+                                                    @mousedown.native="$store.state.currentIndex = index"
+                                                    @mouseenter.native="enterIndex = index"
+                                                    :id="index"
+                                                    :style="{
                                             width: noteListWidth + 'px',
                                             backgroundColor:getBgColor(index),
                                              border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
-                                                style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
-                                                type="flex">
+                                                    style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
+                                                    type="flex">
 
-                                            <el-col :span="note.mediaUid ?16:24">
-                                                <!--标题-->
-                                                <el-row>
-                                                    <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
-                                                    <div v-else class='titleInList'>
-                                                        <strong>{{note.title}}</strong>
-                                                    </div>
-                                                </el-row>
-                                                <!--标签 & 内容-->
-                                                <el-row>
-                                                    <!-- 给多行省略符 元素动态设置背景色-->
-                                                    <div class="more-line">
-                                                        <span style="color: #49a2de">{{getTagList(note)}}</span>
-                                                        <span v-if="$store.state.isSearchMode"
-                                                              v-html="note.content"></span>
-                                                        <span v-else> {{note.summary}}</span>
-                                                        <!--replace("# " + note.title + "\n\n","")-->
-                                                    </div>
-                                                </el-row>
+                                                <el-col :span="note.mediaUid ?16:24">
+                                                    <!--标题-->
+                                                    <el-row>
+                                                        <div v-if="$store.state.isSearchMode" v-html="note.title"></div>
+                                                        <div v-else class='titleInList'>
+                                                            <strong>{{note.title}}</strong>
+                                                        </div>
+                                                    </el-row>
+                                                    <!--标签 & 内容-->
+                                                    <el-row>
+                                                        <!-- 给多行省略符 元素动态设置背景色-->
+                                                        <div class="more-line">
+                                                            <span style="color: #49a2de">{{getTagList(note)}}</span>
+                                                            <span v-if="$store.state.isSearchMode"
+                                                                  v-html="note.content"></span>
+                                                            <span v-else> {{note.summary}}</span>
+                                                            <!--replace("# " + note.title + "\n\n","")-->
+                                                        </div>
+                                                    </el-row>
 
-                                                <!--时间-->
-                                                <el-row>
-                                                    <!--根据排序方式来决定显示的时间类型 note.createTime -->
-                                                    <span style="font-size: mini;color: #49a2de">
+                                                    <!--时间-->
+                                                    <el-row>
+                                                        <!--根据排序方式来决定显示的时间类型 note.createTime -->
+                                                        <span style="font-size: mini;color: #49a2de">
                                             {{$store.state.sortWay.updateTime ? '更新时间' : '创建时间'}}
-                                                        <!--若有别名字段就显示别名-->
+                                                            <!--若有别名字段就显示别名-->
                                             {{
                                             $store.state.sortWay.updateTime
                                             ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
                                             : (note.createTimeAlias ? note.createTimeAlias:note.createTime)
                                             }}
                                         </span>
-                                                </el-row>
-                                            </el-col>
-                                            <!--图片-->
-                                            <el-col v-if="note.mediaUid" :span="8" class="innerCenter">
-                                                <el-image style="width: 100px;height: 100px"
-                                                          :src="note.mediaUid"
-                                                          fit="cover">
-                                                </el-image>
-                                                <!--  <el-image v-else
-                                                            :src="require('../assets/images/gofree.jpg')"
-                                                            fit="cover">
-                                                  </el-image>-->
-                                            </el-col>
-                                        </el-row>
+                                                    </el-row>
+                                                </el-col>
+                                                <!--图片-->
+                                                <el-col v-if="note.mediaUid" :span="8" class="innerCenter">
+                                                    <el-image style="width: 100px;height: 100px"
+                                                              :src="note.mediaUid"
+                                                              fit="cover">
+                                                    </el-image>
+                                                    <!--  <el-image v-else
+                                                                :src="require('../assets/images/gofree.jpg')"
+                                                                fit="cover">
+                                                      </el-image>-->
+                                                </el-col>
+                                            </el-row>
+                                        </div>
                                     </div>
+
                                 </el-aside>
                             </el-container>
                         </div>
@@ -428,8 +431,7 @@
                     clearTimeout(this.lastTime)
                     this.exefunc(searchValue)
                 }
-            }
-            ,
+            },
         },
         mounted() {
             let lastPixelRatio = window.devicePixelRatio;
@@ -450,8 +452,14 @@
                  /!*   console.log('dateItemDivH',document.getElementsByClassName('date-item')[0])
                     console.log('dateItemDivH',document.getElementsByClassName('date-item'))*!/
                 });*/
-
             });
+
+            /*动态定位到笔记所在列表中的位置*/
+            if(this.$store.state.fromCalender){
+                /*106.67 列表的大致高度*/
+                this.$refs['scroll'].wrap.scrollTop =  106.67 *( this.$store.state.currentIndex -2) //想滚到哪个高度，就写多少
+                this.$store.state.fromCalender = false
+            }
         }
     }
 </script>

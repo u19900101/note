@@ -76,6 +76,9 @@ const state = {
     tableData: [],           //封装笔记本和标签展示区
     listTitle : '',         //列表区的名称
     clientH: document.body.clientHeight,
+
+    /**日历*/
+    fromCalender:false, //控制index的变化是否来自日历
 }
 
 //创建并暴露store

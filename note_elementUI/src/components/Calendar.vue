@@ -270,22 +270,30 @@
         },
 
         methods: {
-            /*获取笔记内容*/
-            getContent(tarYear, tarMonth, tarDay) {
-                /*转化为 yyyy-MM-dd 格式*/
-                tarMonth = tarMonth < 10 ? '-0' + tarMonth : '-' + tarMonth
-                tarDay = tarDay < 10 ? '-0' + tarDay : '-' + tarDay
-
-                let dateStr = tarYear + tarMonth + tarDay
-                let note = this.$store.state.notes.filter((n) => n.createTime.split(" ")[0] == dateStr)[0]
-                let title = ''
-                if (note) {
-                    title =  note.title.length < 30 ? note.title + title :note.title
+            /*选中当前天 若内容不为空 则跳转到当天的md页面*/
+            _handleDateItemSelect(item) {
+                console.log(item)
+                if(item.content){
+                    let note = this.$store.state.notes.filter((n,index) => {
+                        if(n.title == item.content) {
+                            this.$store.state.currentIndex = index
+                        }
+                        return n.title == item.content
+                    })[0]
+                    this.$store.state.currentNote = note
+                    this.$store.state.fromCalender = true
+                    this.$router.push({name: 'notepage'})
                 }
-                // return note ? note.title : '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'
-                return title
-                // return tarDay == '-01' ? this.$store.state.notes[2].title:this.$store.state.notes[1].title
+                else {
+                    if (item.monthFlag === 0) {
+                        this.toPreMonth()
+                    } else if (item.monthFlag === 2) {
+                        this.toNextMonth()
+                    }
+                    this.$emit('input', new Date(this.curYear, this.curMonth - 1, item.date))
+                }
             },
+
             _updateMonthArr() {
                 if(this.selectedMonth){
                     let maxDateOfPreMonth
@@ -396,6 +404,15 @@
                 this.$emit('nextyear', {year: this.curYear, month: this.curMonth})
                 this.showDatePane()
             },
+            /*获取笔记内容*/
+            getContent(tarYear, tarMonth, tarDay) {
+                /*转化为 yyyy-MM-dd 格式*/
+                tarMonth = tarMonth < 10 ? '-0' + tarMonth : '-' + tarMonth
+                tarDay = tarDay < 10 ? '-0' + tarDay : '-' + tarDay
+                let dateStr = tarYear + tarMonth + tarDay
+                let note = this.$store.state.notes.filter((n) => n.createTime.split(" ")[0] == dateStr)[0]
+                return note ? note.title:''
+            },
             toSpecificDate(year, month, date) {
                 // v0.1.2 fix bug: params of toSpecificDate must be integer
                 const intYear = parseInt(year)
@@ -426,15 +443,7 @@
             showDatePane() {
                 this.paneStatus = 0
             },
-            _handleDateItemSelect(item) {
-                console.log(item)
-                if (item.monthFlag === 0) {
-                    this.toPreMonth()
-                } else if (item.monthFlag === 2) {
-                    this.toNextMonth()
-                }
-                this.$emit('input', new Date(this.curYear, this.curMonth - 1, item.date))
-            },
+
             _handleMonthItemSelect(index) {
                 this.curMonth = index + 1
                 this._updateMonthArr()
