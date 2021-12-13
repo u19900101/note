@@ -752,7 +752,7 @@
                         },
                         {
                             id: 'calendar',
-                            title: '日历 (xxx)'
+                            title: '日历'
                         },
                         {
                             id: 'allNotes',

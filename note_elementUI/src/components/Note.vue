@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-container v-if="$store.state.currentNoteList.length > 0" :style="{height :$store.state.clientH + 'px'}" >
+        <el-container v-if="$store.state.currentNoteList.length > 0" :style="{height :$store.state.clientH + 'px'}">
             <!--标题 & 工具栏--> <!--$router.history.current.name != 'imageList'-->
             <el-header v-if="$router.history.current.name == 'notepage'" style="padding: 0 5px;">
                 <!--笔记本 标签 收藏 删除  日期 位置-->
@@ -29,8 +29,9 @@
                         <!--给图标单独设置大小 采用 i 设置时会影响全局-->
                         <el-button :disabled="$store.state.currentNote.wastepaper" size="mini"
                                    style="margin-left: 10px;padding: 0px">
-                            <i @click="starClick" :class="star ? 'el-icon-star-on': 'el-icon-star-off' "
-                               style="font-size: 25px"></i>
+                            <i @click="starClick" :class="star ? 'iconfont icon-like1':'iconfont icon-like'"
+                               :style="{color: star ? 'red':''}" style="font-size: 25px;">
+                            </i>
                         </el-button>
                     </el-tooltip>
 
@@ -75,7 +76,7 @@
                     </div>
                 </el-row>
             </el-header>
-
+            <div>时间线</div>
             <el-main style="padding: 7px">
                 <el-scrollbar class="page-scroll">
                     <vmd></vmd>
@@ -91,6 +92,7 @@
 <script>
     import noteTag from "./NoteTag"
     import vmd from "./Vmd"
+
     let dayjs = require('dayjs');
 
     export default {
@@ -100,9 +102,7 @@
             vmd
         },
         data() {
-            return {
-
-            }
+            return {}
         },
 
         computed: {
@@ -169,7 +169,7 @@
                         // 进行全量更新树  级联更新自己和新笔记本 显示的笔记数量
                         // 放弃局部更新树(遍历判断树的次数更频繁)
                         this.$store.state.noteBooksTree = data.data
-                        this.tool.addNoteCount(this.$store.state.noteBooksTree,'notebook')
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree, 'notebook')
                     })
                 }
             },
@@ -207,7 +207,7 @@
         },
         methods: {
             /*收起时间选择面板*/
-            foldTimePicker(){
+            foldTimePicker() {
                 this.$refs['timePicker'].pickerVisible = false
             },
 
@@ -294,7 +294,7 @@
                     console.log("删除成功", data);
                     /*更新笔记本中笔记的数量 更新树形展示*/
                     this.$store.state.noteBooksTree = data.data
-                    this.tool.addNoteCount(data.data,'notebook')
+                    this.tool.addNoteCount(data.data, 'notebook')
 
                     /* 1.更新所有笔记*/
                     this.removeCurrentNoteByTypeName('notes')
@@ -340,7 +340,7 @@
                 setTimeout(() => {
                     this.https.getNoteBooksTree().then(({data}) => {
                         this.$store.state.noteBooksTree = data.data
-                        this.tool.addNoteCount(this.$store.state.noteBooksTree,'notebook')
+                        this.tool.addNoteCount(this.$store.state.noteBooksTree, 'notebook')
                     })
                 }, 1000)
 
@@ -362,7 +362,7 @@
 </script>
 
 <style>
-    .mydate .el-date-editor.el-input{
+    .mydate .el-date-editor.el-input {
         width: 150px !important;
     }
 
@@ -376,12 +376,13 @@
         margin-top: 10px;
         display: flex;
         justify-content: flex-start; /*主轴上靠左 flex-start*/
-       /* flex-wrap: nowrap; !*不换行*!*/
+        /* flex-wrap: nowrap; !*不换行*!*/
         /*justify-content: space-between; !*无法实现开头和结尾对其 *!*/
         align-items: center; /*侧轴上居中*/
         /*width: 600px; !*适配手机预览*!*/
         width: 100%;
     }
+
     /*这只内容区域高度占满*/
     .el-textarea__inner,
     .el-textarea {

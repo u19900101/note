@@ -53,7 +53,10 @@
                         {{ text }}
                     </div>
                 </div>
-                <!--使用flex换行布局 设置div高度 彻底解决缩放时的高度坍塌形变问题-->
+                <!--取消 inline-block会出现高度不一致的问题
+                使用flex换行布局 设置div高度 彻底解决缩放时的高度坍塌形变问题
+                高度由 height: 0.16*$store.state.clientH*0.9 指定
+                宽度由 date-item 终点 width：14% 决定 这样就能完美布局-->
                 <div style="display: flex;flex-wrap: wrap;">
                     <!--每日div-->
                     <div v-for="(item, j) in dateArr"
