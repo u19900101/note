@@ -4,14 +4,14 @@
             <!--<home/>-->
             <!--<timeLine/>-->
 
-            <div style="z-index: 3000;margin-left: 50px;width: 500px">
-                <span class="demonstration">格式化 Tooltip</span>
-                <el-button @click="startDate -= 1"> 前一日</el-button>
-                <el-button @click="play"> 播放</el-button>
-                <el-button @click="startDate += 1"> 后一日</el-button>
-                <el-slider v-model="startDate"
+            <div style="z-index: 3000;margin-left: 50px;">
+                <span class="demonstration">{{date}}</span>
+                <el-button @click="dateIndex -= 1"> 前一日</el-button>
+                <el-button @click="play">{{isPlay ? '播放':'暂停'}}</el-button>
+                <el-button @click="dateIndex += 1"> 后一日</el-button>
+                <el-slider v-model="dateIndex"
                            :max=lenOfArr
-                           :marks="marks"
+                           :marks="timeLineMarkers"
                            @change="timelineChange"
                            :format-tooltip="formatTooltip"></el-slider>
             </div>
@@ -25,6 +25,7 @@
 
     import home from "./components/Home"
     import timeLine from "./components/cb/TimeLine"
+    // import diarymapData from './data/diarymapData_bak.json'
     import diarymapData from './data/diarymapData.json'
 
     export default {
@@ -33,10 +34,15 @@
             home, timeLine
         },
         computed: {
+            date() {
+                console.log('date')
+                let k = this.dateArr[this.dateIndex]
+                return this.dateArr[this.dateIndex].day
+            },
             lenOfArr() {
                 return this.dateArr.length - 1
             },
-            marks() {
+           /* marks() {
                 let res = {}
                 for (let i = 1; i < this.dateArr.length - 1; i++) {
                     res[i] = {
@@ -51,49 +57,207 @@
                     style: {
                         color: '#000000',
                     },
-                    label:  this.dateArr[0]
+                    label: this.dateArr[0].day
                 }
                 res[this.dateArr.length - 1] = {
                     style: {
                         color: '#000000',
                     },
-                    label:  this.dateArr[this.dateArr.length - 1]
+                    label: this.dateArr[this.dateArr.length - 1].day
                 }
                 return res
-            },
+            },*/
+            /*dateArr() {
+                let data = diarymapData.diarymapData
+                fillAbsentDate(data.diarymapData)
+                let data = {
+                    "diarymapData": [
+                        {
+                            "lng": 110.2738888889,
+                            "lat": 20.0225,
+                            "day": "2017\/01\/01 22:44",
+                            "title": "报道第一天 感觉非常的差 光头振威"
+                        }, {
+                            "lng": 110.2730555556,
+                            "lat": 20.0233333333,
+                            "day": "2017\/01\/05 13:09",
+                            "title": "2  集齐五福了 体检，整理东西，太多太杂 很想很想离开到处在咨询 当兵的人不要听回家的歌"
+                        },
+                        {"lng": 110.2730555556, "lat": 20.0233333333, "day": "2017\/01\/09 12:00", "title": null},
+                        {
+                            "lng": 110.2719444444,
+                            "lat": 20.0233333333,
+                            "day": "2017\/01\/10 13:07",
+                            "title": "4.心态调整了一些了，搬家了，换了一群班长朋友"
+                        }, {
+                            "lng": 110.2780555556,
+                            "lat": 20.0194444444,
+                            "day": "2017\/01\/12 14:41",
+                            "title": "5.我决定了，我要走"
+                        }, {
+                            "lng": 110.2619444444,
+                            "lat": 20.025,
+                            "day": "2017\/01\/25 22:03",
+                            "title": "6一百八十度的大转弯，感谢小姨，感谢老姐"
+                        }, {
+                            "lng": 110.2719444444,
+                            "lat": 20.0233333333,
+                            "day": "2017\/01\/26 23:07",
+                            "title": "7.心态调整好了，动员，布置会场"
+                        }, {
+                            "lng": 110.2719444444,
+                            "lat": 20.0233333333,
+                            "day": "2017\/01\/27 23:06",
+                            "title": "8 大年三十 第一次在budui过年，很想家，但是这里也很热闹"
+                        }, {
+                            "lng": 110.2719444444,
+                            "lat": 20.0233333333,
+                            "day": "2017\/01\/28 22:20",
+                            "title": "9大年初一 政委零点过来贺喜拜年 游园会三等奖，打够级，添民哥过生日"
+                        }, {
+                            "lng": 110.2730555556,
+                            "lat": 20.0236111111,
+                            "day": "2017\/01\/29 22:00",
+                            "title": "10 初二，外出采购，海滩玩航拍认识一个开直升机的"
+                        },
+                    ]
+                }
+               /!* let res = {}
+                for (let i = 1; i < this.dateArr.length - 1; i++) {
+                    res[i] = {
+                        style: {
+                            color: '#000000',
+                            fontSize: '10px'
+                        },
+                        label: '|'
+                    }
+                }
+                res[0] = {
+                    style: {
+                        color: '#000000',
+                    },
+                    label: this.dateArr[0].day
+                }
+                res[this.dateArr.length - 1] = {
+                    style: {
+                        color: '#000000',
+                    },
+                    label: this.dateArr[this.dateArr.length - 1].day
+                }*!/
+            }*/
 
         },
         data() {
             return {
+                /*高德地图相关*/
                 marker: '',
                 map: '',
                 position: [114.3330555556, 30.6697222222],
                 makerClick: false,
-                dateArr: ['2000-01-05', '2001-02-14', '2002-10-31', '2003-12-22', '2004-07-09'],
-                startDate: [],
+                // dateArr: ['2000-01-05', '2001-02-14', '2002-10-31', '2003-12-22', '2004-07-09'],
+                dateArr: [],
+                timeLineMarkers : [],
+                dateIndex: 0,
+                isPlay: true,
+                timeIndex: 0,//定时器
             }
         },
         methods: {
-            play(){
-                /*在末尾点击播放*/
-                if(this.startDate >= this.dateArr.length-1) {
-                    this.startDate = 0
-                }
-                let timeIndex = setInterval(() =>{
-                    console.log('setTimeout',this.startDate,this.dateArr.length)
-                    this.startDate += 1
+            formatDate(date) {
+                let month = '' + (date.getMonth() + 1),
+                    day = '' + date.getDate(),
+                    year = date.getFullYear();
+                if (month.length < 2) month = '0' + month;
+                if (day.length < 2) day = '0' + day;
 
-                    if(this.startDate >= this.dateArr.length-1) {
-                        clearInterval(timeIndex)
+                return [year, month, day].join('/');
+            },
+
+            fillAbsentDate() {
+                // let dateArr = diarymapData.diarymapData.slice(100,200)
+                let dateArr = diarymapData.diarymapData
+                let marker = {}
+                let curday = dateArr[0].day.substring(0, 10)
+                for (let i = 0; i < dateArr.length - 1; i++) {
+                    /*补全缺失的日期*/
+                    let nextDay = dateArr[i + 1].day.substring(0, 10)
+                    let cd = new Date(curday)
+                    let nd = new Date(nextDay)
+                    let detalDay = (nd - cd) / 86400000
+                    /*插入缺失的天数*/
+                    marker[i] = {
+                        style: {
+                            color: '#000000',
+                            fontSize: '10px'
+                        },
+                        label: '|'
                     }
-                },500)
+                    if (detalDay > 1) {
+                        for (let j = 0; j < detalDay - 1; j++) {
+                            let temp = new Date(cd)
+                            let dateTime = new Date(temp.setDate(cd.getDate() + j + 1));
+                            dateArr.splice(i + 1 + j, 0, {
+                                "day": this.formatDate(dateTime),
+                            })
+                            marker[i + 1 + j] = {
+                                style: {
+                                    color: '#000000',
+                                    fontSize: '10px'
+                                },
+                                label: ''
+                            }
+                        }
+                        i += detalDay - 1
+                    }
+                    curday = nextDay
+                }
+                /*覆盖*/
+                marker[0] = {
+                    style: {
+                        color: '#000000',
+                    },
+                    label: dateArr[0].day
+                }
+                marker[dateArr.length - 1] = {
+                    style: {
+                        color: '#000000',
+                    },
+                    label: dateArr[dateArr.length - 1].day
+                }
+                this.dateArr = dateArr
+                this.timeLineMarkers = marker
+            },
+
+
+            play() {
+                /*暂停*/
+                if (!this.isPlay) {
+                    this.isPlay = true
+                    clearInterval(this.timeIndex)
+                } else { /*播放*/
+                    this.isPlay = false
+                    /*在末尾点击播放*/
+                    if (this.dateIndex >= this.dateArr.length - 1) {
+                        this.dateIndex = 0
+                    }
+                    this.timeIndex = setInterval(() => {
+                        // console.log('setTimeout',this.dateIndex,this.dateArr.length)
+                        this.dateIndex += 1
+                        if (this.dateIndex >= this.dateArr.length - 1) {
+                            this.isPlay = true
+                            clearInterval(this.timeIndex)
+                        }
+                    }, 500)
+                }
             },
             timelineChange(value) {
-                console.log(value,this.startDate)
+                console.log(value, this.dateIndex)
             },
             formatTooltip(val) {
-                // console.log(val)
-                return this.dateArr[val];
+                if (!val) {
+                    val = 0
+                }
+                return this.dateArr[val].title;
             },
             gdMap() { /*[114.3330555556,30.6697222222]*/
                 // console.log('kkk',diarymapData,earthQuake)
@@ -267,6 +431,7 @@
             },
         },
         mounted() {
+
             // console.log(jsonData)
             // this.timeLineView(jsonData)
 
@@ -341,6 +506,10 @@
             });
             // this.initPage(map,position,title)
             layer.render();*/
+        },
+        created() {
+            console.log('mounted')
+            this.fillAbsentDate();
         },
         destroyed() {
             // this.map.off('zoomchange', this.mapZoom);
