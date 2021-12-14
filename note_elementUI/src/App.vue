@@ -32,7 +32,8 @@
             return {
                 marker: '',
                 map: '',
-                position: [114.3330555556, 30.6697222222]
+                position: [114.3330555556, 30.6697222222],
+                makerClick :false,
             }
         },
         methods: {
@@ -146,7 +147,7 @@
                 this.marker.setMap(this.map);
             },
 
-            updateContent(content) {
+            updateContent(content,timeInfo) {
 
                 if (!this.marker) {
                     return;
@@ -167,15 +168,20 @@
                 // 点标记中的文本
                 let markerContentDiv = document.createElement("div");
 
-                markerContentDiv.style = 'width: 500px;font-size: 30px;line-height: 40px;' +
+                markerContentDiv.style = 'width: 800px;font-size: 30px;line-height: 40px;' +
                     'margin-left: -234px;margin-top: -171px;'+
-                    'background-color: #ffffff;color:#000000; display:' +
+                    'color:#000000; display:' +
                     ' -webkit-box !important;overflow: hidden;text-overflow: ellipsis;word-break: break-all;-webkit-box-orient: vertical;\n' +
                     '-webkit-line-clamp: 4; '
+                let timeInfoDiv = document.createElement("div");
+                timeInfoDiv.innerHTML = '' + timeInfo;
+                timeInfoDiv.style = 'width: 200px;font-size: 20px;background-color: #dcdfe6;border: 1px solid #D7DADC;border-radius: 5px;'
+                markerContentDiv.appendChild(timeInfoDiv);
+
+
                 let markerSpan = document.createElement("span");
-                // markerSpan.className = 'marker';
                 markerSpan.innerHTML = '' + content;
-                markerSpan.style = 'background-color: #ffffff;color:#000000;'
+                markerSpan.style = 'background-color: #ffffff;color:#000000;border: 1px solid #D7DADC;border-radius: 5px;'
                 // markerSpan.setAttribute(' background', '#000000');
                 /*top:-85px;left:-500px*/
                 markerContentDiv.appendChild(markerSpan);
@@ -220,10 +226,8 @@
 
             /*给地图绑定缩放事件*/
             map.on('zoomchange', this.mapZoom);
-
-
             this.addMarker(this.position)
-            this.updateContent('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk')
+            this.updateContent('jjjj','2021.12.14 12:00:00')
             /*添加历史坐标*/
             let layer = new Loca.PointLayer({
                 eventSupport: true,
@@ -231,25 +235,29 @@
             });
 
             layer.on('mouseenter', function (ev) {
-                console.log('mousemove')
-                vm.clearMarker()
-                vm.position = [ev.rawData.lng, ev.rawData.lat]
-                vm.addMarker(vm.position)
-                vm.updateContent(ev.rawData.title)
+                console.log('mouseenter')
+                /*点击的时候不重复执行*/
+                if(!vm.makerClick){
+                    vm.clearMarker()
+                    vm.position = [ev.rawData.lng, ev.rawData.lat]
+                    vm.addMarker(vm.position)
+                    vm.updateContent(ev.rawData.title,ev.rawData.day)
+                }
+                vm.makerClick = false
             });
 
             layer.on('mouseleave', function (ev) {
                 /*关闭显示的信息*/
-                console.log('mouseleave')
-                vm.mapZoom();
+                // vm.mapZoom();
             });
 
             let vm = this
             layer.on('click', function (ev) {
+                vm.makerClick = true
                 console.log('click', ev.rawData)
                 vm.position = [ev.rawData.lng, ev.rawData.lat]
                 vm.updateMapCenter(vm.position)
-                vm.updateContent(ev.rawData.title)
+                vm.updateContent(ev.rawData.title,ev.rawData.day)
             });
 
 
