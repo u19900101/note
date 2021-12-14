@@ -3,15 +3,19 @@
         <div class="box">
             <!--<home/>-->
             <!--<timeLine/>-->
-            <div class="input-card">
-                <label style="color:grey">点标记操作</label>
-                <div class="input-item">
 
-                    <button id="updateMapCenter" @click="updateMapCenter">更新地图中心</button>
-
-                </div>
+            <div style="z-index: 3000;margin-left: 50px;width: 500px">
+                <span class="demonstration">格式化 Tooltip</span>
+                <el-button @click="startDate -= 1"> 前一日</el-button>
+                <el-button @click="play"> 播放</el-button>
+                <el-button @click="startDate += 1"> 后一日</el-button>
+                <el-slider v-model="startDate"
+                           :max=lenOfArr
+                           :marks="marks"
+                           @change="timelineChange"
+                           :format-tooltip="formatTooltip"></el-slider>
             </div>
-            <div id="container" tabindex="0"></div>
+            <!--<div id="container" tabindex="0" style="height: 80%"></div>-->
         </div>
     </div>
 </template>
@@ -28,16 +32,69 @@
         components: {
             home, timeLine
         },
+        computed: {
+            lenOfArr() {
+                return this.dateArr.length - 1
+            },
+            marks() {
+                let res = {}
+                for (let i = 1; i < this.dateArr.length - 1; i++) {
+                    res[i] = {
+                        style: {
+                            color: '#000000',
+                            fontSize: '10px'
+                        },
+                        label: '|'
+                    }
+                }
+                res[0] = {
+                    style: {
+                        color: '#000000',
+                    },
+                    label:  this.dateArr[0]
+                }
+                res[this.dateArr.length - 1] = {
+                    style: {
+                        color: '#000000',
+                    },
+                    label:  this.dateArr[this.dateArr.length - 1]
+                }
+                return res
+            },
+
+        },
         data() {
             return {
                 marker: '',
                 map: '',
                 position: [114.3330555556, 30.6697222222],
-                makerClick :false,
+                makerClick: false,
+                dateArr: ['2000-01-05', '2001-02-14', '2002-10-31', '2003-12-22', '2004-07-09'],
+                startDate: [],
             }
         },
         methods: {
+            play(){
+                /*在末尾点击播放*/
+                if(this.startDate >= this.dateArr.length-1) {
+                    this.startDate = 0
+                }
+                let timeIndex = setInterval(() =>{
+                    console.log('setTimeout',this.startDate,this.dateArr.length)
+                    this.startDate += 1
 
+                    if(this.startDate >= this.dateArr.length-1) {
+                        clearInterval(timeIndex)
+                    }
+                },500)
+            },
+            timelineChange(value) {
+                console.log(value,this.startDate)
+            },
+            formatTooltip(val) {
+                // console.log(val)
+                return this.dateArr[val];
+            },
             gdMap() { /*[114.3330555556,30.6697222222]*/
                 // console.log('kkk',diarymapData,earthQuake)
                 // let map = new AMap.Map('container', {
@@ -147,7 +204,7 @@
                 this.marker.setMap(this.map);
             },
 
-            updateContent(content,timeInfo) {
+            updateContent(content, timeInfo) {
 
                 if (!this.marker) {
                     return;
@@ -169,7 +226,7 @@
                 let markerContentDiv = document.createElement("div");
 
                 markerContentDiv.style = 'width: 800px;font-size: 30px;line-height: 40px;' +
-                    'margin-left: -234px;margin-top: -171px;'+
+                    'margin-left: -234px;margin-top: -171px;' +
                     'color:#000000; display:' +
                     ' -webkit-box !important;overflow: hidden;text-overflow: ellipsis;word-break: break-all;-webkit-box-orient: vertical;\n' +
                     '-webkit-line-clamp: 4; '
@@ -203,7 +260,7 @@
                 }
             },
             /*地图的缩放事件*/
-            mapZoom(){
+            mapZoom() {
                 /*1.清除当前标题内容*/
                 this.marker.setContent('')
                 this.addMarker(this.position)
@@ -216,27 +273,28 @@
             // this.gdMap([114.3330555556,30.6697222222],'memeda')
             // this.gdMap([114.3330555556,30.6697222222],'2memeda')
             //引入SimpleMarker，loadUI的路径参数为模块名中 'ui/' 之后的部分
-            let marker, map = new AMap.Map("container", {
+            /*let marker, map = new AMap.Map("container", {
                 resizeEnable: true,
+                mapStyle: "amap://styles/grey",
                 center: this.position,
-                zoom: 13
+                zoom: 13,
             });
             this.marker = marker
             this.map = map
 
-            /*给地图绑定缩放事件*/
+            /!*给地图绑定缩放事件*!/
             map.on('zoomchange', this.mapZoom);
             this.addMarker(this.position)
             this.updateContent('jjjj','2021.12.14 12:00:00')
-            /*添加历史坐标*/
+            /!*添加历史坐标*!/
             let layer = new Loca.PointLayer({
                 eventSupport: true,
                 map: map
             });
 
             layer.on('mouseenter', function (ev) {
-                console.log('mouseenter')
-                /*点击的时候不重复执行*/
+                console.log('mouseenter',ev,)
+                /!*点击的时候不重复执行*!/
                 if(!vm.makerClick){
                     vm.clearMarker()
                     vm.position = [ev.rawData.lng, ev.rawData.lat]
@@ -247,7 +305,7 @@
             });
 
             layer.on('mouseleave', function (ev) {
-                /*关闭显示的信息*/
+                /!*关闭显示的信息*!/
                 // vm.mapZoom();
             });
 
@@ -282,10 +340,10 @@
                 }
             });
             // this.initPage(map,position,title)
-            layer.render();
+            layer.render();*/
         },
         destroyed() {
-            this.map.off('zoomchange', this.mapZoom);
+            // this.map.off('zoomchange', this.mapZoom);
         }
     }
 </script>
