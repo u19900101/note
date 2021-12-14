@@ -2,14 +2,16 @@
     <div id="app">
         <div class="box">
             <!--<home/>-->
-            <!-- <div id="info">
-                 <h1 id="day"></h1>
-                 <h2 id="title"></h2>
-                 <ul id="displayed-list"></ul>
-             </div>
-             <div id="map"></div>-->
-            <div id="container" tabindex="0"></div>
+            <!--<timeLine/>-->
+            <div class="input-card">
+                <label style="color:grey">点标记操作</label>
+                <div class="input-item">
 
+                    <button id="updateMapCenter" @click="updateMapCenter">更新地图中心</button>
+
+                </div>
+            </div>
+            <div id="container" tabindex="0"></div>
         </div>
     </div>
 </template>
@@ -18,153 +20,242 @@
 <script>
 
     import home from "./components/Home"
-    import jsonData from './data/traceData.json'
+    import timeLine from "./components/cb/TimeLine"
     import diarymapData from './data/diarymapData.json'
 
     export default {
         name: 'App',
         components: {
-            home
+            home, timeLine
         },
         data() {
-            return {}
+            return {
+                marker: '',
+                map: '',
+                position: [114.3330555556, 30.6697222222]
+            }
         },
         methods: {
-            /*地图的更新*/
-            updateList(timeline, map) {
-                console.log('updateList')
-                let displayed = timeline.getLayers();
-                let list = document.getElementById("displayed-list");
-                let day = document.getElementById("day");
-                let title = document.getElementById("title");
-                list.innerHTML = "";
-                displayed.forEach(function (quake) {
-                    day.innerHTML = quake.feature.properties.day;
-                    title.innerHTML = quake.feature.properties.title;
-                    // 实时更新地图
-                    // map.panTo(new L.LatLng(quake.feature.geometry.coordinates[1], quake.feature.geometry.coordinates[0]));
-                    // map.center = new L.LatLng(quake.feature.geometry.coordinates[1], quake.feature.geometry.coordinates[0])
+
+            gdMap() { /*[114.3330555556,30.6697222222]*/
+                // console.log('kkk',diarymapData,earthQuake)
+                // let map = new AMap.Map('container', {
+                //
+                //     mapStyle: 'amap://styles/db9efe6a1745ac24b7269b862f359536',
+                //     // mapStyle: 'amap://styles/twilight',
+                //     // pitch: 10,  //设置地图俯仰角
+                //     // resizeEnable: true,
+                //     center: position,
+                //     zoom: 20,
+                //     features: ['bg', 'road'],
+                //     // viewMode: '3D'
+                // });
+                // map.addControl(new AMap.MapType({
+                //     // defaultType: 1 //0代表默认，1代表卫星
+                // }));
+                let layer = new Loca.PointLayer({
+                    eventSupport: true,
+                    map: this.map
+                });
+
+                layer.on('mousemove', function (ev) {
+                    // 事件类型
+                    let type = ev.type;
+                    // 当前元素的原始数据
+                    let rawData = ev.rawData;
+                    // 原始鼠标事件
+                    let originalEvent = ev.originalEvent;
+
+                    openInfoWin(vm.map, originalEvent, {
+                        // '名称': rawData.lng,
+                        // '位置': rawData.lat,
+                        '时间': rawData.day,
+                        '干了啥': rawData.title,
+                    });
+                });
+
+                layer.on('mouseleave', function (ev) {
+                    closeInfoWin();
+                });
+
+                let vm = this
+                layer.on('click', function (ev) {
+                    console.log('click', ev.rawData)
+                    let position = [ev.rawData.lng + 1, ev.rawData.lat]
+
+                });
+
+
+                layer.setData(diarymapData.diarymapData, {
+                    lnglat: function (data) {
+                        let item = data.value;
+                        return [item.lng, item.lat];
+                    }
+                });
+
+                layer.setOptions({
+                    style: {
+                        radius: 4,
+                        color: '#07E8E4',
+                        borderColor: '#07E8E4',
+                        borderWidth: 1.5,
+                        opacity: 0.8
+                    },
+                    selectStyle: {
+                        radius: 14,
+                        color: '#FFF684'
+                    }
+                });
+                // this.initPage(map,position,title)
+                layer.render();
+            },
+            initPage(map, position, title) { /*[116.305285, 39.904989]*/
+
+                AMapUI.loadUI(['overlay/SimpleMarker'], function (SimpleMarker) {
+                    //启动页面
+                    // vm.initPage(SimpleMarker,map,position,title);
+                    //创建SimpleMarker实例
+                    new SimpleMarker({
+                        //前景文字
+                        iconLabel: {
+                            // innerHTML: '<h1 style="margin-left: 50px;margin-top: 0px;">'+title+'</h1>', //设置文字内容 <i>'+ title+'</i>
+                            innerHTML: '<div style="width: 200px;line-height: 25px;">' + title + '</div>', //设置文字内容 <i>'+ title+'</i>
+                            style: {
+                                color: '#000000' //设置文字颜色
+                            }
+                        },
+
+                        //图标主题
+                        iconTheme: 'fresh',
+                        //背景图标样式
+                        iconStyle: 'red',
+
+                        //...其他Marker选项...，不包括content
+                        map: map,
+                        position: position
+                    });
                 });
 
             },
+            // 实例化点标记
+            addMarker(position) {
+                this.marker = new AMap.Marker({
+                    icon: "//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-red.png",
+                    position: position,
+                });
+                this.marker.setMap(this.map);
+            },
 
-            eqfeed_callback(data) {
-                /*初始化*/
-                // 改用高德地图的图层   /* // 'http://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
-                // 'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
-                // 谷歌卫星地图
-                //   'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}',*/
-                let osm = L.tileLayer('http://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
-                    {
-                        subdomains: ['1', '2', '3', '4'],
-                        minZoom: 1,
-                        maxZoom: 19
-                    });
-                let map = L.map("map", {
-                    layers: [osm],
-                    center: new L.LatLng(18.692222222222227, 109.18),
-                    zoom: 3,
-                    maxBounds: [
-                        [90, -180],
-                        [-90, 180],
-                    ],
-                });
+            updateContent(content) {
 
-                let getInterval = function (quake) {
-                    // earthquake data only has a time, so we'll use that as a "start"
-                    // and the "end" will be that + some value based on magnitude
-                    // 18000000 = 30 minutes, so a quake of magnitude 5 would show on the
-                    // map for 150 minutes or 2.5 hours
-                    return {
-                        start: quake.properties.time,
-                        // 修改持续的时间片为 1h
-                        end: quake.properties.time + quake.properties.mag * 1800000 * 2 * 10,
-                    };
-                };
-                let timelineControl = L.timelineSliderControl({
-                    formatOutput: function (date) {
-                        return new Date(date).toLocaleDateString();
-                    },
-                });
-                let timeline = L.timeline(data, {
-                    getInterval: getInterval,
-                    pointToLayer: function (data, latlng) {
-                        let hue_min = 120;
-                        let hue_max = 0;
-                        let hue =
-                            (data.properties.mag / 10) * (hue_max - hue_min) + hue_min;
-                        return L.circleMarker(latlng, {
-                            // 通过持续的时间来控制 半径的大小
-                            radius: data.properties.mag * 3,
-                            color: "hsl(" + hue + ", 100%, 50%)",
-                            fillColor: "hsl(" + hue + ", 100%, 50%)",
-                        }).bindPopup(
-                            // '<a href="' + data.properties.url + '">click for more info</a>'
-                            '<h3>' + data.properties.day + '</h3>' +
-                            '<h1>' + data.properties.title + '</h1>'
-                        );
-                    },
-                });
+                if (!this.marker) {
+                    return;
+                }
 
-                console.log('timeline', timeline, 'timelineControl is ', typeof timelineControl)
-                /*将事件滑块加入到map中*/
-                timelineControl.addTo(map);
-                timelineControl.addTimelines(timeline);
-                /*将坐标点加入到地图*/
-                timeline.addTo(map);
-                let vm = this
-                timeline.on("change", function (e) {
-                    vm.updateList(e.target, map);
-                });
-                this.updateList(timeline, map);
-            }
+                // 自定义点标记内容
+                let markerContent = document.createElement("div");
+                markerContent.setAttribute('color', '#000000');
+                markerContent.setAttribute('background', '#139a39');
+                // 点标记中的图标
+                let markerImg = document.createElement("img");
+                markerImg.className = "markerlnglat";
+                markerImg.src = "//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-red.png";
+                markerImg.setAttribute('width', '25px');
+                markerImg.setAttribute('height', '34px');
+                markerContent.appendChild(markerImg);
+
+                // 点标记中的文本
+                let markerContentDiv = document.createElement("div");
+
+                markerContentDiv.style = 'width: 500px;font-size: 30px;line-height: 40px;' +
+                    'margin-left: -234px;margin-top: -171px;'+
+                    'background-color: #ffffff;color:#000000; display:' +
+                    ' -webkit-box !important;overflow: hidden;text-overflow: ellipsis;word-break: break-all;-webkit-box-orient: vertical;\n' +
+                    '-webkit-line-clamp: 4; '
+                let markerSpan = document.createElement("span");
+                // markerSpan.className = 'marker';
+                markerSpan.innerHTML = '' + content;
+                markerSpan.style = 'background-color: #ffffff;color:#000000;'
+                // markerSpan.setAttribute(' background', '#000000');
+                /*top:-85px;left:-500px*/
+                markerContentDiv.appendChild(markerSpan);
+                markerContent.appendChild(markerContentDiv);
+
+                this.marker.setContent(markerContent); //更新点标记内容
+            },
+            updateMapCenter() {
+                this.clearMarker()
+                // this.position = [this.position[0] + 0.0001, this.position[1] + 0.0001]
+                this.addMarker(this.position)
+                this.map.setCenter(this.position); //设置地图中心点
+            },
+            // 清除 marker
+            clearMarker() {
+                if (this.marker) {
+                    this.marker.setMap(null);
+                    this.marker = null;
+                }
+            },
+            /*地图的缩放事件*/
+            mapZoom(){
+                /*1.清除当前标题内容*/
+                this.marker.setContent('')
+                this.addMarker(this.position)
+            },
         },
         mounted() {
             // console.log(jsonData)
-            // this.eqfeed_callback(jsonData)
+            // this.timeLineView(jsonData)
 
-            console.log('kkk',diarymapData,earthQuake)
-            var map = new AMap.Map('container', {
-                mapStyle: 'amap://styles/db9efe6a1745ac24b7269b862f359536',
-                // mapStyle: 'amap://styles/twilight',
-                pitch: 10,  //设置地图俯仰角
+            // this.gdMap([114.3330555556,30.6697222222],'memeda')
+            // this.gdMap([114.3330555556,30.6697222222],'2memeda')
+            //引入SimpleMarker，loadUI的路径参数为模块名中 'ui/' 之后的部分
+            let marker, map = new AMap.Map("container", {
                 resizeEnable: true,
-                center: [114.3330555556,30.6697222222],
-                zoom: 15,
-                features: ['bg', 'road'],
-                viewMode: '3D'
+                center: this.position,
+                zoom: 13
             });
-            map.addControl(new AMap.MapType({
-                defaultType: 1 //0代表默认，1代表卫星
-            }));
-            var layer = new Loca.PointLayer({
+            this.marker = marker
+            this.map = map
+
+            /*给地图绑定缩放事件*/
+            map.on('zoomchange', this.mapZoom);
+
+
+            this.addMarker(this.position)
+            this.updateContent('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk')
+            /*添加历史坐标*/
+            let layer = new Loca.PointLayer({
                 eventSupport: true,
                 map: map
             });
 
-            layer.on('mousemove', function (ev) {
-                // 事件类型
-                var type = ev.type;
-                // 当前元素的原始数据
-                var rawData = ev.rawData;
-                // 原始鼠标事件
-                var originalEvent = ev.originalEvent;
-
-                openInfoWin(map, originalEvent, {
-                    // '名称': rawData.lng,
-                    // '位置': rawData.lat,
-                    '时间': rawData.day,
-                    '干了啥': rawData.title,
-                });
+            layer.on('mouseenter', function (ev) {
+                console.log('mousemove')
+                vm.clearMarker()
+                vm.position = [ev.rawData.lng, ev.rawData.lat]
+                vm.addMarker(vm.position)
+                vm.updateContent(ev.rawData.title)
             });
 
             layer.on('mouseleave', function (ev) {
-                closeInfoWin();
+                /*关闭显示的信息*/
+                console.log('mouseleave')
+                vm.mapZoom();
             });
+
+            let vm = this
+            layer.on('click', function (ev) {
+                console.log('click', ev.rawData)
+                vm.position = [ev.rawData.lng, ev.rawData.lat]
+                vm.updateMapCenter(vm.position)
+                vm.updateContent(ev.rawData.title)
+            });
+
 
             layer.setData(diarymapData.diarymapData, {
                 lnglat: function (data) {
-                    var item = data.value;
+                    let item = data.value;
                     return [item.lng, item.lat];
                 }
             });
@@ -182,13 +273,49 @@
                     color: '#FFF684'
                 }
             });
-
+            // this.initPage(map,position,title)
             layer.render();
+        },
+        destroyed() {
+            this.map.off('zoomchange', this.mapZoom);
         }
     }
 </script>
 
 <style>
+    .amap-icon img,
+    .amap-marker-content img {
+        width: 25px;
+        height: 34px;
+    }
+
+    .marker {
+        position: absolute;
+        top: -20px;
+        right: -118px;
+        color: #fff;
+        padding: 4px 10px;
+        box-shadow: 1px 1px 1px rgba(10, 10, 10, .2);
+        white-space: nowrap;
+        font-size: 12px;
+        font-family: "";
+        background-color: #25A5F7;
+        border-radius: 3px;
+    }
+
+    .input-card {
+        width: 18rem;
+        z-index: 170;
+    }
+
+    .input-card .btn {
+        margin-right: .8rem;
+    }
+
+    .input-card .btn:last-child {
+        margin-right: 0;
+    }
+
     #container {
         height: 100%;
         width: 100%;
@@ -200,34 +327,6 @@
         margin: 0;
         padding: 0;
         font-family: "Open Sans", sans-serif;
-    }
-
-    #info {
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: 20vw;
-        padding: 1em;
-    }
-
-    #map {
-        position: fixed;
-        top: 0;
-        left: 20vw;
-        bottom: 0;
-        right: 0;
-    }
-
-    .leaflet-bottom.leaflet-left {
-        width: 100%;
-    }
-
-    .leaflet-control-container .leaflet-timeline-controls {
-        box-sizing: border-box;
-        width: 100%;
-        margin: 0;
-        margin-bottom: 15px;
     }
 
 
