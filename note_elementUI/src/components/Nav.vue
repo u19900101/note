@@ -174,7 +174,9 @@
                         // this.$store.state.currentNoteList =  this.$store.state.fileList
                         this.initCurrentNoteListByName("fileList", 10);
                         break; /* 图片回收站 */
-
+                    case 'map':
+                        this.toPage('map')
+                        break; /* 地图模式 */
                     default:
                         /*区分是 点击的是笔记本 还是 标签*/
                         let firstLevelTitle = this.getfirstLevelTitle(node)
@@ -795,6 +797,11 @@
                         {
                             id: 'recycleBin',
                             title: '回收站 (' + this.$store.state.wastepaperPictureList.length + ')'
+                        },
+                        /*地图*/
+                        {
+                            id: 'map',
+                            title: '地图 (' + this.$store.state.notes.length + ')'
                         },
                     ]
                 },

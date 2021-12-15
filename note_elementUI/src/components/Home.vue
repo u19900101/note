@@ -149,7 +149,8 @@
         },
         mounted() {
             // this.$router.push({name: 'notepage'})
-            this.$router.push({name: 'calendar'})
+            // this.$router.push({name: 'calendar'})
+            this.$router.push({name: 'map'})
         }
     }
 </script>

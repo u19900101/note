@@ -22,7 +22,7 @@
                 </el-button>
                 <!--上一年 上一月-->
                 <div class="arrow-wrap arrow-wrap--left">
-                    <div  class="arrow arrow--outer" @click="toPreYear"></div>
+                    <div class="arrow arrow--outer" @click="toPreYear"></div>
                     <div v-show="datePaneVisible" class="arrow arrow--inner" @click="toPreMonth"></div>
                 </div>
                 <!--月份选择-->
@@ -45,6 +45,9 @@
                     <div v-show="yearPaneVisible" class="arrow arrow--outer" @click="toNextYearRange"></div>
                 </div>
             </div>
+            <!--快速定位到某一天-->
+            <!--<timeline style="margin-bottom: 20px;"></timeline>-->
+
             <!--日面板-->
             <div v-show="datePaneVisible" class="pane pane--date" style="height: 90%">
                 <!--星期-->
@@ -101,7 +104,6 @@
     const MONTH_ARR_CN = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
     // prettier-ignore
     const MONTH_ARR_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Ang', 'Sep', 'Oct', 'Nov', 'Dec']
-
     function getMonthMaxDate(year, month) {
         const isGapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
         switch (month) {
@@ -122,18 +124,19 @@
                 return isGapYear ? 29 : 28
         }
     }
-
     function getDayOfWeek(year, month, date) {
         return new Date(year, month - 1, date).getDay()
     }
-
     function isNaNs(...args) {
         return Array.prototype.map.call(args, item => isNaN(item))
     }
+    // import timeline from './TimeLine'
 
     export default {
         name: 'Calendar',
-
+        components: {
+            // timeline
+        },
         props: {
             value: {
                 type: Date,
@@ -165,8 +168,8 @@
                 curYearRangeEnd: Math.floor(2017 / 10) * 10 + 9,
                 paneStatus: 0 /* 0 date-pane, 1 month-pane, 2 year-pane */,
                 firstDayOfWeek: 1, //0:周日作为一周的开始 1：周一作为第一天
-                selectedMonth : new Date(2017,0,1),
-                dateArr : []
+                selectedMonth: new Date(2017, 0, 1),
+                dateArr: []
             }
         },
 
@@ -174,11 +177,11 @@
             curYear(val) {
                 this.curYearRangeStart = Math.floor(val / 10) * 10
                 this.curYearRangeEnd = Math.floor(val / 10) * 10 + 9
-                this.selectedMonth = new Date(this.curYear,this.curMonth -1)
+                this.selectedMonth = new Date(this.curYear, this.curMonth - 1)
                 console.log(this.selectedMonth)
             },
-            curMonth(val){
-                this.selectedMonth = new Date(this.curYear,this.curMonth -1)
+            curMonth(val) {
+                this.selectedMonth = new Date(this.curYear, this.curMonth - 1)
                 console.log(this.selectedMonth)
             },
             dotArr: {
@@ -189,14 +192,14 @@
                 }
             },
             selectedMonth(newValue) {
-                    if(newValue && typeof newValue != "object"){
-                        let items = newValue.split("-")
-                        this.curYear = parseInt(items[0])
-                        this.curMonth = parseInt(items[1])
-                        this._updateMonthArr()
-                        console.log(newValue)
-                    }
-                },
+                if (newValue && typeof newValue != "object") {
+                    let items = newValue.split("-")
+                    this.curYear = parseInt(items[0])
+                    this.curMonth = parseInt(items[1])
+                    this._updateMonthArr()
+                    console.log(newValue)
+                }
+            },
         },
 
         /*入口初始化数据*/
@@ -276,9 +279,9 @@
             /*选中当前天 若内容不为空 则跳转到当天的md页面*/
             _handleDateItemSelect(item) {
                 console.log(item)
-                if(item.content){
-                    let note = this.$store.state.notes.filter((n,index) => {
-                        if(n.title == item.content) {
+                if (item.content) {
+                    let note = this.$store.state.notes.filter((n, index) => {
+                        if (n.title == item.content) {
                             this.$store.state.currentIndex = index
                         }
                         return n.title == item.content
@@ -286,8 +289,7 @@
                     this.$store.state.currentNote = note
                     this.$store.state.fromCalender = true
                     this.$router.push({name: 'notepage'})
-                }
-                else {
+                } else {
                     if (item.monthFlag === 0) {
                         this.toPreMonth()
                     } else if (item.monthFlag === 2) {
@@ -298,7 +300,7 @@
             },
 
             _updateMonthArr() {
-                if(this.selectedMonth){
+                if (this.selectedMonth) {
                     let maxDateOfPreMonth
                     if (this.curMonth == 1) {
                         maxDateOfPreMonth = getMonthMaxDate(this.curYear - 1, 12)
@@ -307,8 +309,8 @@
                     }
                     /*获取当前是周几*/
                     let firstDayOfCurMonth = getDayOfWeek(this.curYear, this.curMonth, 1)
-                    if(this.firstDayOfWeek == 1){
-                        if(firstDayOfCurMonth == 0)  firstDayOfCurMonth = 7
+                    if (this.firstDayOfWeek == 1) {
+                        if (firstDayOfCurMonth == 0) firstDayOfCurMonth = 7
                     }
                     const preDateArr = this._getDateArr(
                         maxDateOfPreMonth - firstDayOfCurMonth + 1,
@@ -414,7 +416,7 @@
                 tarDay = tarDay < 10 ? '-0' + tarDay : '-' + tarDay
                 let dateStr = tarYear + tarMonth + tarDay
                 let note = this.$store.state.notes.filter((n) => n.createTime.split(" ")[0] == dateStr)[0]
-                return note ? note.title:''
+                return note ? note.title : ''
             },
             toSpecificDate(year, month, date) {
                 // v0.1.2 fix bug: params of toSpecificDate must be integer
@@ -627,6 +629,10 @@
         border: 1.5px solid #000;
         border-radius: 50%;
         transform: translateX(-50%);
+    }
+
+    .calendar .el-input--prefix .el-input__inner {
+        padding-left: 0px !important;
     }
 
     /* pane--month relevant */

@@ -1,31 +1,24 @@
 <template>
-    <div style="z-index: 3000;display: flex;justify-content: center" class="timeLine">
-        <div style="width:20%;top: 8px;">
-            <div style="z-index: 3001;display: flex;justify-content: center">
-                <el-button @click="frontDay" ><i class="iconfont icon-before"></i></el-button>
-                <el-button  @click="play" ><i :class="isPlay ?'el-icon-video-play':'el-icon-video-pause'" style="font-size: 20px;"></i></el-button>
-                <el-button @click="nextDay"> <i class="iconfont icon-play-next-button"></i></el-button>
-            </div>
-           <div style="margin-top: 10px;text-align: center"> {{date.split(" ")[0]}}</div>
-        </div>
+    <div style="z-index: 3000;float: right;padding-right: 10px;" class="timeLine">
+        <div>{{date.split(" ")[0]}}</div>
+        <div style="float:right;display: flex;flex-direction:column;justify-content:space-between;margin-top: -5px;">
+            <div v-for="(d,index) in dateArr"> <!---->
+                <el-tooltip class="item" effect="dark"  placement="left">
+                    <div slot="content" class="timeLine more-line">
+                        <!--时间信息-->
+                        <b>{{d.day}}</b><br/>
+                        <!-- style="width: 500px;"-->
+                        <div >
+                              <span>
+                             {{d.title ? d.title :'无'}}
+                        </span>
+                        </div>
 
-        <div style="width: 80%;float: right">
-            <el-slider
-                    v-model="dateIndex"
-                    :max=lenOfArr
-                    @input="timelineChange"
-                    :format-tooltip="formatTooltip"
-                    ref="slider1">
-            </el-slider>
-            <div style="display: flex;justify-content:space-between;margin-top: 4px;">
-                <div v-for="(d,index) in dateArr">
-                    <el-tooltip  class="item" effect="dark" :content="d.title ? d.title :'无'" placement="bottom">
-                        <div @mouseenter="dateIndex = index" :style="{backgroundColor: d.title ?'#000000' :'#ffffff'}" class="vLine"></div>
-                    </el-tooltip>
-                </div>
+                       </div>
+                    <div @mouseenter="dateIndex = index" :style="{backgroundColor: d.title ?'#000000' :'#ffffff'}" class="hLine"></div>
+                </el-tooltip>
             </div>
         </div>
-
 
     </div>
 </template>
@@ -37,7 +30,7 @@
         name: "TimeLine",
         computed: {
             date() {
-                return this.dateArr[this.dateIndex].createTime
+                return this.dateArr[this.dateIndex].day
             },
             lenOfArr() {
                 return this.dateArr.length - 1
@@ -47,6 +40,7 @@
             return {
                 // dateArr: ['2000-01-05', '2001-02-14', '2002-10-31', '2003-12-22', '2004-07-09'],
                 dateArr: [],
+                timeLineMarkers: [],
                 dateIndex: 0,
                 isPlay: true,
                 timeIndex: 0,//定时器
@@ -77,29 +71,60 @@
             },
 
             fillAbsentDate() {
-                let dateArr = [...this.$store.state.notes]
-                let curday = dateArr[0].createTime.substring(0, 10)
+                let dateArr = timeLineDataDemo.data.slice(0,370)
+                // let dateArr = timeLineDataDemo.data
+                let marker = {}
+                let curday = dateArr[0].day.substring(0, 10)
                 for (let i = 0; i < dateArr.length - 1; i++) {
                     /*补全缺失的日期*/
-                    let nextDay = dateArr[i + 1].createTime.substring(0, 10)
+                    let nextDay = dateArr[i + 1].day.substring(0, 10)
                     let cd = new Date(curday)
                     let nd = new Date(nextDay)
                     let detalDay = (nd - cd) / 86400000
                     /*插入缺失的天数  */
-
+                    marker[i] = {
+                        style: {
+                            /*使用样式 生成密度线  label: '|',*/
+                            color: '#000000',
+                            width: '1px !important',
+                            height: '10px !important',
+                            borderRight: 'solid #000000 1px !important'
+                        }
+                    }
                     if (detalDay > 1) {
                         for (let j = 0; j < detalDay - 1; j++) {
                             let temp = new Date(cd)
                             let dateTime = new Date(temp.setDate(cd.getDate() + j + 1));
                             dateArr.splice(i + 1 + j, 0, {
-                                "createTime": this.formatDate(dateTime),
+                                "day": this.formatDate(dateTime),
                             })
+                            marker[i + 1 + j] = {
+                                style: {
+                                    color: '#000000',
+                                    fontSize: '10px',
+                                },
+                                label: ''
+                            }
                         }
                         i += detalDay - 1
                     }
                     curday = nextDay
                 }
+                /*覆盖*/
+                marker[0] = {
+                    style: {
+                        color: '#000000',
+                    },
+                    label: dateArr[0].day.split(" ")[0]
+                }
+                marker[dateArr.length - 1] = {
+                    style: {
+                        color: '#000000',
+                    },
+                    label: dateArr[dateArr.length - 1].day.split(" ")[0]
+                }
                 this.dateArr = dateArr
+                this.timeLineMarkers = marker
             },
 
 
@@ -126,12 +151,12 @@
                 }
             },
             timelineChange(value) {
-                // console.log('timelineChange exec', this.dateIndex)
+                console.log('timelineChange exec', this.dateIndex)
 
-                let {createTime, lnglat, title} = this.dateArr[this.dateIndex]
-
+                let {day, lat, lng, title} = this.dateArr[this.dateIndex]
+                // console.log(day, lat, lng, title)
                 if (title) {
-                    this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
+                    this.$bus.$emit('toPoint', lng, lat, title, day)
                 }
 
             },
@@ -166,11 +191,11 @@
 </script>
 
 <style>
-    /*垂直密度线*/
-    .vLine {
+    /*水平密度线*/
+    .hLine {
         background-color: #000000;
-        width: 1px !important;
-        height: 10px !important;
+        width: 10px !important;
+        height: 1px !important;
         borderRight: 1px solid #000000;
     }
 
@@ -179,5 +204,14 @@
         margin-left: 0px !important;
         color: #000000;
         border: 1px solid #ffffff;
+    }
+    .timeLine .more-line {
+        /*font-size: mini;*/
+        display: -webkit-box !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-all;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4; /*行数的设置*/
     }
 </style>

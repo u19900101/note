@@ -76,7 +76,6 @@
                     </div>
                 </el-row>
             </el-header>
-            <div>时间线</div>
             <el-main style="padding: 7px">
                 <el-scrollbar class="page-scroll">
                     <vmd></vmd>
@@ -98,8 +97,7 @@
     export default {
         name: "Note",
         components: {
-            noteTag,
-            vmd
+            noteTag, vmd
         },
         data() {
             return {}

@@ -2,7 +2,7 @@
     <div id="app">
         <div class="box">
             <home/>
-
+            <!--<hTimeLine></hTimeLine>-->
             <!--<noteMap style="height:70% "></noteMap>-->
 
         </div>
@@ -14,13 +14,13 @@
 
     import home from "./components/Home"
     // import timeLine from "./components/cb/LeafTimeLine"
-
+    import hTimeLine from "./components/HTimeLine"
     import noteMap from './components/NoteMap'
-    import timeline from './components/TimeLine'
+
     export default {
         name: 'App',
         components: {
-            home,noteMap,timeline
+            home,noteMap,hTimeLine
         },
 
     }

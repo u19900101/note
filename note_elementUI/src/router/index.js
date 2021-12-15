@@ -6,6 +6,7 @@ import ImageList from "../components/ImageList";
 import NoteBook_Tag from "../components/NoteBook_Tag";
 import Notepage from "../components/Notepage";
 import  C from "../components/C";
+import  NoteMap from "../components/NoteMap";
 
 
 //创建并暴露一个路由器
@@ -41,6 +42,13 @@ export default new VueRouter({
             path:'/calendar',
             components: {
                 imageList: C,
+            },
+        },
+        {
+            name: 'map',
+            path:'/map',
+            components: {
+                imageList: NoteMap,
             },
         },
     ]

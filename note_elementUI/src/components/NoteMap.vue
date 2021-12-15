@@ -1,11 +1,20 @@
 <template>
-    <div id="container"></div>
+    <el-container>
+        <el-header>
+            <timeline style="margin-bottom: 20px;"></timeline>
+        </el-header>
+        <el-main>
+            <div id="container"></div>
+        </el-main>
+    </el-container>
 </template>
 
 <script>
     import diarymapData from '../data/diarymapData_bak.json'
+    import timeline from './TimeLine'
     export default {
         name: "NoteMap",
+        components:{timeline},
         data() {
             return {
                 /*高德地图相关*/
@@ -19,8 +28,9 @@
         methods: {
             /*初始化地图*/
             initMap(){
-                let data = diarymapData.diarymapData
-                this.position = [data[0].lng, data[0].lat]
+                // let data = diarymapData.diarymapData
+                let data = [...this.$store.state.notes]
+                this.position = [data[0].lnglat.split(',')[0], data[0].lnglat.split(',')[1]]
                 let marker, map = new AMap.Map("container", {
                     resizeEnable: true,
                     mapStyle: "amap://styles/grey",
@@ -30,22 +40,20 @@
                 this.marker = marker
                 this.map = map
                 this.addMarker(this.position)
-                this.updateContent(data[0].title,data[0].day)
+                this.updateContent(data[0].title,data[0].createTime)
 
                 /*给地图绑定缩放事件*/
                 map.on('zoomchange', this.mapZoom);
                 /*添加历史坐标*/
                 this.initMakers(data)
-
-
             },
 
             /*地图跳转到某点显示*/
-            toPoint(lng,lat,title,day){
+            toPoint(lng,lat,title,createTime){
                 this.makerClick = true
                 this.position = [lng, lat]
                 this.updateMapCenter(this.position)
-                this.updateContent(title,day)
+                this.updateContent(title,createTime)
             },
             // 实例化点标记
             addMarker(position) {
@@ -128,9 +136,9 @@
                     /*点击的时候不重复执行*/
                     if(!vm.makerClick){
                         vm.clearMarker()
-                        vm.position = [ev.rawData.lng, ev.rawData.lat]
+                        vm.position = ev.lnglat
                         vm.addMarker(vm.position)
-                        vm.updateContent(ev.rawData.title,ev.rawData.day)
+                        vm.updateContent(ev.rawData.title,ev.rawData.createTime)
                     }
                     vm.makerClick = false
                 });
@@ -138,16 +146,19 @@
                 layer.on('click', function (ev) {
                     vm.makerClick = true
                     console.log('click', ev.rawData)
-                    vm.position = [ev.rawData.lng, ev.rawData.lat]
+                    vm.position = ev.lnglat
                     vm.updateMapCenter(vm.position)
-                    vm.updateContent(ev.rawData.title,ev.rawData.day)
+                    vm.updateContent(ev.rawData.title,ev.rawData.createTime)
                     /*同步时间轴的位置*/
-                    vm.$bus.$emit('setDateIndex', ev.rawData.title,ev.rawData.day)
+                    vm.$bus.$emit('setDateIndex', ev.rawData.title,ev.rawData.createTime)
                 });
-                layer.setData(diarymapData.diarymapData, {
+                let notes = this.$store.state.notes /*diarymapData.diarymapData*/
+                layer.setData(notes, {
                     lnglat: function (data) {
-                        let item = data.value;
-                        return [item.lng, item.lat];
+                        /*  let item = data.value;
+                        return [item.lng, item.lat];*/
+                        let item = data.value.lnglat.split(',');
+                        return [Number(item[0]), Number(item[1])];
                     }
                 });
                 layer.setOptions({
