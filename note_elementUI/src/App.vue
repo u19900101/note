@@ -1,11 +1,9 @@
 <template>
     <div id="app">
         <div class="box">
-            <!--<home/>-->
-         <timeline style="margin-bottom: 20px;width: 3000px"></timeline>
-            <!--   <noteMap style="height:70% "></noteMap>-->
+            <home/>
 
-
+            <!--<noteMap style="height:70% "></noteMap>-->
 
         </div>
     </div>

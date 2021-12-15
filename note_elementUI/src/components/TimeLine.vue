@@ -1,18 +1,28 @@
 <template>
-    <div style="z-index: 3000;margin-left: 50px;">
+    <div style="z-index: 3000;margin-left: 50px;" class="timeLine">
+        <div style="display: flex">
+            <div style="border: 1px solid;width: 60px">
+                <el-button @click="frontDay" ><i class="iconfont icon-before"></i></el-button>
+                <el-button  @click="play" ><i :class="isPlay ?'el-icon-video-play':'el-icon-video-pause'" style="font-size: 20px;"></i></el-button>
+                <el-button @click="nextDay"> <i class="iconfont icon-play-next-button"></i></el-button>
+            </div>
+           <div>{{date.split(" ")[0]}}</div>
+        </div>
 
-        <span class="demonstration">{{date}}</span>
-        <el-button @click="frontDay"> 前一日</el-button>
-        <el-button @click="play">{{isPlay ? '播放':'暂停'}}</el-button>
-        <el-button @click="nextDay"> 后一日</el-button>
         <el-slider v-model="dateIndex"
                    :max=lenOfArr
-                   :marks="timeLineMarkers"
                    @input="timelineChange"
                    :format-tooltip="formatTooltip"
                    ref="slider1"
         ></el-slider>
-        <div class=""></div>
+        <div style="display: flex;justify-content:space-between;margin-top: -5px;">
+            <div v-for="(d,index) in dateArr"> <!---->
+                <el-tooltip  class="item" effect="dark" :content="d.title ? d.title :'无'" placement="bottom">
+                    <div @mouseenter="dateIndex = index" :style="{backgroundColor: d.title ?'#000000' :'#ffffff'}" class="vLine"></div>
+                </el-tooltip>
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -41,15 +51,15 @@
         },
         methods: {
 
-            frontDay(){
-                if(this.dateIndex > 0){
-                    this.dateIndex =  this.dateIndex - 1
+            frontDay() {
+                if (this.dateIndex > 0) {
+                    this.dateIndex = this.dateIndex - 1
                     this.showNoteTitle()
                 }
             },
-            nextDay(){
-                if(this.dateIndex < this.dateArr.length){
-                    this.dateIndex =  this.dateIndex + 1
+            nextDay() {
+                if (this.dateIndex < this.dateArr.length) {
+                    this.dateIndex = this.dateIndex + 1
                     this.showNoteTitle()
                 }
             },
@@ -64,8 +74,8 @@
             },
 
             fillAbsentDate() {
-                // let dateArr = timeLineDataDemo.data.slice(0,10)
-                let dateArr = timeLineDataDemo.data
+                let dateArr = timeLineDataDemo.data.slice(0,370)
+                // let dateArr = timeLineDataDemo.data
                 let marker = {}
                 let curday = dateArr[0].day.substring(0, 10)
                 for (let i = 0; i < dateArr.length - 1; i++) {
@@ -144,7 +154,7 @@
                 }
             },
             timelineChange(value) {
-                console.log('timelineChange exec',this.dateIndex)
+                console.log('timelineChange exec', this.dateIndex)
 
                 let {day, lat, lng, title} = this.dateArr[this.dateIndex]
                 // console.log(day, lat, lng, title)
@@ -184,4 +194,18 @@
 </script>
 
 <style>
+    /*垂直密度线*/
+    .vLine {
+        background-color: #000000;
+        width: 1px !important;
+        height: 10px !important;
+        borderRight: 1px solid #000000;
+    }
+
+    .timeLine .el-button{
+        padding: 0px;
+        margin-left: 0px !important;
+        color: #000000;
+        border: 1px solid #ffffff;
+    }
 </style>

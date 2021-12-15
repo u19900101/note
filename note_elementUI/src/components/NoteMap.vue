@@ -11,13 +11,16 @@
                 /*高德地图相关*/
                 marker: '',
                 map: '',
-                position: [114.3330555556, 30.6697222222],
+                layer:'',
+                position: [],
                 makerClick: false,
             }
         },
         methods: {
             /*初始化地图*/
             initMap(){
+                let data = diarymapData.diarymapData
+                this.position = [data[0].lng, data[0].lat]
                 let marker, map = new AMap.Map("container", {
                     resizeEnable: true,
                     mapStyle: "amap://styles/grey",
@@ -26,68 +29,15 @@
                 });
                 this.marker = marker
                 this.map = map
+                this.addMarker(this.position)
+                this.updateContent(data[0].title,data[0].day)
 
                 /*给地图绑定缩放事件*/
                 map.on('zoomchange', this.mapZoom);
-                this.addMarker(this.position)
-                this.updateContent('jjjj','2021.12.14 12:00:00')
                 /*添加历史坐标*/
-                let layer = new Loca.PointLayer({
-                    eventSupport: true,
-                    map: map
-                });
-
-                layer.on('mouseenter', function (ev) {
-                    console.log('mouseenter',ev,)
-                    /*点击的时候不重复执行*/
-                    if(!vm.makerClick){
-                        vm.clearMarker()
-                        vm.position = [ev.rawData.lng, ev.rawData.lat]
-                        vm.addMarker(vm.position)
-                        vm.updateContent(ev.rawData.title,ev.rawData.day)
-                    }
-                    vm.makerClick = false
-                });
-
-                layer.on('mouseleave', function (ev) {
-                    /*关闭显示的信息*/
-                    // vm.mapZoom();
-                });
-
-                let vm = this
-                layer.on('click', function (ev) {
-                    vm.makerClick = true
-                    // console.log('click', ev.rawData)
-                    vm.position = [ev.rawData.lng, ev.rawData.lat]
-                    vm.updateMapCenter(vm.position)
-                    vm.updateContent(ev.rawData.title,ev.rawData.day)
-                    /*同步时间轴的位置*/
-                    vm.$bus.$emit('setDateIndex', ev.rawData.title,ev.rawData.day)
-                });
+                this.initMakers(data)
 
 
-                layer.setData(diarymapData.diarymapData, {
-                    lnglat: function (data) {
-                        let item = data.value;
-                        return [item.lng, item.lat];
-                    }
-                });
-
-                layer.setOptions({
-                    style: {
-                        radius: 4,
-                        color: '#07E8E4',
-                        borderColor: '#07E8E4',
-                        borderWidth: 1.5,
-                        opacity: 0.8
-                    },
-                    selectStyle: {
-                        radius: 14,
-                        color: '#FFF684'
-                    }
-                });
-                // this.initPage(map,position,title)
-                layer.render();
             },
 
             /*地图跳转到某点显示*/
@@ -126,7 +76,7 @@
                 // 点标记中的文本
                 let markerContentDiv = document.createElement("div");
 
-                markerContentDiv.style = 'width: 800px;font-size: 30px;line-height: 40px;' +
+                markerContentDiv.style = 'width: 800px;font-size: 25px;line-height: 30px;' +
                     'margin-left: -234px;margin-top: -171px;' +
                     'color:#000000; display:' +
                     ' -webkit-box !important;overflow: hidden;text-overflow: ellipsis;word-break: break-all;-webkit-box-orient: vertical;\n' +
@@ -166,6 +116,56 @@
                 this.marker.setContent('')
                 this.addMarker(this.position)
             },
+            /*初始化地图上的点 缩放时要重新定位*/
+            initMakers() {
+                let layer = new Loca.PointLayer({
+                    eventSupport: true,
+                    map: this.map
+                });
+                let vm = this
+                layer.on('mouseenter', function (ev) {
+                    console.log('mouseenter',ev,)
+                    /*点击的时候不重复执行*/
+                    if(!vm.makerClick){
+                        vm.clearMarker()
+                        vm.position = [ev.rawData.lng, ev.rawData.lat]
+                        vm.addMarker(vm.position)
+                        vm.updateContent(ev.rawData.title,ev.rawData.day)
+                    }
+                    vm.makerClick = false
+                });
+
+                layer.on('click', function (ev) {
+                    vm.makerClick = true
+                    console.log('click', ev.rawData)
+                    vm.position = [ev.rawData.lng, ev.rawData.lat]
+                    vm.updateMapCenter(vm.position)
+                    vm.updateContent(ev.rawData.title,ev.rawData.day)
+                    /*同步时间轴的位置*/
+                    vm.$bus.$emit('setDateIndex', ev.rawData.title,ev.rawData.day)
+                });
+                layer.setData(diarymapData.diarymapData, {
+                    lnglat: function (data) {
+                        let item = data.value;
+                        return [item.lng, item.lat];
+                    }
+                });
+                layer.setOptions({
+                    style: {
+                        radius: 4,
+                        color: '#07E8E4',
+                        borderColor: '#07E8E4',
+                        borderWidth: 1.5,
+                        opacity: 0.8
+                    },
+                    selectStyle: {
+                        radius: 14,
+                        color: '#FFF684'
+                    }
+                });
+                layer.render();
+                this.layer = layer
+            }
         },
         mounted() {
             this.initMap()
