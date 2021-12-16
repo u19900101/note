@@ -756,6 +756,11 @@
                             id: 'calendar',
                             title: '日历'
                         },
+                        /*地图*/
+                        {
+                            id: 'map',
+                            title: '地图 (' + this.$store.state.notes.length + ')'
+                        },
                         {
                             id: 'allNotes',
                             title: '全部笔记 (' + this.$store.state.notes.length + ')'
@@ -798,11 +803,7 @@
                             id: 'recycleBin',
                             title: '回收站 (' + this.$store.state.wastepaperPictureList.length + ')'
                         },
-                        /*地图*/
-                        {
-                            id: 'map',
-                            title: '地图 (' + this.$store.state.notes.length + ')'
-                        },
+
                     ]
                 },
                 set: function (newValue) {

@@ -1,7 +1,7 @@
 <template>
-    <div style="z-index: 3000;display: flex;justify-content: center" class="timeLine">
-        <div style="width:20%;margin-top: 8px;">
-            <div style="z-index: 3001;display: flex;justify-content: center">
+    <div style="z-index: 3000;display: flex;" class="timeLine">
+        <div style="margin-top: 8px;margin-left: 5px">
+            <div style="z-index: 3001;display: flex;margin-left: 10px">
                 <el-button @click="frontDay" ><i class="iconfont icon-before"></i></el-button>
                 <el-button  @click="play" ><i :class="isPlay ?'el-icon-video-play':'el-icon-video-pause'" style="font-size: 20px;"></i></el-button>
                 <el-button @click="nextDay"> <i class="iconfont icon-play-next-button"></i></el-button>
@@ -9,7 +9,7 @@
            <div style="margin-top: 10px;text-align: center"> {{date.split(" ")[0]}}</div>
         </div>
 
-        <div style="width: 80%;float: right">
+        <div style="width: 85%;margin-left: 20px">
             <el-slider
                     v-model="dateIndex"
                     :max=lenOfArr
