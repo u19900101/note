@@ -19,12 +19,15 @@
             </el-aside>
 
             <!--笔记列表 和 笔记内容-->
-            <router-view name="notepage"></router-view>
-
+            <keep-alive>
+                <router-view name="notepage"></router-view>
+            </keep-alive>
             <!--笔记和标签页面展示-->
             <el-main style="padding: 0">
-                <router-view name="imageList"></router-view>
-                <router-view name="noteBook_tag"></router-view>
+                <keep-alive>
+                    <router-view name="imageList"></router-view>
+                    <router-view name="noteBook_tag"></router-view>
+                </keep-alive>
                <!-- <imageList v-if="$store.state.fileMode"></imageList>-->
                 <!--笔记本和标签页面-->
               <!--  <noteBook_tag v-else></noteBook_tag>-->

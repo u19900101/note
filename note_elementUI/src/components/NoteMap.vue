@@ -158,6 +158,8 @@
                         vm.updateContent(ev.rawData.title,ev.rawData.createTime)
                     }
                     vm.makerClick = false
+                    /*消除笔记点击进入控制的定位*/
+                    vm.$store.state.noteClickLocation = false
                 });
 
                 layer.on('click', function (ev) {
@@ -200,7 +202,7 @@
             this.$bus.$on('toPoint', this.toPoint)
         },
         created() {
-
+            // console.log('map created ...')
         },
         destroyed() {
             this.map.off('zoomchange', this.mapZoom);

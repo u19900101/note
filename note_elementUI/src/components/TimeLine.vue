@@ -20,7 +20,7 @@
             <div style="display: flex;justify-content:space-between;margin-top: 4px;">
                 <div v-for="(d,index) in dateArr">
                     <el-tooltip  class="item" effect="dark" :content="d.title ? d.title :'无'" placement="bottom">
-                        <div @mouseenter="dateIndex = index" :style="{backgroundColor: d.title ?'#000000' :'#ffffff'}" class="vLine"></div>
+                        <div @mouseenter="$store.state.noteClickLocation ? '':dateIndex = index" :style="{backgroundColor: d.title ?'#000000' :'#ffffff'}" class="vLine"></div>
                     </el-tooltip>
                 </div>
             </div>
@@ -31,8 +31,6 @@
 </template>
 
 <script>
-    import timeLineDataDemo from '../data/timeLineDataDemo.json'
-
     export default {
         name: "TimeLine",
         computed: {
@@ -111,7 +109,6 @@
                 this.dateArr = dateArr
             },
 
-
             play() {
                 /*暂停*/
                 if (!this.isPlay) {
@@ -142,26 +139,25 @@
             },
             timelineChange(value) {
                 // console.log('timelineChange exec', this.dateIndex)
-
                 let {createTime, lnglat, title} = this.dateArr[this.dateIndex]
 
+                /*同步更新地图上的中心点*/
                 if (title) {
                     this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
                 }
-
             },
             formatTooltip(val) {
                 if (!val) {
                     val = 0
                 }
-                // console.log('formatTooltip',val,this.dateArr[val])
                 return this.dateArr[val].title ? this.dateArr[val].title : '无内容';
             },
             /*通过title和 day 来确定index*/
-            setDateIndex(title, day) {
+            setDateIndex(title, createTime) {
                 for (let i = 0; i < this.dateArr.length - 1; i++) {
-                    if (this.dateArr[i].day == day && this.dateArr[i].title == title) {
+                    if (this.dateArr[i].createTime == createTime && this.dateArr[i].title == title) {
                         this.dateIndex = i
+                        // console.log('setDateIndex done')
                         break
                     }
                 }

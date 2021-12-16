@@ -79,6 +79,9 @@ const state = {
 
     /**日历*/
     fromCalender:false, //控制index的变化是否来自日历
+
+    /*************地图*************/
+    noteClickLocation: false, //控制进入地图时 鼠标经过密度线 地图中心不移动
 }
 
 //创建并暴露store
