@@ -8,8 +8,8 @@
                     style="float: right;"
                     v-model="mapStyle"
                     inactive-color="#13ce66"
-                    active-icon-class = "iconfont icon-moon"
-                    inactive-icon-class = "iconfont icon-sun"
+                    active-icon-class="iconfont icon-moon"
+                    inactive-icon-class="iconfont icon-sun"
                     active-color="#000000">
             </el-switch>
             <div id="container"></div>
@@ -33,7 +33,8 @@
                 position: [],
                 makerClick: false,
                 mapStyle: false,//地图的样式
-
+                title: '',
+                createTime: '',
             }
         },
         methods: {
@@ -41,6 +42,8 @@
             initMap() {
                 let data = [...this.$store.state.notes]
                 this.position = [data[0].lnglat.split(',')[0], data[0].lnglat.split(',')[1]]
+                this.title = data[0].title
+                this.createTime = data[0].createTime
                 let marker, map = new AMap.Map("container", {
                     resizeEnable: true,
                     mapStyle: "amap://styles/normal",
@@ -50,10 +53,10 @@
                 map.addControl(new AMap.MapType({
                     defaultType: 0 //0代表默认，1代表卫星
                 }));
-                this.marker = marker
+
                 this.map = map
-                this.addMarker(this.position)
-                this.updateContent(data[0].title, data[0].createTime)
+                this.addMarker()
+                this.updateContent()
 
                 /*给地图绑定缩放事件*/
                 map.on('zoomchange', this.mapZoom);
@@ -69,12 +72,18 @@
                 this.updateContent(title, createTime)
             },
             // 实例化点标记
-            addMarker(position) {
-                this.marker = new AMap.Marker({
+            addMarker() {
+                let marker = new AMap.Marker({
                     icon: "//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-red.png",
-                    position: position,
+                    position: this.position,
+                    map: this.map
                 });
-                this.marker.setMap(this.map);
+                let vm = this
+                marker.on('mouseover', function (ev) {
+                    console.log('xxxx mouseover', ev,)
+                    vm.updateContent(vm.title, vm.createTime)
+                });
+                this.marker = marker
             },
             updateContent(title, createTime) {
                 if (!this.marker) {
@@ -138,7 +147,7 @@
             updateMapCenter() {
                 this.clearMarker()
                 // this.position = [this.position[0] + 0.0001, this.position[1] + 0.0001]
-                this.addMarker(this.position)
+                this.addMarker()
                 this.map.setCenter(this.position); //设置地图中心点
             },
             // 清除 marker
@@ -152,7 +161,7 @@
             mapZoom() {
                 /*1.清除当前标题内容*/
                 this.marker.setContent('')
-                this.addMarker(this.position)
+                this.addMarker()
             },
             /*初始化地图上的点 缩放时要重新定位*/
             initMakers() {
@@ -162,13 +171,15 @@
                 });
                 let vm = this
                 layer.on('mouseenter', function (ev) {
-                    console.log('mouseenter', ev,)
+                    // console.log('mouseenter', ev,)
                     /*点击的时候不重复执行*/
                     if (!vm.makerClick) {
                         vm.clearMarker()
                         vm.position = ev.lnglat
-                        vm.addMarker(vm.position)
-                        vm.updateContent(ev.rawData.title, ev.rawData.createTime)
+                        vm.addMarker()
+                        vm.title = ev.rawData.title
+                        vm.createTime = ev.rawData.createTime
+                        vm.updateContent()
                     }
                     vm.makerClick = false
                     /*消除笔记点击进入控制的定位*/
@@ -177,10 +188,12 @@
 
                 layer.on('click', function (ev) {
                     vm.makerClick = true
-                    console.log('click', ev.rawData)
+                    vm.title = ev.rawData.title
+                    vm.createTime = ev.rawData.createTime
+                    // console.log('click', ev.rawData)
                     vm.position = ev.lnglat
                     vm.updateMapCenter(vm.position)
-                    vm.updateContent(ev.rawData.title, ev.rawData.createTime)
+                    vm.updateContent()
                     /*同步时间轴的位置*/
                     vm.$bus.$emit('setDateIndex', ev.rawData.title, ev.rawData.createTime)
                 });
