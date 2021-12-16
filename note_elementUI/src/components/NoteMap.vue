@@ -3,7 +3,7 @@
         <el-header style="padding-top: 10px;">
             <timeline style="margin-bottom: 20px;"></timeline>
         </el-header>
-        <el-main style="padding: 10px;">
+        <el-main style="padding: 10px;height: 300px">
             <el-switch
                     style="float: right;"
                     v-model="mapStyle"
@@ -18,7 +18,6 @@
 </template>
 
 <script>
-    import diarymapData from '../data/diarymapData_bak.json'
     import timeline from './TimeLine'
 
     export default {
@@ -32,7 +31,7 @@
                 layer: '',
                 position: [],
                 makerClick: false,
-                mapStyle: false,//地图的样式
+                mapStyle: this.$store.state.sortWay.maptheme,//地图的主题
                 title: '',
                 createTime: '',
             }
@@ -46,13 +45,25 @@
                 this.createTime = data[0].createTime
                 let marker, map = new AMap.Map("container", {
                     resizeEnable: true,
-                    mapStyle: "amap://styles/normal",
+                    mapStyle: "amap://styles/" + (this.$store.state.sortWay.maptheme ? 'grey':'normal'),
                     center: this.position,
                     zoom: 13,
                 });
+
                 map.addControl(new AMap.MapType({
-                    defaultType: 0 //0代表默认，1代表卫星
+                    defaultType: this.$store.state.sortWay.maptype ? 1 : 0 //0代表默认，1代表卫星
                 }));
+
+                //给切换图层添加事件
+                let domImageMask = document.querySelector(".amap-maptype-con");
+                domImageMask.addEventListener("click", () => {
+                    console.log('切换图层')
+                    this.$store.state.sortWay.maptheme = !this.$store.state.sortWay.maptheme
+                    /*写进数据库*/
+                    this.https.updateSortWay({id: 1, maptype: this.$store.state.sortWay.maptheme}).then(({data}) => {
+                        console.log('更新数据库中的图层')
+                    })
+                });
 
                 this.map = map
                 this.addMarker()
@@ -235,6 +246,10 @@
         },
         watch: {
             mapStyle(flag) {
+                /*更新数据库中的样式*/
+                this.https.updateSortWay({id: 1, maptheme: flag}).then(({data}) => {
+                    console.log('更新数据库中的样式')
+                })
                 this.map.setMapStyle("amap://styles/" + (flag ? 'grey' : 'normal'));
             }
         }
@@ -276,7 +291,7 @@
     }
 
     #container {
-        height: 100%;
+        height: 95%;
         width: 100%;
         margin: 0;
     }

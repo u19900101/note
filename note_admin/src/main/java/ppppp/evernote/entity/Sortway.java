@@ -30,4 +30,8 @@ public class Sortway implements Serializable {
     /*主题样式*/
     private Boolean editortheme;
     private Boolean contenttheme;
+
+    /*地图样式*/
+    private Boolean maptheme;
+    private Boolean maptype;
 }
