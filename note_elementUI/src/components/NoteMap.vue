@@ -63,12 +63,10 @@
                 });
                 this.marker.setMap(this.map);
             },
-            updateContent(content, timeInfo) {
-
+            updateContent(title, createTime) {
                 if (!this.marker) {
                     return;
                 }
-
                 // 自定义点标记内容
                 let markerContent = document.createElement("div");
                 markerContent.setAttribute('color', '#000000');
@@ -89,21 +87,40 @@
                     'color:#000000; display:' +
                     ' -webkit-box !important;overflow: hidden;text-overflow: ellipsis;word-break: break-all;-webkit-box-orient: vertical;\n' +
                     '-webkit-line-clamp: 4; '
+                /*时间题头*/
                 let timeInfoDiv = document.createElement("div");
-                timeInfoDiv.innerHTML = '' + timeInfo;
+                timeInfoDiv.innerHTML = '' + createTime;
                 timeInfoDiv.style = 'width: 200px;font-size: 20px;background-color: #dcdfe6;border: 1px solid #D7DADC;border-radius: 5px;'
                 markerContentDiv.appendChild(timeInfoDiv);
 
-
+                /*多行截断的内容*/
                 let markerSpan = document.createElement("span");
-                markerSpan.innerHTML = '' + content;
+                markerSpan.innerHTML = '' + title;
                 markerSpan.style = 'background-color: #ffffff;color:#000000;border: 1px solid #D7DADC;border-radius: 5px;'
-                // markerSpan.setAttribute(' background', '#000000');
-                /*top:-85px;left:-500px*/
+
+                let vm = this
+                markerSpan.addEventListener("click",function(e){
+                    vm.mapToNote(title, createTime)
+                });
+
                 markerContentDiv.appendChild(markerSpan);
                 markerContent.appendChild(markerContentDiv);
 
                 this.marker.setContent(markerContent); //更新点标记内容
+            },
+            /*点击地图上显示的标题 跳转到笔记列表*/
+            mapToNote(title, createTime){
+                console.log('kkk',title, createTime)
+                let note = this.$store.state.notes.filter((n, index) => {
+                    if (n.createTime == createTime && n.title == title) {
+                        this.$store.state.currentIndex = index
+                    }
+                    return n.createTime == createTime && n.title == title
+                })[0]
+                this.$store.state.currentNote = note
+                /*定位列表中的位置*/
+                this.$store.state.fromCalender = true
+                this.$router.push({name: 'notepage'})
             },
             updateMapCenter() {
                 this.clearMarker()

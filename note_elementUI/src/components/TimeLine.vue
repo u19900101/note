@@ -1,6 +1,6 @@
 <template>
     <div style="z-index: 3000;display: flex;justify-content: center" class="timeLine">
-        <div style="width:20%;top: 8px;">
+        <div style="width:20%;margin-top: 8px;">
             <div style="z-index: 3001;display: flex;justify-content: center">
                 <el-button @click="frontDay" ><i class="iconfont icon-before"></i></el-button>
                 <el-button  @click="play" ><i :class="isPlay ?'el-icon-video-play':'el-icon-video-pause'" style="font-size: 20px;"></i></el-button>
@@ -57,12 +57,21 @@
             frontDay() {
                 if (this.dateIndex > 0) {
                     this.dateIndex = this.dateIndex - 1
+                    while (this.dateArr[this.dateIndex].title == undefined){
+                        this.dateIndex = this.dateIndex - 1
+                        if(this.dateIndex == 0 )break
+                    }
                     this.showNoteTitle()
                 }
             },
             nextDay() {
                 if (this.dateIndex < this.dateArr.length) {
                     this.dateIndex = this.dateIndex + 1
+                    /*跳过空值*/
+                    while (this.dateArr[this.dateIndex].title == undefined){
+                        this.dateIndex = this.dateIndex + 1
+                        if(this.dateIndex >= this.dateArr.length) break
+                    }
                     this.showNoteTitle()
                 }
             },
@@ -117,7 +126,13 @@
                     this.timeIndex = setInterval(() => {
                         // console.log('setTimeout',this.dateIndex,this.dateArr.length)
                         this.dateIndex += 1
+                        /*跳过空值*/
+                        while (this.dateArr[this.dateIndex].title == undefined){
+                            this.dateIndex = this.dateIndex + 1
+                            if(this.dateIndex >= this.dateArr.length) break
+                        }
                         this.showNoteTitle()
+                        /*停止*/
                         if (this.dateIndex >= this.dateArr.length - 1) {
                             this.isPlay = true
                             clearInterval(this.timeIndex)

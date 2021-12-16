@@ -86,7 +86,7 @@
                                 <!-- <slot name="comment">
 
                                  </slot>-->
-                                <span>{{item.content}} </span>
+                                <span>{{item.title}} </span>
                             </div>
 
                         </div>
@@ -279,12 +279,12 @@
             /*选中当前天 若内容不为空 则跳转到当天的md页面*/
             _handleDateItemSelect(item) {
                 console.log(item)
-                if (item.content) {
+                if (item.title) {
                     let note = this.$store.state.notes.filter((n, index) => {
-                        if (n.title == item.content) {
+                        if (n.title == item.title) {
                             this.$store.state.currentIndex = index
                         }
-                        return n.title == item.content
+                        return n.title == item.title
                     })[0]
                     this.$store.state.currentNote = note
                     this.$store.state.fromCalender = true
@@ -409,8 +409,8 @@
                 this.$emit('nextyear', {year: this.curYear, month: this.curMonth})
                 this.showDatePane()
             },
-            /*获取笔记内容*/
-            getContent(tarYear, tarMonth, tarDay) {
+            /*获取笔记标题*/
+            getTitle(tarYear, tarMonth, tarDay) {
                 /*转化为 yyyy-MM-dd 格式*/
                 tarMonth = tarMonth < 10 ? '-0' + tarMonth : '-' + tarMonth
                 tarDay = tarDay < 10 ? '-0' + tarDay : '-' + tarDay
@@ -490,7 +490,7 @@
                     dotted: monthFlag === 1 && this.dotArr[index],
                     isToday: this._getDateStr(this.today) === `${tarYear}-${tarMonth}-${index + beginDate}`,
                     dayOfWeek: getDayOfWeek(tarYear, tarMonth, index + beginDate),
-                    content: this.getContent(tarYear, tarMonth, index + beginDate),
+                    title: this.getTitle(tarYear, tarMonth, index + beginDate),
                 }))
             },
 
