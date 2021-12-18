@@ -32,6 +32,11 @@ public class AdminTest {
     ImageTagService imageTagService;
 
     @Test
+    public void T_getTagById(){
+        Tag byId = tagService.getById(32);
+        System.out.println(byId);
+    }
+    @Test
     public void T_setMediaUid(){
         List<Note> noteList = noteService.lambdaQuery().select(Note::getId,Note::getContent).list();/*.last("limit 30")*/
         int count = 1;

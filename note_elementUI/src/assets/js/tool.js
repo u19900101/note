@@ -12,6 +12,7 @@ export default {
             removeNoteCount,
             groupImages,
             setTimeoutUpdate,
+            getThumbnails,
         }
     }
 }
@@ -20,6 +21,11 @@ export default {
 let dayjs = require('dayjs');
 dayjs().format();
 
+/*封装缩略图的链接*/
+function getThumbnails(url, title) {
+    let kk = url.replace(title, title.split(".")[0] + "_thumbnails." + title.split(".")[1])
+    return kk
+}
 export function getDateTimes(data, sortWay) {
     //在这里计算时间
     let newTime = dayjs().unix();

@@ -72,6 +72,7 @@ const state = {
     imageTags:[], //图片标签
     imageTagsTree:[], //图片标签
     uploadImageList:[], //上传的图片列表
+    currentImageId: 0, //当前图片id
     /*************页面显示控制*************/
     tableData: [],           //封装笔记本和标签展示区
     listTitle : '',         //列表区的名称

@@ -140,7 +140,7 @@ public class PictureController {
         });
         thread.start();
         thread.join();
-        if(res.size() == 1){
+        if (res.size() == 1) {
             return ResultUtil.successWithData(res.get(0));
         }
         return ResultUtil.errorWithMessage("上传错误...");
@@ -152,12 +152,13 @@ public class PictureController {
         picture = pictureService.getById(picture.getId());
         // 1.更新 标签数量
         if (picture.getTagUid() != null) {
-            // 新笔记本 +1
-            String[] tagIdList = picture.getTagUid().split(",");
-            for (String tagId : tagIdList) {
-                Tag tag = tagService.getById(tagId);
-                tag.setNoteCount(tag.getNoteCount() - 1);
-                tagService.updateById(tag);
+            if (picture.getTagUid() != null && picture.getTagUid().length() > 1) {
+                String[] tagIdList = picture.getTagUid().split(",");
+                for (String tagId : tagIdList) {
+                    ImageTag tag = imageTagService.getById(Integer.parseInt(tagId));
+                    tag.setNoteCount(tag.getNoteCount() - 1);
+                    imageTagService.updateById(tag);
+                }
             }
         }
 

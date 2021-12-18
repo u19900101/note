@@ -14,11 +14,20 @@
             </el-switch>
             <div id="container"></div>
         </el-main>
+        <!--<div style="position:absolute;display:flex;bottom: 72px; margin-left: 20px;">
+
+            <el-image v-for="img in dayImages"
+                      :src="tool.getThumbnails(img.url,img.title)"
+                      fit="cover"
+                      :preview-src-list="dayImagesUrl"
+                      style="width: 100px;height: 100px;margin-left: 20px;"/>
+        </div>-->
     </el-container>
 </template>
 
 <script>
     import timeline from './TimeLine'
+    import {getThumbnails} from './ImageList'
 
     export default {
         name: "NoteMap",
@@ -34,6 +43,12 @@
                 mapStyle: this.$store.state.sortWay.maptheme,//地图的主题
                 title: '',
                 createTime: '',
+                dayImages: this.$store.state.fileList.slice(0, 5), //当天相关所有照片
+            }
+        },
+        computed:{
+            dayImagesUrl(){
+                return this.$store.state.fileList.slice(0, 5).map(x => x.url)
             }
         },
         methods: {
@@ -45,7 +60,7 @@
                 this.createTime = data[0].createTime
                 let marker, map = new AMap.Map("container", {
                     resizeEnable: true,
-                    mapStyle: "amap://styles/" + (this.$store.state.sortWay.maptheme ? 'grey':'normal'),
+                    mapStyle: "amap://styles/" + (this.$store.state.sortWay.maptheme ? 'grey' : 'normal'),
                     center: this.position,
                     zoom: 13,
                 });

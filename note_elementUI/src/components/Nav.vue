@@ -78,7 +78,6 @@
 
 <script>
     import borderLine from "./BorderLine";
-    import {getNoteBooksTree, updateImageTags} from "../server";
     /*深拷贝*/
     let _ = require('lodash')
     export default {

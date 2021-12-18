@@ -2,9 +2,6 @@
     <div id="app">
         <div class="box">
             <home/>
-            <!--<hTimeLine></hTimeLine>-->
-            <!--<noteMap style="height:70% "></noteMap>-->
-
         </div>
     </div>
 </template>
@@ -13,22 +10,38 @@
 <script>
 
     import home from "./components/Home"
-    // import timeLine from "./components/cb/LeafTimeLine"
     import hTimeLine from "./components/HTimeLine"
     import noteMap from './components/NoteMap'
+    import ElImageViewer from "element-ui/packages/image/src/image-viewer";
 
     export default {
         name: 'App',
         components: {
-            home,noteMap,hTimeLine
+            home, noteMap, hTimeLine,ElImageViewer
         },
+        data() {
+            return {
+
+            }
+
+        },
+        computed: {
+
+        },
+        methods:{
+
+        },
+        created() {
+
+        },
+        mounted() {
+
+        }
 
     }
 </script>
 
 <style>
-
-
 
     html,
     body {
