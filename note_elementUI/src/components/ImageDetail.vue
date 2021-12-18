@@ -1,6 +1,15 @@
 <template>
-    <div>
-
+    <div class="imageIcon">
+        <!--图片收藏图标-->
+        <!--收藏-->
+        <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1"
+           style="color: red;">
+        </i>
+        <div v-if="$store.state.currentImageId == img.id && !img.wastepaper"
+             @click="starClick(img)">
+            <!--鼠标移动到图片时 显示未收藏-->
+            <i v-if="!img.star" class="iconfont icon-like"></i>
+        </div>
 
         <el-image :style="{width: imageScale,height: imageScale}"
                   style="margin-left:10px;"
@@ -23,7 +32,7 @@
         components: {
             imageTag
         },
-        props: ["imageScale", "img", "images", "indexInner", "currentIndex"],
+        props: ["imageScale", "img", "images", "indexInner", "currentIndex",],
         data() {
             return {
                 removeIcons: false,// 动态移除 删除和收藏图标
@@ -85,7 +94,7 @@
         },
         methods: {
             upId(currentImageId) {
-                this.$emit('getCurrentImageId', currentImageId)
+                this.$store.state.currentImageId = currentImageId
             },
             imageClick(img, imageList, index) {
                 this.showImageInfo = true

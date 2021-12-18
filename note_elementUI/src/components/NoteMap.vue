@@ -14,24 +14,25 @@
             </el-switch>
             <div id="container"></div>
         </el-main>
-        <!--<div style="position:absolute;display:flex;bottom: 72px; margin-left: 20px;">
+        <div style="position:absolute;display:flex;bottom: 72px; margin-left: 20px;">
 
-            <el-image v-for="img in dayImages"
-                      :src="tool.getThumbnails(img.url,img.title)"
-                      fit="cover"
-                      :preview-src-list="dayImagesUrl"
-                      style="width: 100px;height: 100px;margin-left: 20px;"/>
-        </div>-->
+            <div v-for="(image,indexInner) in dayImages">
+                <imageDetail :image-scale="'100px'"
+                             :img="image"
+                             :index-inner="indexInner"
+                             :images = "dayImages"
+                />
+            </div>
+        </div>
     </el-container>
 </template>
 
 <script>
     import timeline from './TimeLine'
-    import {getThumbnails} from './ImageList'
-
+    import imageDetail from './ImageDetail'
     export default {
         name: "NoteMap",
-        components: {timeline},
+        components: {timeline,imageDetail},
         data() {
             return {
                 /*高德地图相关*/
@@ -73,9 +74,9 @@
                 let domImageMask = document.querySelector(".amap-maptype-con");
                 domImageMask.addEventListener("click", () => {
                     console.log('切换图层')
-                    this.$store.state.sortWay.maptheme = !this.$store.state.sortWay.maptheme
+                    this.$store.state.sortWay.maptype = !this.$store.state.sortWay.maptype
                     /*写进数据库*/
-                    this.https.updateSortWay({id: 1, maptype: this.$store.state.sortWay.maptheme}).then(({data}) => {
+                    this.https.updateSortWay({id: 1, maptype: this.$store.state.sortWay.maptype}).then(({data}) => {
                         console.log('更新数据库中的图层')
                     })
                 });

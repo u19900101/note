@@ -105,21 +105,14 @@
                                                    class="imgItem">
                                     <div v-for="(img,indexInner) in image.images">
                                         <div class="imageIcon">
-                                            <!--图片收藏图标-->
-                                            <!--收藏-->
-                                            <i v-if="img.star" @click="starClick(img)" class="iconfont icon-like1"
-                                               style="color: red;"></i>
+
                                             <!--照片多选框 鼠标移入时会显示  当选中一个后其余所有的都出现选框-->
-                                            <el-checkbox v-if="currentImageId == img.id || checkedImages.length > 0"
+                                            <el-checkbox v-if="$store.state.currentImageId == img.id || checkedImages.length > 0"
                                                          :label="img" :key="img.id" class="imageCheck"><br>
                                                 <!-- 多选框不显示label 只要在里面加上<br>就OK了 -->
                                             </el-checkbox>
 
-                                            <div v-if="currentImageId == img.id && !img.wastepaper"
-                                                 @click="starClick(img)">
-                                                <!--鼠标移动到图片时 显示未收藏-->
-                                                <i v-if="!img.star" class="iconfont icon-like"></i>
-                                            </div>
+
                                             <!-- 500px 为大视图 直接显示原图 会有卡顿    "-->
                                             <!--用作解决大图预览的备选-->
                                             <!--<el-image-viewer-->
@@ -128,12 +121,12 @@
                                             <!--        :url-list="$store.state.currentImageUrlList"-->
                                             <!--        :on-switch="onSwitch"-->
                                             <!--/>-->
+                                            <!-- @getCurrentImageId="getCurrentImageId"-->
                                             <imageDetail :image-scale="imageScale"
                                                          :img="img"
                                                          :index-inner="indexInner"
                                                          :current-index="currentIndex"
                                                          :images = "image.images"
-                                                         @getCurrentImageId="getCurrentImageId"
                                                          @getShowImageInfo="getShowImageInfo"
                                             >
                                             </imageDetail>
