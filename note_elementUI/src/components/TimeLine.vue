@@ -80,7 +80,7 @@
                 if (month.length < 2) month = '0' + month;
                 if (day.length < 2) day = '0' + day;
 
-                return [year, month, day].join('/');
+                return [year, month, day].join('-');
             },
 
             fillAbsentDate() {
@@ -107,6 +107,7 @@
                     curday = nextDay
                 }
                 this.dateArr = dateArr
+                this.$store.state.dayImages = this.$store.state.fileList.filter((i) => i.createTime.split(" ")[0] == dateArr[0].createTime.split(" ")[0])
             },
 
             play() {
@@ -138,13 +139,21 @@
                 }
             },
             timelineChange(value) {
-                // console.log('timelineChange exec', this.dateIndex)
-                let {createTime, lnglat, title} = this.dateArr[this.dateIndex]
 
-                /*同步更新地图上的中心点*/
+                let {createTime, lnglat, title} = this.dateArr[this.dateIndex]
+                console.log('timelineChange exec', createTime, lnglat, title)
+                /*1.同步笔记 更新地图上的中心点*/
+                /*2.同步图片列表 更新地图上的中心点*/
                 if (title) {
                     this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
+                }else {
+                //    当当天没有笔记时 查看是否有图片，有的话就显示图片信息
+                //    2017/01/09
+
+
                 }
+                this.$store.state.dayImages = this.$store.state.fileList.filter((i) => i.createTime.split(" ")[0] == createTime.split(" ")[0])
+                console.log(this.$store.state.dayImages)
             },
             formatTooltip(val) {
                 if (!val) {

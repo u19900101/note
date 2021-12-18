@@ -73,6 +73,7 @@ const state = {
     imageTagsTree:[], //图片标签
     uploadImageList:[], //上传的图片列表
     currentImageId: 0, //当前图片id
+    dayImages : [], // 需要在地图中显示当天的图片数组
     /*************页面显示控制*************/
     tableData: [],           //封装笔记本和标签展示区
     listTitle : '',         //列表区的名称

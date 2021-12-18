@@ -37,9 +37,16 @@
 
 <script>
     import imageTag from "./ImageTag";
+    let dayjs = require('dayjs');
     export default {
         name: "ImageInfo",
         components:{imageTag,},
+        data(){
+            return{
+                imageCreateTimeLastTime: 0, //修改照片名称的定时器
+                imageNameLastTime: 0, //修改照片名称的定时器
+            }
+        },
         computed:{
             imageName: {
                 get: function () {
@@ -79,6 +86,26 @@
             getBt(str) {
                 let char = str.replace(/[^\x00-\xff]/g, '**');
                 return char.length * 6 + 40;
+            },
+            updateImageName() {
+                this.imageNameLastTime = setTimeout(() => {
+                    this.https.updateImage({
+                        id: this.$store.state.currentImage.id,
+                        title: this.$store.state.currentImage.title
+                    }).then(({data}) => {
+                        console.log("修改图片名称成功", data);
+                    })
+                }, 2000)
+            },
+            updateImageCreateTime(createTime) {
+                this.imageCreateTimeLastTime = setTimeout(() => {
+                    this.https.updateImage({
+                        id: this.$store.state.currentImage.id,
+                        createTime: createTime
+                    }).then(({data}) => {
+                        console.log("修改图片创建时间成功", data);
+                    })
+                }, 5000)
             },
         }
     }

@@ -158,7 +158,7 @@
     import ElImageViewer from "element-ui/packages/image/src/image-viewer";
     import ImageDetail from "./ImageDetail"
     import imageInfo from "./ImageInfo"
-    let dayjs = require('dayjs');
+
     export default {
         name: "ImageList",
         components: {
@@ -174,8 +174,7 @@
                 currentImageId: "", //当前图片id
                 currentIndex: 0, //当前时间index
                 enterIndex: 0, // 鼠标移入的index
-                imageCreateTimeLastTime: 0, //修改照片名称的定时器
-                imageNameLastTime: 0, //修改照片名称的定时器
+
                 imageUploadLastTime:0, //上传图片的定时器
                 uploading : false, //控制上传的状态
             }

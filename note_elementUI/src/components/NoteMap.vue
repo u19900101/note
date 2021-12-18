@@ -2,6 +2,7 @@
     <el-container>
         <el-header style="padding-top: 10px;">
             <timeline style="margin-bottom: 20px;"></timeline>
+            <imageInfo v-if="showImageInfo"></imageInfo>
         </el-header>
         <el-main style="padding: 10px;height: 300px">
             <el-switch
@@ -16,11 +17,12 @@
         </el-main>
         <div style="position:absolute;display:flex;bottom: 72px; margin-left: 20px;">
 
-            <div v-for="(image,indexInner) in dayImages">
+            <div v-for="(image,indexInner) in this.$store.state.dayImages">
                 <imageDetail :image-scale="'100px'"
                              :img="image"
                              :index-inner="indexInner"
-                             :images = "dayImages"
+                             :images = "$store.state.dayImages"
+                             @getShowImageInfo="getShowImageInfo"
                 />
             </div>
         </div>
@@ -30,9 +32,10 @@
 <script>
     import timeline from './TimeLine'
     import imageDetail from './ImageDetail'
+    import imageInfo from './ImageInfo'
     export default {
         name: "NoteMap",
-        components: {timeline,imageDetail},
+        components: {timeline,imageDetail,imageInfo},
         data() {
             return {
                 /*高德地图相关*/
@@ -45,12 +48,10 @@
                 title: '',
                 createTime: '',
                 dayImages: this.$store.state.fileList.slice(0, 5), //当天相关所有照片
+                showImageInfo :false,
             }
         },
         computed:{
-            dayImagesUrl(){
-                return this.$store.state.fileList.slice(0, 5).map(x => x.url)
-            }
         },
         methods: {
             /*初始化地图*/
@@ -248,7 +249,10 @@
                 });
                 layer.render();
                 this.layer = layer
-            }
+            },
+            getShowImageInfo(showImageInfo){
+                this.showImageInfo =  showImageInfo
+            },
         },
         mounted() {
             this.initMap()

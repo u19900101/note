@@ -251,26 +251,7 @@
                     document.querySelector(".el-image-viewer__close").click();
                 }
             },
-            updateImageName() {
-                this.imageNameLastTime = setTimeout(() => {
-                    this.https.updateImage({
-                        id: this.$store.state.currentImage.id,
-                        title: this.$store.state.currentImage.title
-                    }).then(({data}) => {
-                        console.log("修改图片名称成功", data);
-                    })
-                }, 2000)
-            },
-            updateImageCreateTime(createTime) {
-                this.imageCreateTimeLastTime = setTimeout(() => {
-                    this.https.updateImage({
-                        id: this.$store.state.currentImage.id,
-                        createTime: createTime
-                    }).then(({data}) => {
-                        console.log("修改图片创建时间成功", data);
-                    })
-                }, 5000)
-            },
+
             starClick(img) {
                 if (img.wastepaper) return
                 img.star = !img.star
