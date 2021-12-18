@@ -1,0 +1,165 @@
+<template>
+    <div >
+        <!-- 拍摄日期、图片名称、位置-->
+        <div  class="imgInfo">
+            <!--拍摄日期 -->
+            <div class="imgTime">
+                <el-date-picker
+                        style="color: #1d9351"
+                        v-model="createTime"
+                        editable
+                        type="datetime"
+                        placeholder="选择日期时间"
+                        :default-time="createTime.split(' ')[0]">
+                </el-date-picker>
+            </div>
+            <!--图片名称-->
+            <el-input clearable v-model="imageName" style="width: 182px" placeholder="请输入名称">
+                <template slot="append">.{{$store.state.currentImage.title.split(".")[1]}}</template>
+            </el-input>
+            <!--位置-->
+            <div class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
+                 v-if="$store.state.currentImage.location">
+                <i class="el-icon-location"></i>
+                <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
+                   style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
+            </div>
+
+        </div>
+        <!--大小、宽高-->
+        <div class="imgInfoRightBottom">
+            <strong>{{getImgageSize($store.state.currentImage.size)}}</strong> {{$store.state.currentImage.widthH}}
+        </div>
+        <!--标签-->
+        <imageTag class="imgTag" ref="noteTag"></imageTag>
+    </div>
+</template>
+
+<script>
+    import imageTag from "./ImageTag";
+    export default {
+        name: "ImageInfo",
+        components:{imageTag,},
+        computed:{
+            imageName: {
+                get: function () {
+                    return this.$store.state.currentImage.title.split('.')[0]
+                },
+                set: function (newImageName) {
+                    this.$store.state.currentImage.title = newImageName + '.' + this.$store.state.currentImage.title.split('.')[1]
+                    if (newImageName.length > 0) {
+                        this.tool.setTimeoutUpdate(this.updateImageName, this.imageNameLastTime)
+                    }
+                }
+            },
+            createTime: {
+                get: function () {
+                    return this.$store.state.currentImage.createTime
+                },
+                set: function (newValue) {
+                    let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
+                    this.$store.state.currentImage.createTime = formatTime
+                    this.tool.setTimeoutUpdate(this.updateImageCreateTime, this.imageCreateTimeLastTime, newValue)
+                }
+            },
+        },
+        methods:{
+            getImgageSize(byteNum) {
+                if (byteNum < 1024 * 1024) {
+                    let kb = (byteNum / 1024).toString()
+                    return kb.substring(0, kb.indexOf(".") + 2) + " Kb"
+                }
+
+                if (byteNum >= 1024 * 1024) {
+                    let kb = (byteNum / 1024 / 1024).toString()
+                    return kb.substring(0, kb.indexOf(".") + 2) + " Mb"
+                }
+            },
+            /*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
+            getBt(str) {
+                let char = str.replace(/[^\x00-\xff]/g, '**');
+                return char.length * 6 + 40;
+            },
+        }
+    }
+</script>
+
+<style scoped>
+    /*图片的描述信息*/
+    .imgInfo {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        position: absolute;
+        z-index: 2001;
+        left: 21px;
+        top: 40px;
+    }
+
+    .imgTag {
+        display: flex;
+        position: absolute;
+        z-index: 2001;
+        left: 21px;
+        top: 5px;
+    }
+
+    /*图片宽高和大小信息*/
+    .imgInfoRightBottom {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        position: absolute;
+        z-index: 2001;
+        right: 10px;
+        bottom: 40px;
+        font-size: 10px;
+    }
+
+    .imageTitle {
+        display: flex;
+        justify-content: flex-start;
+        position: absolute;
+        z-index: 2001;
+        left: 190px;
+        top: 40px;
+    }
+
+    .imgInfo .info {
+        height: 40px;
+        line-height: 40px;
+        background-color: #ffffff;
+        border: 1px solid #D7DADC;
+        border-radius: 5px;
+        text-align: center;
+        /* margin-left: auto;*/ /*右对齐*/
+    }
+
+    /*设置时间图标的位置*/
+    .el-input__prefix {
+        left: -3px;
+        height: 0px !important;
+    }
+
+    .imgInfo .el-input__icon {
+        width: 10px !important;
+    }
+
+    .el-input__prefix, .el-input__suffix {
+        position: absolute;
+        top: 0;
+        -webkit-transition: all .3s;
+        height: 10px;
+        margin-top: 1px;
+        margin-left: 0px !important;
+    }
+
+    /*时间框 内容的位置*/
+    .imgTime .el-input__inner {
+        padding-left: 8px !important;
+        padding-right: 0px !important;
+        width: 182px !important;
+        color: #000000 !important;
+        font-size: 16px !important;
+    }
+</style>

@@ -3,40 +3,7 @@
     <el-container>
         <el-header style="margin: 10px 0px 2px 0px">
             <!--当前大图详细信息的显示-->
-            <div v-if="showImageInfo">
-                <!-- 拍摄日期、图片名称、位置-->
-                <div  class="imgInfo">
-                    <!--拍摄日期 -->
-                    <div class="imgTime">
-                        <el-date-picker
-                                style="color: #1d9351"
-                                v-model="createTime"
-                                editable
-                                type="datetime"
-                                placeholder="选择日期时间"
-                                :default-time="createTime.split(' ')[0]">
-                        </el-date-picker>
-                    </div>
-                    <!--图片名称-->
-                    <el-input clearable v-model="imageName" style="width: 182px" placeholder="请输入名称">
-                        <template slot="append">.{{$store.state.currentImage.title.split(".")[1]}}</template>
-                    </el-input>
-                    <!--位置-->
-                    <div class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
-                         v-if="$store.state.currentImage.location">
-                        <i class="el-icon-location"></i>
-                        <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
-                           style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
-                    </div>
-
-                </div>
-                <!--大小、宽高-->
-                <div class="imgInfoRightBottom">
-                    <strong>{{getImgageSize($store.state.currentImage.size)}}</strong> {{$store.state.currentImage.widthH}}
-                </div>
-                <!--标签-->
-                <imageTag class="imgTag" ref="noteTag"></imageTag>
-            </div>
+            <imageInfo v-if="showImageInfo"></imageInfo>
 
             <!--年月日 图片上传 大中小 视图  当前图片分组名称-->
             <div style="text-align: center;">
@@ -195,14 +162,14 @@
 
 <script>
     import cascader from "./Cascader";
-    import imageTag from "./ImageTag";
     import ElImageViewer from "element-ui/packages/image/src/image-viewer";
     import ImageDetail from "./ImageDetail"
+    import imageInfo from "./ImageInfo"
     let dayjs = require('dayjs');
     export default {
         name: "ImageList",
         components: {
-            cascader,imageTag,ElImageViewer,ImageDetail
+            cascader,ElImageViewer,ImageDetail,imageInfo
         },
         data() {
             return {
@@ -231,27 +198,7 @@
             disabledControl(){
                 return this.$store.state.currentImageList.length == 0
             },
-            imageName: {
-                get: function () {
-                    return this.$store.state.currentImage.title.split('.')[0]
-                },
-                set: function (newImageName) {
-                    this.$store.state.currentImage.title = newImageName + '.' + this.$store.state.currentImage.title.split('.')[1]
-                    if (newImageName.length > 0) {
-                        this.tool.setTimeoutUpdate(this.updateImageName, this.imageNameLastTime)
-                    }
-                }
-            },
-            createTime: {
-                get: function () {
-                    return this.$store.state.currentImage.createTime
-                },
-                set: function (newValue) {
-                    let formatTime = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
-                    this.$store.state.currentImage.createTime = formatTime
-                    this.tool.setTimeoutUpdate(this.updateImageCreateTime, this.imageCreateTimeLastTime, newValue)
-                }
-            },
+
             star: {
                 get: function () {
                     return this.$store.state.currentImage.star
@@ -493,22 +440,6 @@
                 let kk = url.replace(title, title.split(".")[0] + "_thumbnails." + title.split(".")[1])
                 return kk
             },
-            /*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
-            getBt(str) {
-                let char = str.replace(/[^\x00-\xff]/g, '**');
-                return char.length * 6 + 40;
-            },
-            getImgageSize(byteNum) {
-                if (byteNum < 1024 * 1024) {
-                    let kb = (byteNum / 1024).toString()
-                    return kb.substring(0, kb.indexOf(".") + 2) + " Kb"
-                }
-
-                if (byteNum >= 1024 * 1024) {
-                    let kb = (byteNum / 1024 / 1024).toString()
-                    return kb.substring(0, kb.indexOf(".") + 2) + " Mb"
-                }
-            },
             /*控制列表颜色*/
             getBgColor(index) {
                 /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/
@@ -622,83 +553,7 @@
         z-index: 1000 !important;
     }
 
-    /*图片的描述信息*/
-    .imgInfo {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        position: absolute;
-        z-index: 2001;
-        left: 21px;
-        top: 40px;
-    }
 
-    .imgTag {
-        display: flex;
-        position: absolute;
-        z-index: 2001;
-        left: 21px;
-        top: 5px;
-    }
-
-    /*图片宽高和大小信息*/
-    .imgInfoRightBottom {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        position: absolute;
-        z-index: 2001;
-        right: 10px;
-        bottom: 40px;
-        font-size: 10px;
-    }
-
-    .imageTitle {
-        display: flex;
-        justify-content: flex-start;
-        position: absolute;
-        z-index: 2001;
-        left: 190px;
-        top: 40px;
-    }
-
-    .imgInfo .info {
-        height: 40px;
-        line-height: 40px;
-        background-color: #ffffff;
-        border: 1px solid #D7DADC;
-        border-radius: 5px;
-        text-align: center;
-        /* margin-left: auto;*/ /*右对齐*/
-    }
-
-    /*设置时间图标的位置*/
-    .el-input__prefix {
-        left: -3px;
-        height: 0px !important;
-    }
-
-    .imgInfo .el-input__icon {
-        width: 10px !important;
-    }
-
-    .el-input__prefix, .el-input__suffix {
-        position: absolute;
-        top: 0;
-        -webkit-transition: all .3s;
-        height: 10px;
-        margin-top: 1px;
-        margin-left: 0px !important;
-    }
-
-    /*时间框 内容的位置*/
-    .imgTime .el-input__inner {
-        padding-left: 8px !important;
-        padding-right: 0px !important;
-        width: 182px !important;
-        color: #000000 !important;
-        font-size: 16px !important;
-    }
 
     .el-date-editor.el-input, .el-date-editor.el-input__inner {
         width: 182px !important;
