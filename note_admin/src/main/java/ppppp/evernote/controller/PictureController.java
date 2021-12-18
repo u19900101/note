@@ -222,9 +222,9 @@ public class PictureController {
                 // 新笔记本 +1
                 String[] tagIdList = picture.getTagUid().split(",");
                 for (String tagId : tagIdList) {
-                    Tag tag = tagService.getById(tagId);
+                    ImageTag tag = imageTagService.getById(tagId);
                     tag.setNoteCount(tag.getNoteCount() - 1);
-                    tagService.updateById(tag);
+                    imageTagService.updateById(tag);
                 }
             }
 
