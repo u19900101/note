@@ -36,6 +36,31 @@ public class AdminTest {
         Tag byId = tagService.getById(32);
         System.out.println(byId);
     }
+
+   /* @Test
+    public void T_将图片创建时间修改为201701(){
+        List<Picture> list = pictureService.lambdaQuery().list();
+        int i = 1;
+        for (Picture picture : list) {
+            if(i == 31) i = 1;
+            picture.setCreateTime(new Date(2017,0,i++));
+            pictureService.updateById(picture);
+        }
+    }*/
+
+
+    @Test
+    public void T_调换经纬度(){
+        List<Picture> list = pictureService.lambdaQuery().list();
+        for (Picture picture : list) {
+            if(picture.getLnglat() != null){
+                String[] split = picture.getLnglat().split(",");
+                picture.setLnglat(split[1] + "," + split[0]);
+                pictureService.updateById(picture);
+            }
+        }
+
+    }
     @Test
     public void T_setMediaUid(){
         List<Note> noteList = noteService.lambdaQuery().select(Note::getId,Note::getContent).list();/*.last("limit 30")*/

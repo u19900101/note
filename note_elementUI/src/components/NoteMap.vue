@@ -17,6 +17,7 @@
         </el-main>
         <div style="position:absolute;display:flex;bottom: 72px; margin-left: 20px;">
 
+            <!--展示图片-->
             <div v-for="(image,indexInner) in this.$store.state.dayImages">
                 <imageDetail :image-scale="'100px'"
                              :img="image"

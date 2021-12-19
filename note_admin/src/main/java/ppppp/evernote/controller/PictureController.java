@@ -284,11 +284,16 @@ public class PictureController {
         List<Picture> pictureList = null;
 
         //逆序
-        if (sortway.getReverse()) {
-            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getCreateTime).list(); /*last("limit 10").*/
-        } else {
-            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByAsc(Picture::getCreateTime).list();
+        if (sortway.getCreateTime()) {
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getCreateTime).last("limit 10").list(); /*.*/
+        } else if (sortway.getUpdateTime()) {
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getUpdateTime).last("limit 10").list();
         }
+        //逆序
+        if (sortway.getReverse()) {
+            Collections.reverse(pictureList);
+        }
+
         return pictureList;
     }
 
@@ -367,7 +372,7 @@ public class PictureController {
                             break;
                         // 经度
                         case "GPS Longitude":
-                            pic.setLnglat(pic.getLnglat() + "," + toX(t.getDescription()));
+                            pic.setLnglat(toX(t.getDescription()) + "," + pic.getLnglat());
                             break;
                         // 拍摄时间
                         // 解决有的照片中有两个 Date/Time Original 但是格式不一样
@@ -431,6 +436,7 @@ public class PictureController {
 
     //经纬度转地址
     public static String getLocation(String lnglat) {
+        lnglat = lnglat.split(",")[1] + "," + lnglat.split(",")[0];
         String key = "GjG3XAdmywz7CyETWqHwIuEC6ZExY6QT";
         String url = "http://api.map.baidu.com/geocoder/v2/?ak=" + key + "&output=json&coordtype=bd09ll&location=" + lnglat;
         String res = sendGetRequest(url);
