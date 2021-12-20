@@ -198,6 +198,42 @@ public class sftp {
      * @param multipartFile
      * @return
      */
+    public static String uploadVideo( File tempFile,String basePath, String remotDir, MultipartFile multipartFile, String fileName) throws IOException {
+
+        try {
+            sftpLocal.get().channel.cd(basePath);
+            createDir(remotDir);
+
+            //列出服务器指定的文件列表
+            Vector ls = sftpLocal.get().channel.ls(basePath + remotDir);
+
+            // 判断文件是否重名  i=2 是排除 两个文件 . 和 ..
+            for (int i = 2; i < ls.size(); i++) {
+                ChannelSftp.LsEntry l = (ChannelSftp.LsEntry) ls.get(i);
+                if(l.getFilename().equals(fileName)){
+                    System.out.println("重名鸟...");
+                    String[] s = fileName.split("\\.");
+                    fileName = s[0] + "_"+ UUID.randomUUID().toString().substring(0,2) + "." + s[1];
+                    i = 1;
+                }
+            }
+            //上传视频文件
+            FileInputStream fileInputStream = new FileInputStream(tempFile);
+            sftpLocal.get().channel.put(fileInputStream, fileName);
+            fileInputStream.close();
+            System.out.println("视频文件上传成功");
+        } catch (Exception e) {
+            System.out.println(e.getLocalizedMessage() + e.getMessage() + e.toString());
+            logger.error(e.getLocalizedMessage() + e.getMessage() + e.toString());
+        }finally {
+            boolean delete = tempFile.delete();
+            if(!delete){
+                System.out.println("文件删除失败 " + tempFile.getAbsolutePath());
+            }
+        }
+        return fileName;
+    }
+
     public static String uploadFile(String basePath, String remotDir, MultipartFile multipartFile, String fileName) throws IOException {
         //创建目录
         String tempImage = "C:\\Users\\Administrator\\Desktop\\"+UUID.randomUUID()+".jpg";

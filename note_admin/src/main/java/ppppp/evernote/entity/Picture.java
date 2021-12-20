@@ -47,6 +47,9 @@ public class Picture implements Serializable {
     private String url;
     // 字节大小
     private Long size;
+
+    // 视频时长
+    private String lastTime;
     @TableField(exist = false)
     // 解决初始化赋值时为null
     private List<ImageTag> tagList = new ArrayList<>();

@@ -3,6 +3,9 @@ package ppppp.evernote.controller;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.additional.update.impl.LambdaUpdateChainWrapper;
 import com.drew.imaging.ImageMetadataReader;
+import it.sauronsoftware.jave.Encoder;
+import it.sauronsoftware.jave.EncoderException;
+import it.sauronsoftware.jave.MultimediaInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import ppppp.evernote.entity.*;
+import ppppp.evernote.entity.ImageTag;
+import ppppp.evernote.entity.Notebook;
+import ppppp.evernote.entity.Picture;
+import ppppp.evernote.entity.Sortway;
 import ppppp.evernote.mapper.PictureMapper;
 import ppppp.evernote.service.*;
 import ppppp.evernote.util.MyUtils;
@@ -19,6 +25,7 @@ import ppppp.evernote.util.ftp.sftp;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.ParseException;
@@ -109,29 +116,50 @@ public class PictureController {
     /*每张照片都发送一次请求上传*/
     @PostMapping("/uploadFileAndInsert")
     public String uploadFileAndInsert(HttpServletRequest request) throws Exception {
+        ArrayList<Picture> res = new ArrayList<>();
+        Picture picture = new Picture();
         MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
         MultipartFile multipartFile = multiRequest.getFile("file");
-        Picture picture = getPictureInfo(multipartFile);
+        String filename = multipartFile.getOriginalFilename();
+        File videoFile = null;
+        if (filename.endsWith(".mp4") || filename.endsWith(".avi") || filename.endsWith(".flv")) {
+            ArrayList<Object> videoInfo = getVideoInfo(multipartFile);
+            picture = (Picture) videoInfo.get(0);
+            if(picture.getCreateTime() == null){
+                picture.setCreateTime(new Date());
+            }
+            videoFile = (File) videoInfo.get(1);
+        } else {
+            picture = getPictureInfo(multipartFile);
+        }
+
         String uploadDir = new SimpleDateFormat("yyyy-MM-dd").format(picture.getCreateTime());
 
-        ArrayList<Picture> res = new ArrayList<>();
+        Picture finalPicture = picture;
+        File  finalVideoFile = videoFile;
         Thread thread = new Thread(() -> {
             try {
                 sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
-                String fileName = sftp.uploadFile("/mydata/nginx/html/img", "/" + uploadDir, multipartFile, picture.getTitle());
+                /*上传视频*/
+                String fileName = "";
+                if(finalVideoFile != null){
+                    fileName = sftp.uploadVideo(finalVideoFile,"/mydata/nginx/html/img", "/" + uploadDir, multipartFile, finalPicture.getTitle());
+                }else {
+                    fileName = sftp.uploadFile("/mydata/nginx/html/img", "/" + uploadDir, multipartFile, finalPicture.getTitle());
+                }
                 sftp.release();
                 if (!fileName.equals("error")) {
                     System.out.println("上传成功 " + fileName);
                     // 若重名，则重新命名文件
-                    if (!fileName.equals(picture.getTitle())) {
-                        picture.setTitle(fileName);
+                    if (!fileName.equals(finalPicture.getTitle())) {
+                        finalPicture.setTitle(fileName);
                     }
                     String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
-                    picture.setUrl(imgUrl);
+                    finalPicture.setUrl(imgUrl);
                     // 保存文件信息到数据库
-                    boolean save = pictureService.save(picture);
+                    boolean save = pictureService.save(finalPicture);
                     if (save) {
-                        res.add(picture);
+                        res.add(finalPicture);
                     }
                 }
             } catch (Exception e) {
@@ -453,6 +481,99 @@ public class PictureController {
         float f = Float.valueOf(l[1].substring(0, l[1].length() - 1));
         float m = Float.valueOf(l[2].substring(0, l[2].length() - 1));
         return String.valueOf(d + f / 60 + m / 3600);
+    }
+
+
+    /*获取视频文件信息*/
+    public static ArrayList<Object> getVideoInfo(MultipartFile file) {
+        ArrayList<Object> list = new ArrayList<>();
+        File pictureFile = null;
+        Picture picture = new Picture();
+        String fileName = file.getOriginalFilename().replaceAll(" |\"|\'", "_");
+        picture.setTitle(fileName);
+        try {
+            // 用uuid作为文件名，防止生成的临时文件重复
+            pictureFile = File.createTempFile(String.valueOf(UUID.randomUUID()), fileName);
+            file.transferTo(pictureFile);
+            picture.setSize(pictureFile.length());
+            getVideoInfo(pictureFile, picture);
+            list.add(picture);
+            list.add(pictureFile.getAbsoluteFile());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //程序结束时，删除临时文件  上传结束后再进行删除
+            // deleteFile(pictureFile);
+        }
+        return list;
+    }
+
+    public static void getVideoInfo(File pictureFile, Picture picture) throws EncoderException {
+
+        Encoder encoder = new Encoder();
+        MultimediaInfo m = encoder.getInfo(pictureFile);
+        // 视频时长 00:03:20
+        picture.setLastTime(getLastTime(m.getDuration()));
+        //视频帧宽高
+        picture.setWidthH(m.getVideo().getSize().getWidth() + "x" + m.getVideo().getSize().getHeight());
+        String type = m.getFormat();
+        picture.setSize(pictureFile.length());
+        /*视频创建时间*/
+        Date createTime = getCreateTime(pictureFile);
+        picture.setCreateTime(createTime);
+
+    }
+
+    public static Date getCreateTime(File file) {
+        if (file == null) {
+            return null;
+        }
+        //ffmepg工具地址
+        String ffmpegPath = "D:\\MyMind\\note\\note_admin\\src\\main\\resources\\ffmpeg.exe";
+        //拼接cmd命令语句
+        StringBuffer buffer = new StringBuffer();
+        buffer.append(ffmpegPath);
+        //注意要保留单词之间有空格
+        buffer.append(" -i ");
+        buffer.append(file.getAbsolutePath());
+        //执行命令语句并返回执行结果
+        try {
+            Process process = Runtime.getRuntime().exec(buffer.toString());
+            InputStream in = process.getErrorStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line;
+            /*逐行读取视频文件的信息 只提取时间信息*/
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                if (line.trim().startsWith("creation_time")) {
+                    String[] creation_time = line.trim().split(" ");
+                    String timeStr = creation_time[creation_time.length - 1];
+                    String create_time = timeStr.replace("T", " ").split("\\.")[0];
+                    Date createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(create_time);
+                    createTime = new Date(createTime.getTime() + 8 * 3600 * 1000);
+                    return createTime;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static void deleteFile(File... files) {
+        for (File file : files) {
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+    }
+
+    private static String getLastTime(long duration) {
+        int hour = (int) duration / (60 * 60 * 1000);//小时
+        int minute = (int) (duration % (60 * 60 * 1000)) / 60000;//分钟
+        int second = (int) ((duration % (60 * 60 * 1000)) % 60000) / 1000;//秒
+        String lastTime = (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute) + ":" + (second < 10 ? "0" + second : second);
+        return lastTime;
     }
 
 
