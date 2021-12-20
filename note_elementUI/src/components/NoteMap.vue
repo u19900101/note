@@ -109,7 +109,7 @@
                 });
                 let vm = this
                 marker.on('mouseover', function (ev) {
-                    console.log('xxxx mouseover', ev,)
+                    // console.log('xxxx mouseover', ev,vm.title, vm.createTime)
                     vm.updateContent(vm.title, vm.createTime)
                 });
                 this.marker = marker
@@ -200,16 +200,12 @@
                 });
                 let vm = this
                 layer.on('mouseenter', function (ev) {
-                    // console.log('mouseenter', ev,)
+                    // console.log('layer mouseenter', ev,ev.rawData.title)
                     /*点击的时候不重复执行*/
                     if (!vm.makerClick) {
-                        vm.clearMarker()
-                        vm.position = ev.lnglat
-                        vm.addMarker()
-                        vm.title = ev.rawData.title
-                        vm.createTime = ev.rawData.createTime
-                        vm.updateContent()
+                         vm.updateContent(ev.rawData.title,ev.rawData.createTime)
                     }
+
                     vm.makerClick = false
                     /*消除笔记点击进入控制的定位*/
                     vm.$store.state.noteClickLocation = false

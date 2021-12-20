@@ -144,6 +144,8 @@
                         })
                     })
                 })
+                /*大图预览bug*/
+                this.$store.state.currentImageUrlList = [1, 2, 3]
             }
         },
         // 组件创建时 请求数据

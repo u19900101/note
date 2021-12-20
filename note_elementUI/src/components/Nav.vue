@@ -187,7 +187,7 @@
                             this.initTagNotesListByTagNode(data)
                         } else { // 图片标签
                             this.toPage('imageList')
-                            this.$store.state.currentImageUrlList = [1, 2, 3]
+                            // this.$store.state.currentImageUrlList = [1, 2, 3]
                             this.initImageListByTagNode(data)
                         }
                 }
@@ -223,7 +223,7 @@
                         dayImages = this.tool.groupImages("day", dayImages)
                         this.$store.state.currentImageList = dayImages
                         /*初始化预览 给占个位 不然第一次点击时不出现大图*/
-                        this.$store.state.currentImageUrlList = [1, 2, 3]
+                        // this.$store.state.currentImageUrlList = [1, 2, 3]
                     } else {
                         this.toPage('notepage')
                         this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
