@@ -11,7 +11,8 @@
             <i v-if="!img.star" class="iconfont icon-like"></i>
         </div>
 
-        <el-image :style="{width: imageScale,height: imageScale}"
+        <el-image v-if = "isImageType(img.title)"
+                 :style="{width: imageScale,height: imageScale}"
                   style="margin-left:10px;"
                   @click="imageClick(img,images,indexInner)"
                   :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
@@ -20,6 +21,13 @@
                   @mouseover="upId(img.id)"
                   :alt="img.title">
         </el-image>
+        <div  v-else @mouseover="upId(img.id)">
+            <video  controls :width="imageScale" :height="imageScale" style="margin-left: 100px">
+                <source :src="img.url" type="video/mp4">
+                Sorry, your browser doesn't support embedded videos.
+            </video>
+        </div>
+
     </div>
 
 </template>
@@ -93,6 +101,10 @@
             }
         },
         methods: {
+            isImageType(title){
+                let type = title.substring(title.indexOf('.')+1)
+                return type == 'jpg' || type == 'png'|| type == 'gif'|| type == 'jpeg'
+            },
             upId(currentImageId) {
                 this.$store.state.currentImageId = currentImageId
             },

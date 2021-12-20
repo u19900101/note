@@ -2,10 +2,6 @@
     <div id="app">
         <div class="box">
             <home/>
-            <!--<video controls width="250" height="100" style="margin-left: 100px">-->
-            <!--    <source :src="url" type="video/mp4">-->
-            <!--    Sorry, your browser doesn't support embedded videos.-->
-            <!--</video>-->
         </div>
     </div>
 </template>

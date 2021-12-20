@@ -210,6 +210,7 @@
             }
         },
         methods: {
+
             /*文件上传成功时的钩子 response.data 为单个picture*/
             uploadSuccess(response, file, fileList) {
                 // console.log(response, file, fileList)
