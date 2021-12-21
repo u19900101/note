@@ -148,7 +148,6 @@
                 this.$store.state.currentImageUrlList = [1, 2, 3]
             },
             toMap(lnglat,title,createTime){
-                this.$store.state.noteClickLocation = true
                 this.$router.push({name: 'map'})
                 /*定位时间轴 之后会自动在地图上联动定位*/
                 this.$bus.$emit('setDateIndex',title,createTime)

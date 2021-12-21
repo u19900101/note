@@ -24,7 +24,7 @@
             <div style="display: flex;justify-content:space-between;margin-top: 4px;">
                 <div v-for="(d,index) in dateData">
                     <el-tooltip class="item" effect="dark" :content="dateData[index][0].title ? dateData[index][0].title : (dateData[index][1].images ? '图片':'无内容')" placement="bottom">
-                        <div @mouseenter="$store.state.noteClickLocation ? '':dateIndex = index"
+                        <div @mouseenter="mouseEnterLine(index)"
                              :style="{backgroundColor: dateData[index][0].title || dateData[index][1].images ?'#000000' :'#ffffff'}" class="vLine"></div>
                     </el-tooltip>
                 </div>
@@ -48,7 +48,14 @@
             }
         },
         methods: {
-
+            /*控制从笔记第一次进入地图时 鼠标经过密度线 地图中心不移动*/
+            mouseEnterLine(index){
+                if(!this.$store.state.noteClickLocation){
+                    this.dateIndex = index
+                }else {
+                    this.$store.state.noteClickLocation = false
+                }
+            },
             frontDay() {
                 if (this.dateIndex > 0) {
                     this.dateIndex = this.dateIndex - 1
@@ -182,8 +189,8 @@
             timelineChange(value) {
                 /*定位笔记*/
                 let {createTime, lnglat, title} = this.dateData[this.dateIndex][0]
+                this.$store.state.isImageTitle = false
                 if (title) {
-                    this.$store.state.isImageTitle = false
                     this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
                 }
 
@@ -220,8 +227,9 @@
             /*在note跳转时定位时间轴  通过title和 day 来确定index 同一天中可能有多条笔记*/
             setDateIndex(title, createTime) {
                 for (let i = 0; i <= this.maxValue; i++) {
-                    /*this.dateData[i][0].title == title*/
-                    if (this.dateData[i][0].createTime.substring(0,10) == createTime) {
+                    /*笔记或者图片的定位*/
+                    if ((this.dateData[i][0].createTime.substring(0,10) == createTime && this.dateData[i][0].title == title)
+                    || (this.dateData[i][1] ? this.dateData[i][1].createTime.substring(0,10) == createTime:false)) {
                         this.dateIndex = i
                         break
                     }

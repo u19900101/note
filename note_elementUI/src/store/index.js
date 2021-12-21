@@ -84,7 +84,7 @@ const state = {
     fromCalender:false, //控制index的变化是否来自日历
 
     /*************地图*************/
-    noteClickLocation: false, //控制进入地图时 鼠标经过密度线 地图中心不移动
+    noteClickLocation: false, //控制从笔记第一次进入地图时 鼠标经过密度线 地图中心不移动
     isImageTitle : false, //地图上的标题是否为照片名称  控制点击标题是否跳转到笔记
 }
 

@@ -205,6 +205,8 @@
             noteToMap(){
                 /*控制进入地图时 鼠标经过密度线 地图中心不移动*/
                 let {lnglat,title,createTime} = this.$store.state.currentNote
+                /*控制从笔记第一次进入地图时 鼠标经过密度线 地图中心不移动*/
+                this.$store.state.noteClickLocation = true
                 this.$bus.$emit("toMap",lnglat,title,createTime)
             },
             /*收起时间选择面板*/
