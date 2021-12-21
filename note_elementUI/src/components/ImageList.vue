@@ -170,11 +170,10 @@
                 isSortShow: false,
                 iconMouseLeave: false,  // 鼠标是否离开了图标区域
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
-                imageScale: "100px", //视图大小  默认为小等视图
+                imageScale: "200px", //视图大小  默认为小等视图
                 currentImageId: "", //当前图片id
                 currentIndex: 0, //当前时间index
                 enterIndex: 0, // 鼠标移入的index
-
                 imageUploadLastTime:0, //上传图片的定时器
                 uploading : false, //控制上传的状态
             }
@@ -405,16 +404,16 @@
             changeViewScale(viewScale) {
                 switch (viewScale) {
                     case "big":
-                        this.imageScale = "500px";
+                        this.imageScale = "600px";
                         break;
                     case "medium":
-                        this.imageScale = "250px";
+                        this.imageScale = "400px";
                         break;
                     case "small":
-                        this.imageScale = "100px";
+                        this.imageScale = "200px";
                         break;
                     default:
-                        this.imageScale = "100px"
+                        this.imageScale = "200px"
                 }
                 console.log(viewScale)
             },
@@ -505,8 +504,8 @@
     .imageIcon i {
         font-size: 18px;
         position: absolute;
-        left: 85px;
-        top: 5px;
+        left: 80%;
+        top: 10%;
         z-index: 1000
     }
 
@@ -514,8 +513,8 @@
     .imageIcon .imageCheck {
         font-size: 18px;
         position: absolute;
-        left: 87px;
-        bottom: 8px;
+        left: 80%;
+        bottom: 10%;
         z-index: 1000
     }
 

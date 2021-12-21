@@ -13,6 +13,7 @@ export default {
             groupImages,
             setTimeoutUpdate,
             getThumbnails,
+            isImageType,
         }
     }
 }
@@ -26,6 +27,7 @@ function getThumbnails(url, title) {
     let kk = url.replace(title, title.split(".")[0] + "_thumbnails." + title.split(".")[1])
     return kk
 }
+
 export function getDateTimes(data, sortWay) {
     //在这里计算时间
     let newTime = dayjs().unix();
@@ -107,7 +109,8 @@ function groupImages(groupType, imageData) { // day,month,year
             if (map[key] == null) {
                 map[key] = [i]
             } else {
-                map[key].push(i)
+                /*将图片和视频分开放*/
+                isImageType(i.title) ? map[key].unshift(i) : map[key].push(i)
             }
         }
     )
@@ -128,7 +131,13 @@ function groupImages(groupType, imageData) { // day,month,year
             }
 
         })
-        relDatas.push({createTime: i.replace("_temp", ""), location: location, images: map[i],checkedAll:false, checkedImages:[]})
+        relDatas.push({
+            createTime: i.replace("_temp", ""),
+            location: location,
+            images: map[i],
+            checkedAll: false,
+            checkedImages: []
+        })
     }
     return relDatas
 }
@@ -140,6 +149,11 @@ function getfirstLevelId(node) {
     } else {
         return node.data.id
     }
+}
+
+function isImageType(title) {
+    let type = title.substring(title.indexOf('.') + 1)
+    return type == 'jpg' || type == 'png' || type == 'gif' || type == 'jpeg'
 }
 
 /**排序*/
@@ -172,23 +186,23 @@ function getTime(strTime) {
 
 /**给笔记本名称后封装数量的显示*/
 //遍历树 更新全部的笔记数量
-function addNoteCount(treeData,typeStr) {
+function addNoteCount(treeData, typeStr) {
     treeData.forEach((n) => {
         let title = n.title + ' (' + n.noteCount + ')'
-        let id  =  n.id + '_' + typeStr
+        let id = n.id + '_' + typeStr
         n.title = title
         n.id = id
         /*给树id设置唯一标识符 便于树的展开*/
-        if (n.children.length > 0) this.addNoteCount(n.children,typeStr)
+        if (n.children.length > 0) this.addNoteCount(n.children, typeStr)
     })
 }
 
 //去掉括号里的数量
-function removeNoteCount(treeData,typeStr) {
+function removeNoteCount(treeData, typeStr) {
     treeData.forEach((n) => {
         let t = n.title.split(" ")[0]
         n.title = t
-        if (n.children.length > 0) this.addNoteCount(n.children,typeStr)
+        if (n.children.length > 0) this.addNoteCount(n.children, typeStr)
     })
 }
 

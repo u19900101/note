@@ -11,7 +11,7 @@
             <i v-if="!img.star" class="iconfont icon-like"></i>
         </div>
 
-        <el-image v-if = "isImageType(img.title)"
+        <el-image v-if = "this.tool.isImageType(img.title)"
                  :style="{width: imageScale,height: imageScale}"
                   style="margin-left:10px;"
                   @click="imageClick(img,images,indexInner)"
@@ -21,13 +21,15 @@
                   @mouseover="upId(img.id)"
                   :alt="img.title">
         </el-image>
+
         <div  v-else @mouseover="upId(img.id)">
-            <video  controls :width="imageScale" :height="imageScale" style="margin-left: 100px">
+            <!--:autoplay = "$store.state.currentImageId == img.id ? 'autoplay': 'kk'"-->
+            <video  controls
+                    :width="imageScale" :height="imageScale" style="margin-left: 100px">
                 <source :src="img.url" type="video/mp4">
                 Sorry, your browser doesn't support embedded videos.
             </video>
         </div>
-
     </div>
 
 </template>
@@ -101,10 +103,6 @@
             }
         },
         methods: {
-            isImageType(title){
-                let type = title.substring(title.indexOf('.')+1)
-                return type == 'jpg' || type == 'png'|| type == 'gif'|| type == 'jpeg'
-            },
             upId(currentImageId) {
                 this.$store.state.currentImageId = currentImageId
             },
@@ -116,10 +114,14 @@
                 this.lastImage = img
 
                 /*移动数组 将当前点击照片置于第一张*/
-                this.innerImageList = [...imageList.slice(index), ...imageList.slice(0, index)]
-                this.$store.state.currentImage = this.innerImageList[0]
-                this.$store.state.currentImageUrlList = this.innerImageList.map((x) => x.url)
-                this.innerIndex = 0
+                if(this.tool.isImageType(img.title)){
+                    let imageArr = imageList.filter(i => this.tool.isImageType(i.title))
+                    this.innerImageList = [...imageArr.slice(index), ...imageArr.slice(0, index)]
+                    this.$store.state.currentImage = this.innerImageList[0]
+                    this.$store.state.currentImageUrlList = this.innerImageList.map((x) => x.url)
+                    this.innerIndex = 0
+                }
+
                 /*关闭图片预览时 不显示图片其他信息*/
 
                 this.$nextTick(() => {
