@@ -150,9 +150,7 @@
             toMap(lnglat,title,createTime){
                 this.$store.state.noteClickLocation = true
                 this.$router.push({name: 'map'})
-                /*在地图上定位*/
-                this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
-                /*定位时间轴*/
+                /*定位时间轴 之后会自动在地图上联动定位*/
                 this.$bus.$emit('setDateIndex',title,createTime)
             }
         },

@@ -10,14 +10,13 @@
 <script>
 
     import home from "./components/Home"
-    import hTimeLine from "./components/HTimeLine"
     import noteMap from './components/NoteMap'
     import ElImageViewer from "element-ui/packages/image/src/image-viewer";
 
     export default {
         name: 'App',
         components: {
-            home, noteMap, hTimeLine,ElImageViewer
+            home, noteMap,ElImageViewer
         },
         data() {
             return {

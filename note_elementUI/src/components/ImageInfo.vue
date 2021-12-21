@@ -20,10 +20,9 @@
             <!--位置-->
             <div class="more-line" style="background-color: #FFFFFF"
                  :style="{width: getBt($store.state.currentImage.location) + 'px'}"
-                 @click="toMap"
                  v-if="$store.state.currentImage.location">
                 <i class="el-icon-location"></i>
-                <a href="#/map" @click="toMap" style="font-size: mini;color:#49a2de">
+                <a href="#/map" @click="imageToMap" style="font-size: mini;color:#49a2de">
                     <span>
                         {{$store.state.currentImage.location}}
                     </span>
@@ -78,17 +77,24 @@
             },
         },
         methods: {
-            toMap() {
+            imageToMap() {
+                /*封装当天图片*/
+                let indexImages = this.$store.state.currentImageList[this.$store.state.currentIndex].images
+
+                /*当跳转之前的视图正好是日视图时 直接进行赋值 若不是就进行封装*/
+                if (indexImages.length > 1 &&
+                    (indexImages[0].createTime.substring(0,10) != indexImages[indexImages.length-1].createTime.substring(0,10))) {
+                    indexImages = this.tool.groupImages("day",indexImages)
+                    indexImages = indexImages.filter(i => i.createTime.replace("年","-").replace("月","-").replace("日","") == this.$store.state.currentImage.createTime.substring(0,10))[0].images
+                }
+                this.$store.state.dayImages = indexImages
+
                 let {lnglat, title, createTime} = this.$store.state.currentImage
                 /*在地图上定位*/
-                this.$bus.$emit("toMap", lnglat, title, createTime)
-                /*展示当天图片*/
-                this.$store.state.dayImages = this.$store.state.fileList.filter((i) =>
-                    i.createTime.split(" ")[0].substring(0,10) == createTime.split(" ")[0].substring(0,10))
-
+                this.$bus.$emit("toMap", lnglat, title, createTime.substring(0,10))
                 /*关闭大图预览*/
                 let domImageMask = document.querySelector(".el-image-viewer__close");
-                if(domImageMask){
+                if (domImageMask) {
                     domImageMask.click()
                 }
             },

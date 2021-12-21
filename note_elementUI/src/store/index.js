@@ -63,6 +63,7 @@ const state = {
     fileMode: false,  //文件模式视图控制
     fileList: [],
     currentImageList: [],
+    currentImageIndex: 0, //当前时间段index
     currentImagesCount: 0,  //当前图片类的数量
     currentImage: {},//当前图片
     currentImageUrl: "",//当前图片的url
@@ -84,6 +85,7 @@ const state = {
 
     /*************地图*************/
     noteClickLocation: false, //控制进入地图时 鼠标经过密度线 地图中心不移动
+    isImageTitle : false, //地图上的标题是否为照片名称  控制点击标题是否跳转到笔记
 }
 
 //创建并暴露store

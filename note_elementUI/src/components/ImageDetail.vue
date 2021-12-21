@@ -24,8 +24,7 @@
 
         <div  v-else @mouseover="upId(img.id)">
             <!--:autoplay = "$store.state.currentImageId == img.id ? 'autoplay': 'kk'"-->
-            <video  controls
-                    :width="imageScale" :height="imageScale" style="margin-left: 100px">
+            <video  controls :width="imageScale" :height="imageScale" style="margin-left: 10px">
                 <source :src="img.url" type="video/mp4">
                 Sorry, your browser doesn't support embedded videos.
             </video>
@@ -42,7 +41,7 @@
         components: {
             imageTag
         },
-        props: ["imageScale", "img", "images", "indexInner", "currentIndex",],
+        props: ["imageScale", "img", "images", "indexInner",],
         data() {
             return {
                 removeIcons: false,// 动态移除 删除和收藏图标
@@ -335,7 +334,7 @@
             /*控制列表颜色*/
             getBgColor(index) {
                 /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/
-                if (this.currentIndex == index) return "#E6E6E6" /*选中时的灰色*/
+                if (this.$store.state.currentIndex== index) return "#E6E6E6" /*选中时的灰色*/
                 if (this.enterIndex == index) return "#EDF6FD" /*天蓝色*/
                 return "#ffffff"
             },
@@ -364,9 +363,9 @@
                 if (this.deleteExceted) {
                     console.log('updateCurrentImageList')
                     if (this.innerImageList.length == 0) {
-                        this.$store.state.currentImageList.splice(this.currentIndex, 1)
+                        this.$store.state.currentImageList.splice(this.$store.state.currentIndex, 1)
                     } else {
-                        this.$store.state.currentImageList[this.currentIndex].images = this.innerImageList
+                        this.$store.state.currentImageList[this.$store.state.currentIndex].images = this.innerImageList
                     }
                 }
             },

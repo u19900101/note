@@ -19,10 +19,10 @@
 
             <!--展示图片-->
             <div v-for="(image,indexInner) in this.$store.state.dayImages">
-                <imageDetail :image-scale="'100px'"
+                <imageDetail :image-scale="'200px'"
                              :img="image"
                              :index-inner="indexInner"
-                             :images = "$store.state.dayImages"
+                             :images="$store.state.dayImages"
                              @getShowImageInfo="getShowImageInfo"
                 />
             </div>
@@ -34,9 +34,10 @@
     import timeline from './TimeLine'
     import imageDetail from './ImageDetail'
     import imageInfo from './ImageInfo'
+
     export default {
         name: "NoteMap",
-        components: {timeline,imageDetail,imageInfo},
+        components: {timeline, imageDetail, imageInfo},
         data() {
             return {
                 /*高德地图相关*/
@@ -49,11 +50,10 @@
                 title: '',
                 createTime: '',
                 dayImages: this.$store.state.fileList.slice(0, 5), //当天相关所有照片
-                showImageInfo :false,
+                showImageInfo: false,
             }
         },
-        computed:{
-        },
+        computed: {},
         methods: {
             /*初始化地图*/
             initMap() {
@@ -85,7 +85,6 @@
 
                 this.map = map
                 this.addMarker()
-                this.updateContent()
 
                 /*给地图绑定缩放事件*/
                 map.on('zoomchange', this.mapZoom);
@@ -149,11 +148,14 @@
                 markerSpan.innerHTML = '' + title;
                 markerSpan.style = 'background-color: #ffffff;color:#000000;border: 1px solid #D7DADC;border-radius: 5px;'
 
+                /*点击地图上的标题跳转到笔记*/
                 let vm = this
+                /*判断标题是否为笔记的 若是照片的标题则不绑定*/
                 markerSpan.addEventListener("click", function (e) {
-                    vm.mapToNote(title, createTime)
+                    if (!vm.$store.state.isImageTitle) {
+                        vm.mapToNote(title, createTime)
+                    }
                 });
-
                 markerContentDiv.appendChild(markerSpan);
                 markerContent.appendChild(markerContentDiv);
 
@@ -203,7 +205,7 @@
                     // console.log('layer mouseenter', ev,ev.rawData.title)
                     /*点击的时候不重复执行*/
                     if (!vm.makerClick) {
-                         vm.updateContent(ev.rawData.title,ev.rawData.createTime)
+                        vm.updateContent(ev.rawData.title, ev.rawData.createTime)
                     }
 
                     vm.makerClick = false
@@ -247,8 +249,8 @@
                 layer.render();
                 this.layer = layer
             },
-            getShowImageInfo(showImageInfo){
-                this.showImageInfo =  showImageInfo
+            getShowImageInfo(showImageInfo) {
+                this.showImageInfo = showImageInfo
             },
         },
         mounted() {

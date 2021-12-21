@@ -183,6 +183,7 @@
                 /*定位笔记*/
                 let {createTime, lnglat, title} = this.dateData[this.dateIndex][0]
                 if (title) {
+                    this.$store.state.isImageTitle = false
                     this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
                 }
 
@@ -196,7 +197,8 @@
                             console.log('dayImage', dayImage)
                             if (dayImage.lnglat ) {
                                 console.log('dayImage.lnglat', dayImage.lnglat)
-                                this.$bus.$emit('toPoint', dayImage.lnglat.split(',')[0], dayImage.lnglat.split(',')[1], '', dayImage.createTime)
+                                this.$store.state.isImageTitle = true
+                                this.$bus.$emit('toPoint', dayImage.lnglat.split(',')[0], dayImage.lnglat.split(',')[1], dayImage.title, dayImage.createTime)
                                 break
                             }
                         }
@@ -215,10 +217,11 @@
                 let noteTitle = this.dateData[this.dateIndex][0].title
                 return noteTitle ? noteTitle : (this.dateData[this.dateIndex][1].images ? '图片':'无内容');
             },
-            /*在note跳转时定位时间轴  通过title和 day 来确定index*/
+            /*在note跳转时定位时间轴  通过title和 day 来确定index 同一天中可能有多条笔记*/
             setDateIndex(title, createTime) {
                 for (let i = 0; i <= this.maxValue; i++) {
-                    if (this.dateData[i][0].createTime == createTime && this.dateData[i][0].title == title) {
+                    /*this.dateData[i][0].title == title*/
+                    if (this.dateData[i][0].createTime.substring(0,10) == createTime) {
                         this.dateIndex = i
                         break
                     }

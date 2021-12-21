@@ -17,15 +17,15 @@
                 <!--小视图-->
                 <el-tooltip class="item" style="float: right" content="小视图" placement="bottom">
                     <i @click="changeViewScale('small')" class="el-icon-s-grid"
-                       :style="{borderBottom: imageScale == '100px'?'4px solid blue':''}" style="font-size: 30px;"></i>
+                       :style="{borderBottom: imageScale == '200px'?'4px solid blue':''}" style="font-size: 30px;"></i>
                 </el-tooltip>
                 <el-tooltip class="item" style="float: right" content="中视图" placement="bottom">
                     <i @click="changeViewScale('medium')" class="el-icon-menu"
-                       :style="{borderBottom: imageScale == '250px'?'4px solid blue':''}" style="font-size: 30px"></i>
+                       :style="{borderBottom: imageScale == '400px'?'4px solid blue':''}" style="font-size: 30px"></i>
                 </el-tooltip>
                 <el-tooltip class="item" style="float: right" content="大视图" placement="bottom">
                     <i @click="changeViewScale('big')" class="el-icon-s-platform"
-                       :style="{borderBottom: imageScale == '500px'?'4px solid blue':''}" style="font-size: 30px"></i>
+                       :style="{borderBottom: imageScale == '600px'?'4px solid blue':''}" style="font-size: 30px"></i>
                 </el-tooltip>
                 <!--图片排序-->
                 <el-tooltip class="item" style="float: right" content="逆序" placement="bottom">
@@ -82,8 +82,8 @@
                             v-for="(image,index) in $store.state.currentImageList"
                             :key="index"
                             placement="top"
-                            :color="currentIndex == index ? '#0bbd87': ''"
-                            @click.native="currentIndex = index"
+                            :color="$store.state.currentIndex == index ? '#0bbd87': ''"
+                            @click.native="$store.state.currentIndex = index"
                             @mouseenter.native="enterIndex = index"
                             :timestamp="image.createTime + ' ' + image.images.length + '张照片'">
                         <!--列表区  标题  标签  内容-->
@@ -94,7 +94,7 @@
                             <i v-if="image.location" class="el-icon-location"></i>
                             {{ image.location}}
                         </a>
-                        <el-row :style="{  backgroundColor:getBgColor(index),border:currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
+                        <el-row :style="{  backgroundColor:getBgColor(index),border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
                                 style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;">
                             <!--缩略图-->
                             <el-row>
@@ -125,7 +125,6 @@
                                             <imageDetail :image-scale="imageScale"
                                                          :img="img"
                                                          :index-inner="indexInner"
-                                                         :current-index="currentIndex"
                                                          :images = "image.images"
                                                          @getShowImageInfo="getShowImageInfo"
                                             >
@@ -172,7 +171,6 @@
                 sortPanelMouseLeave: true,// 鼠标是否离开了排序面板区域
                 imageScale: "200px", //视图大小  默认为小等视图
                 currentImageId: "", //当前图片id
-                currentIndex: 0, //当前时间index
                 enterIndex: 0, // 鼠标移入的index
                 imageUploadLastTime:0, //上传图片的定时器
                 uploading : false, //控制上传的状态
@@ -248,17 +246,17 @@
             handleCheckAllChange(allChecked) {
                 /*添加当前日期聚合的照片id到选中列表中*/
                 if (allChecked) {
-                    this.$store.state.currentImageList[this.currentIndex].checkedImages = []
-                    this.$store.state.currentImageList[this.currentIndex].checkedImages = this.$store.state.currentImageList[this.currentIndex].images
+                    this.$store.state.currentImageList[ this.$store.state.currentIndex].checkedImages = []
+                    this.$store.state.currentImageList[this.$store.state.currentIndex].checkedImages = this.$store.state.currentImageList[this.$store.state.currentIndex].images
                 } else { /*移除当前选中的list*/
-                    this.$store.state.currentImageList[this.currentIndex].checkedImages = []
+                    this.$store.state.currentImageList[this.$store.state.currentIndex].checkedImages = []
                 }
                 console.log(this.checkedImages.length)
             },
             handleCheckedImagesChange(checkedArray) {
                 /*当前时间图片都在已选中时 将当前选中checkAll 设置为true 否则为false*/
                 let checkedCount = checkedArray.length;
-                this.$store.state.currentImageList[this.currentIndex].checkedAll = checkedCount === this.$store.state.currentImageList[this.currentIndex].images.length;
+                this.$store.state.currentImageList[this.$store.state.currentIndex].checkedAll = checkedCount === this.$store.state.currentImageList[this.$store.state.currentIndex].images.length;
                 console.log(this.checkedImages.length)
             },
             /*清空回收站图片*/
@@ -435,7 +433,7 @@
             /*控制列表颜色*/
             getBgColor(index) {
                 /* 若当前 index 被选中 则直接返回选中颜色 进入就返回 hover颜色 其他情况就都返回白色(背景遮挡色)*/
-                if (this.currentIndex == index) return "#E6E6E6" /*选中时的灰色*/
+                if (this.$store.state.currentIndex == index) return "#E6E6E6" /*选中时的灰色*/
                 if (this.enterIndex == index) return "#EDF6FD" /*天蓝色*/
                 return "#ffffff"
             },
