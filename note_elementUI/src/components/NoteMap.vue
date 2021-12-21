@@ -43,7 +43,6 @@
                 /*高德地图相关*/
                 marker: '',
                 map: '',
-                layer: '',
                 position: [],
                 makerClick: false,
                 mapStyle: this.$store.state.sortWay.maptheme,//地图的主题
@@ -87,7 +86,7 @@
                 this.addMarker()
 
                 /*给地图绑定缩放事件*/
-                map.on('zoomchange', this.mapZoom);
+                // map.on('zoomchange', this.mapZoom);
                 /*添加历史坐标*/
                 this.initMakers(data)
             },
@@ -191,11 +190,11 @@
             /*地图的缩放事件*/
             mapZoom() {
                 /*1.清除当前标题内容*/
-                this.marker.setContent('')
-                this.addMarker()
+                // this.marker.setContent('')
+                // this.addMarker()
             },
             /*初始化地图上的点 缩放时要重新定位*/
-            initMakers() {
+            initMakers(data) {
                 let layer = new Loca.PointLayer({
                     eventSupport: true,
                     map: this.map
@@ -224,8 +223,7 @@
                     /*同步时间轴的位置*/
                     vm.$bus.$emit('setDateIndex', ev.rawData.title, ev.rawData.createTime)
                 });
-                let notes = this.$store.state.notes /*diarymapData.diarymapData*/
-                layer.setData(notes, {
+                layer.setData(data, {
                     lnglat: function (data) {
                         /*  let item = data.value;
                         return [item.lng, item.lat];*/
@@ -247,7 +245,57 @@
                     }
                 });
                 layer.render();
-                this.layer = layer
+
+                /*添加照片图层*/
+                let imageLayer = new Loca.PointLayer({
+                    eventSupport: true,
+                    map: this.map
+                });
+                imageLayer.on('mouseenter', function (ev) {
+                    // console.log('layer mouseenter', ev,ev.rawData.title)
+                    /*点击的时候不重复执行*/
+                    if (!vm.makerClick) {
+                        vm.updateContent(ev.rawData.title, ev.rawData.createTime)
+                    }
+
+                    vm.makerClick = false
+                    /*消除笔记点击进入控制的定位*/
+                    vm.$store.state.noteClickLocation = false
+                });
+
+                imageLayer.on('click', function (ev) {
+                    vm.makerClick = true
+                    vm.title = ev.rawData.title
+                    vm.createTime = ev.rawData.createTime
+                    // console.log('click', ev.rawData)
+                    vm.position = ev.lnglat
+                    vm.updateMapCenter(vm.position)
+                    vm.updateContent()
+                    /*同步时间轴的位置*/
+                    vm.$bus.$emit('setDateIndex', ev.rawData.title, ev.rawData.createTime)
+                });
+                let gpsImage = this.$store.state.fileList.filter(i => i.lnglat.length > 0)
+                imageLayer.setData(gpsImage, {
+                    lnglat: function (data) {
+                        let item = data.value.lnglat.split(',');
+                        return [Number(item[0]), Number(item[1])];
+                    }
+                });
+                imageLayer.setOptions({
+                    style: {
+                        radius: 4,
+                        color: '#b707e8',
+                        borderColor: '#5365db',
+                        borderWidth: 1.5,
+                        opacity: 0.8
+                    },
+                    selectStyle: {
+                        radius: 14,
+                        color: '#FFF684'
+                    }
+                });
+                imageLayer.render();
+                // this.layer = layer
             },
             getShowImageInfo(showImageInfo) {
                 this.showImageInfo = showImageInfo
@@ -261,7 +309,7 @@
             // console.log('map created ...')
         },
         destroyed() {
-            this.map.off('zoomchange', this.mapZoom);
+            // this.map.off('zoomchange', this.mapZoom);
         },
         watch: {
             mapStyle(flag) {

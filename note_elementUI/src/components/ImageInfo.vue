@@ -91,7 +91,7 @@
 
                 let {lnglat, title, createTime} = this.$store.state.currentImage
                 /*在地图上定位*/
-                this.$bus.$emit("toMap", lnglat, title, createTime.substring(0,10))
+                this.$bus.$emit("toMap", lnglat, title, createTime)
                 /*关闭大图预览*/
                 let domImageMask = document.querySelector(".el-image-viewer__close");
                 if (domImageMask) {
