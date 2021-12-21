@@ -72,7 +72,7 @@
                     <!--位置-->
                     <div style="margin-left: 10px">
                         <i class="el-icon-location-information"></i>
-                        <a href="#/map" @click="toMap">{{location}}</a>
+                        <a href="#/map" @click="noteToMap">{{location}}</a>
                     </div>
                 </el-row>
             </el-header>
@@ -202,16 +202,10 @@
             },
         },
         methods: {
-            toMap(){
+            noteToMap(){
                 /*控制进入地图时 鼠标经过密度线 地图中心不移动*/
-                this.$store.state.noteClickLocation = true
-                this.$router.push({name: 'map'})
-                let note = this.$store.state.currentNote
-                /*在地图上定位*/
-                this.$bus.$emit('toPoint', note.lnglat.split(',')[0], note.lnglat.split(',')[1], this.$store.state.currentNote.title, this.$store.state.currentNote.createTime)
-                /*定位时间轴*/
-                this.$bus.$emit('setDateIndex',note.title,note.createTime)
-
+                let {lnglat,title,createTime} = this.$store.state.currentNote
+                this.$bus.$emit("toMap",lnglat,title,createTime)
             },
             /*收起时间选择面板*/
             foldTimePicker() {

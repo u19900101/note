@@ -146,11 +146,21 @@
                 })
                 /*大图预览bug*/
                 this.$store.state.currentImageUrlList = [1, 2, 3]
+            },
+            toMap(lnglat,title,createTime){
+                this.$store.state.noteClickLocation = true
+                this.$router.push({name: 'map'})
+                /*在地图上定位*/
+                this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
+                /*定位时间轴*/
+                this.$bus.$emit('setDateIndex',title,createTime)
             }
         },
         // 组件创建时 请求数据
         created() {
             this.getData()
+            /*注册全局事件*/
+            this.$bus.$on("toMap",this.toMap)
         },
         mounted() {
             // this.$router.push({name: 'notepage'})

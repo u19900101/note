@@ -1,7 +1,7 @@
 <template>
-    <div >
+    <div>
         <!-- 拍摄日期、图片名称、位置-->
-        <div  class="imgInfo">
+        <div class="imgInfo">
             <!--拍摄日期 -->
             <div class="imgTime">
                 <el-date-picker
@@ -18,11 +18,17 @@
                 <template slot="append">.{{$store.state.currentImage.title.split(".")[1]}}</template>
             </el-input>
             <!--位置-->
-            <div class="info" :style="{width: getBt($store.state.currentImage.location) + 'px'}"
+            <div class="more-line" style="background-color: #FFFFFF"
+                 :style="{width: getBt($store.state.currentImage.location) + 'px'}"
+                 @click="toMap"
                  v-if="$store.state.currentImage.location">
                 <i class="el-icon-location"></i>
-                <a :href="'http://maps.google.com/maps?z=6&q=' + $store.state.currentImage.lnglat"
-                   style="font-size: mini;color:#49a2de">{{$store.state.currentImage.location}}</a>
+                <a href="#/map" @click="toMap" style="font-size: mini;color:#49a2de">
+                    <span>
+                        {{$store.state.currentImage.location}}
+                    </span>
+                </a>
+
             </div>
 
         </div>
@@ -37,17 +43,18 @@
 
 <script>
     import imageTag from "./ImageTag";
+
     let dayjs = require('dayjs');
     export default {
         name: "ImageInfo",
-        components:{imageTag,},
-        data(){
-            return{
+        components: {imageTag,},
+        data() {
+            return {
                 imageCreateTimeLastTime: 0, //修改照片名称的定时器
                 imageNameLastTime: 0, //修改照片名称的定时器
             }
         },
-        computed:{
+        computed: {
             imageName: {
                 get: function () {
                     return this.$store.state.currentImage.title.split('.')[0]
@@ -70,7 +77,21 @@
                 }
             },
         },
-        methods:{
+        methods: {
+            toMap() {
+                let {lnglat, title, createTime} = this.$store.state.currentImage
+                /*在地图上定位*/
+                this.$bus.$emit("toMap", lnglat, title, createTime)
+                /*展示当天图片*/
+                this.$store.state.dayImages = this.$store.state.fileList.filter((i) =>
+                    i.createTime.split(" ")[0].substring(0,10) == createTime.split(" ")[0].substring(0,10))
+
+                /*关闭大图预览*/
+                let domImageMask = document.querySelector(".el-image-viewer__close");
+                if(domImageMask){
+                    domImageMask.click()
+                }
+            },
             getImgageSize(byteNum) {
                 if (byteNum < 1024 * 1024) {
                     let kb = (byteNum / 1024).toString()
@@ -152,14 +173,19 @@
         top: 40px;
     }
 
-    .imgInfo .info {
+    .imgInfo .more-line {
         height: 40px;
         line-height: 40px;
         background-color: #ffffff;
         border: 1px solid #D7DADC;
         border-radius: 5px;
         text-align: center;
-        /* margin-left: auto;*/ /*右对齐*/
+        display: -webkit-box !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-all;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1; /*行数的设置*/
     }
 
     /*设置时间图标的位置*/

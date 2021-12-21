@@ -23,7 +23,7 @@
             </el-slider>
             <div style="display: flex;justify-content:space-between;margin-top: 4px;">
                 <div v-for="(d,index) in dateData">
-                    <el-tooltip class="item" effect="dark" :content="dateData[dateIndex][0].title ? dateData[dateIndex][0].title : (dateData[dateIndex][1].images ? '图片':'无内容')" placement="bottom">
+                    <el-tooltip class="item" effect="dark" :content="dateData[index][0].title ? dateData[index][0].title : (dateData[index][1].images ? '图片':'无内容')" placement="bottom">
                         <div @mouseenter="$store.state.noteClickLocation ? '':dateIndex = index"
                              :style="{backgroundColor: dateData[index][0].title || dateData[index][1].images ?'#000000' :'#ffffff'}" class="vLine"></div>
                     </el-tooltip>
@@ -88,6 +88,12 @@
                 return [year, month, day].join('-');
             },
             initArr(arr) {
+                /*判断是否要逆序*/
+                if(arr.length >1){
+                    if(new Date(arr[0].createTime) - new Date(arr[arr.length-1].createTime) > 0){
+                        arr.reverse()
+                    }
+                }
                 let curday = arr[0].createTime.substring(0, 10)
                 for (let i = 0; i < arr.length - 1; i++) {
                     /*补全缺失的日期*/
@@ -109,6 +115,7 @@
                     }
                     curday = nextDay
                 }
+
             },
             initDateData(noteArr, imageArr) {
                 let minDay = noteArr[0].createTime.substring(0,10)
@@ -147,6 +154,7 @@
                 this.initArr(imageArr)
                 /*对齐两个时间 生成一个大数组*/
                 this.dateData = this.initDateData(noteArr,imageArr)
+                // console.log(this.dateData)
             },
 
             play() {
