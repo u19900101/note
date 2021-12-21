@@ -84,12 +84,12 @@
                             placement="top"
                             :color="$store.state.currentIndex == index ? '#0bbd87': ''"
                             @click.native="$store.state.currentIndex = index"
-                            @mouseenter.native="enterIndex = index"
+                            @mouseenter.native="enterIndex = index;"
                             :timestamp="image.createTime + ' ' + image.images.length + '张照片'">
                         <!--列表区  标题  标签  内容-->
                         <!--    <span style="color: #1a1a17">{{image.images.length}} 张照片</span>-->
                         <!--位置-->
-                        <a :href="'http://maps.google.com/maps?z=6&q=' + image.lnglat"
+                        <a href="#/map" @click="imageToMap(index)"
                            style="font-size: mini;color:#49a2de">
                             <i v-if="image.location" class="el-icon-location"></i>
                             {{ image.location}}
@@ -207,7 +207,10 @@
             }
         },
         methods: {
-
+            imageToMap(index){
+                this.$store.state.currentIndex = index
+                this.$bus.$emit("imageToMap")
+            },
             /*文件上传成功时的钩子 response.data 为单个picture*/
             uploadSuccess(response, file, fileList) {
                 // console.log(response, file, fileList)

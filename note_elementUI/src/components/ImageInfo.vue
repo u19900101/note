@@ -77,26 +77,8 @@
             },
         },
         methods: {
-            imageToMap() {
-                /*封装当天图片*/
-                let indexImages = this.$store.state.currentImageList[this.$store.state.currentIndex].images
-
-                /*当跳转之前的视图正好是日视图时 直接进行赋值 若不是就进行封装*/
-                if (indexImages.length > 1 &&
-                    (indexImages[0].createTime.substring(0,10) != indexImages[indexImages.length-1].createTime.substring(0,10))) {
-                    indexImages = this.tool.groupImages("day",indexImages)
-                    indexImages = indexImages.filter(i => i.createTime.replace("年","-").replace("月","-").replace("日","") == this.$store.state.currentImage.createTime.substring(0,10))[0].images
-                }
-                this.$store.state.dayImages = indexImages
-
-                let {lnglat, title, createTime} = this.$store.state.currentImage
-                /*在地图上定位*/
-                this.$bus.$emit("toMap", lnglat, title, createTime)
-                /*关闭大图预览*/
-                let domImageMask = document.querySelector(".el-image-viewer__close");
-                if (domImageMask) {
-                    domImageMask.click()
-                }
+            imageToMap(){
+                this.$bus.$emit("imageToMap")
             },
             getImgageSize(byteNum) {
                 if (byteNum < 1024 * 1024) {

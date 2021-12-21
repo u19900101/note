@@ -28,9 +28,9 @@
                     <router-view name="imageList"></router-view>
                     <router-view name="noteBook_tag"></router-view>
                 </keep-alive>
-               <!-- <imageList v-if="$store.state.fileMode"></imageList>-->
+                <!-- <imageList v-if="$store.state.fileMode"></imageList>-->
                 <!--笔记本和标签页面-->
-              <!--  <noteBook_tag v-else></noteBook_tag>-->
+                <!--  <noteBook_tag v-else></noteBook_tag>-->
             </el-main>
         </el-container>
     </el-container>
@@ -69,7 +69,7 @@
                     this.$store.state.listTitle = data.data[0][0].title
                     /* 将noteBookTree 封装上笔记的数量*/
                     this.$store.state.noteBooksTreePure = JSON.parse(JSON.stringify(data.data[1]))
-                    this.tool.addNoteCount(data.data[1],'notebook')
+                    this.tool.addNoteCount(data.data[1], 'notebook')
                     this.$store.state.noteBooksTree = data.data[1]
 
                     // console.log('kkkk',data.data[1])
@@ -100,7 +100,7 @@
                         this.$store.state.imageTags = data.data[1]
                         /* 将标签数据 封装上笔记的数量*/
                         this.$store.state.imageTreePure = JSON.parse(JSON.stringify(data.data[0]));
-                        this.tool.addNoteCount(this.$store.state.imageTagsTree,'imageTag')
+                        this.tool.addNoteCount(this.$store.state.imageTagsTree, 'imageTag')
                     })
 
                 }).then(() => {
@@ -120,7 +120,7 @@
                             this.$store.state.tagsTree = data.data[0];
                             this.$store.state.tagsTreePure = JSON.parse(JSON.stringify(data.data[0]));
                             this.$store.state.tags = data.data[1];
-                            this.tool.addNoteCount(this.$store.state.tagsTree,'noteTag')
+                            this.tool.addNoteCount(this.$store.state.tagsTree, 'noteTag')
                         }).then(() => {
                             // 创建页面时初始化
                             // 1.先初始化 列表  在列表排序中初始化 noteId
@@ -147,17 +147,49 @@
                 /*大图预览bug*/
                 this.$store.state.currentImageUrlList = [1, 2, 3]
             },
-            toMap(lnglat,title,createTime){
+            toMap(lnglat, title, createTime) {
                 this.$router.push({name: 'map'})
                 /*定位时间轴 之后会自动在地图上联动定位*/
-                this.$bus.$emit('setDateIndex',title,createTime)
-            }
+                this.$bus.$emit('setDateIndex', title, createTime)
+            },
+            imageToMap() {
+                /*封装当天图片*/
+                let indexImages = this.$store.state.currentImageList[this.$store.state.currentIndex].images
+                /*当跳转之前的视图正好是日视图时 直接进行赋值 若不是就进行封装*/
+                if (indexImages.length > 1 &&
+                    (indexImages[0].createTime.substring(0, 10) != indexImages[indexImages.length - 1].createTime.substring(0, 10))) {
+                    indexImages = this.tool.groupImages("day", indexImages)
+                    indexImages = indexImages.filter(i => i.createTime.replace("年", "-").replace("月", "-").replace("日", "") == this.$store.state.currentImage.createTime.substring(0, 10))[0].images
+                }
+                this.$store.state.dayImages = indexImages
+                if (this.$store.state.currentImage.lnglat) {
+                    let {lnglat, title, createTime} = this.$store.state.currentImage
+                    /*在地图上定位*/
+                    this.$bus.$emit("toMap", lnglat, title, createTime)
+                }else {
+                //    找到第一张包含gps坐标的当天图片
+                    for (let image of indexImages) {
+                        if(image.lnglat){
+                            let {lnglat, title, createTime} = image
+                            this.$bus.$emit("toMap", lnglat, title, createTime)
+                            break
+                        }
+                    }
+                }
+
+                /*关闭大图预览*/
+                let domImageMask = document.querySelector(".el-image-viewer__close");
+                if (domImageMask) {
+                    domImageMask.click()
+                }
+            },
         },
         // 组件创建时 请求数据
         created() {
             this.getData()
             /*注册全局事件*/
-            this.$bus.$on("toMap",this.toMap)
+            this.$bus.$on("toMap", this.toMap)
+            this.$bus.$on("imageToMap", this.imageToMap)
         },
         mounted() {
             // this.$router.push({name: 'notepage'})
