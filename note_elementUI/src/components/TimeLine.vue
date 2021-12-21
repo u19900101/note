@@ -201,29 +201,31 @@
                     if (title) {
                         this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
                     }
-
-                    /*展示图片*/
-                    if (this.dateData[this.dateIndex][1].images) {
-                        //    当当天没有笔记时 查看是否有图片，有的话就显示图片的地理位置
-                        this.$store.state.dayImages = this.dateData[this.dateIndex][1].images
-                        /*当天无笔记时 尝试以当天的图片来进行定位*/
-                        if (!title) {
-                            for (let dayImage of this.$store.state.dayImages) {
-                                console.log('dayImage', dayImage)
-                                if (dayImage.lnglat) {
-                                    console.log('dayImage.lnglat', dayImage.lnglat)
-                                    this.$store.state.isImageTitle = true
-                                    this.$bus.$emit('toPoint', dayImage.lnglat.split(',')[0], dayImage.lnglat.split(',')[1], dayImage.title, dayImage.createTime)
-                                    break
-                                }
-                            }
-                        }
-                    } else {
-                        /*清空*/
-                        this.$store.state.dayImages = []
-                    }
+                    /*初始化地图要展示的图片*/
+                    this.setDayImages(title)
                 }
                 this.isTitleSet = false
+            },
+            setDayImages(title) {
+                if (this.dateData[this.dateIndex][1].images) {
+                    //    当当天没有笔记时 查看是否有图片，有的话就显示图片的地理位置
+                    this.$store.state.dayImages = this.dateData[this.dateIndex][1].images
+                    /*当天无笔记时 尝试以当天的图片来进行定位*/
+                    if (!title) {
+                        for (let dayImage of this.$store.state.dayImages) {
+                            console.log('dayImage', dayImage)
+                            if (dayImage.lnglat) {
+                                console.log('dayImage.lnglat', dayImage.lnglat)
+                                this.$store.state.isImageTitle = true
+                                this.$bus.$emit('toPoint', dayImage.lnglat.split(',')[0], dayImage.lnglat.split(',')[1], dayImage.title, dayImage.createTime)
+                                break
+                            }
+                        }
+                    }
+                } else {
+                    /*清空*/
+                    this.$store.state.dayImages = []
+                }
             },
             formatTooltip(val) {
                 if (!val) {
@@ -242,8 +244,17 @@
                     if (isImage || isNote) {
                         let temp = isNote ? this.dateData[i][0] : this.dateData[i][1].images[0]
                         this.$bus.$emit('toPoint', temp.lnglat.split(',')[0], temp.lnglat.split(',')[1], title, createTime)
-                        this.isTitleSet = true
                         this.dateIndex = i
+                        if (this.dateData[this.dateIndex][1].images) {
+                            //  当当天没有笔记时 查看是否有图片，有的话就显示图片的地理位置
+                            this.$store.state.dayImages = this.dateData[this.dateIndex][1].images
+                        } else {
+                            /*清空*/
+                            this.$store.state.dayImages = []
+                        }
+
+                        this.isTitleSet = true
+
                         break
                     }
                 }
@@ -262,6 +273,7 @@
                 }
                 return notes
             },
+
         },
         mounted() {
             this.$bus.$on('setDateIndex', this.setDateIndex)
