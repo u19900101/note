@@ -56,6 +56,14 @@ public class RegexDemo {
     }
 
     @Test
+    public void T_replaeAll2(){
+        String content = "1,2,3,";
+        // String replaceAll = content.replaceAll("^\\<img.*?\\>$","替换");
+        String replaceAll = content.replaceAll("\\[|\\]","替换");
+        System.out.println(replaceAll);
+    }
+
+    @Test
     public void T_搜索(){
         String content = "dddddddddd<img src=\"http://lpgogo.xxxxxreensdddd9.png\" style=\"zoom:30%;\"/>\nggggg";
         Pattern p = Pattern.compile("\\<img.*?\\>");
@@ -78,5 +86,38 @@ public class RegexDemo {
             System.out.println("group2=" + matcher.group(2)); // "0000"
         }
     }
+
+    @Test
+    public void T_找出所有数字并分组(){
+        Pattern p = Pattern.compile("\\d+");
+        String content = "sss1230,1000,256,";
+        Matcher m = p.matcher(content);
+        while (m.find()) {
+            String sub = content.substring(m.start(), m.end());
+            System.out.println(sub);
+        }
+    }
+    @Test
+    public void T_kk(){
+        String content = "[[1,2,4],[1,2,3,4],[1,2,3,4]]";
+        Pattern p = Pattern.compile("\\[\\d+.*?\\]");
+        Matcher m = p.matcher(content);
+        while (m.find()) {
+            String sub = content.substring(m.start(), m.end());
+            System.out.println(sub);
+        }
+    }
+
+    @Test
+    public void T_kk2(){
+        String content = "[[-1240, 1122], [1253, 1212], [-1271, 1301], [1271, 1301]]";
+        Pattern p = Pattern.compile("\\[\\-?\\d+.*?\\]");
+        Matcher m = p.matcher(content);
+        while (m.find()) {
+            String sub = content.substring(m.start(), m.end());
+            System.out.println(sub);
+        }
+    }
+
 
 }

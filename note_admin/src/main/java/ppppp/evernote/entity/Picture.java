@@ -41,6 +41,9 @@ public class Picture implements Serializable {
     private Date updateTime;
     // 标签uid
     private String tagUid;
+
+    // 人脸
+    private String faceUid;
     //收藏
     private Boolean star;
     //网络地址
@@ -53,5 +56,9 @@ public class Picture implements Serializable {
     @TableField(exist = false)
     // 解决初始化赋值时为null
     private List<ImageTag> tagList = new ArrayList<>();
+
+    @TableField(exist = false)
+    // 解决初始化赋值时为null
+    private List<Face> faceList = new ArrayList<>();
 
 }

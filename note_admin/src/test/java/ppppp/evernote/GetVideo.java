@@ -23,6 +23,7 @@ import java.util.UUID;
 
 public class GetVideo {
 
+
     public static void getVideoInfo(String videoPath, Picture picture) {
         //ffmepg工具地址
         String ffmpegPath = "D:\\MyJava\\mylifeImg\\src\\main\\resource\\ffmpeg.exe";
