@@ -176,6 +176,10 @@
                     case 'map':
                         this.toPage('map')
                         break; /* 地图模式 */
+                    /*人物*/
+                    case 'person':
+                        this.toPage('person')
+                        break;
                     default:
                         /*区分是 点击的是笔记本 还是 标签*/
                         let firstLevelTitle = this.getfirstLevelTitle(node)
@@ -759,6 +763,11 @@
                         {
                             id: 'map',
                             title: '地图 (' + this.$store.state.notes.length + ')'
+                        },
+                        /*地图*/
+                        {
+                            id: 'person',
+                            title: '人物 (xxx)'
                         },
                         {
                             id: 'allNotes',

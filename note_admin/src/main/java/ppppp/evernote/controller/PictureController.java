@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ppppp.evernote.entity.*;
-import ppppp.evernote.mapper.FaceNameMapper;
 import ppppp.evernote.mapper.PictureMapper;
 import ppppp.evernote.service.*;
 import ppppp.evernote.util.MyUtils;
@@ -62,8 +61,9 @@ public class PictureController {
     @RequestMapping("/allFiles")
     public String getAllPictures() {
         List<Picture> pictureListList = getSortWayNotes();
-        /*给照片封装标签数据*/
+        /*给照片封装标签数据 和人脸数据*/
         fillPictureListList(pictureListList);
+
         return ResultUtil.successWithData(pictureListList);
     }
 
@@ -174,7 +174,7 @@ public class PictureController {
             new Thread(() -> {
                 try {
                     faceRecognition(multipartFile, finalPicture.getId());
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
             }).start();
@@ -188,7 +188,7 @@ public class PictureController {
     }
 
     /*进行人脸识别 若存在人脸则写入face表中 并且更新picture表*/
-    private void faceRecognition(MultipartFile multipartFile, Integer pictureId) throws IOException {
+    private void faceRecognition(MultipartFile multipartFile, Integer pictureId) throws IOException, InterruptedException {
         File pictureFile = File.createTempFile(String.valueOf(UUID.randomUUID()), multipartFile.getOriginalFilename());
         try {
             multipartFile.transferTo(pictureFile);
@@ -198,15 +198,35 @@ public class PictureController {
             if (faceArrayList.size() > 0) {
                 for (Face face : faceArrayList) {
                     face.setPictureId(pictureId);
+                    /*将对其后的人脸上传到服务器 img/face 下 1.获取返回的人脸 fileName*/
+                    String faceAbsPath = "D:\\MyMind\\note\\data\\pythonModule\\python\\" + face.getUrl();
+                    Thread thread = new Thread(() -> {
+                        try {
+                            sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
+                            String fileName = sftp.uploadFaceFile(new File(faceAbsPath),"/mydata/nginx/html/img/", "/face");
+                            sftp.release();
+                            if (!fileName.equals("error")) {
+                                // System.out.println("人脸上传成功 " + fileName);
+                                String faceUrl = "http://lpgogo.top/img/face/" + fileName;
+                                face.setUrl(faceUrl);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    thread.start();
+                    thread.join();
                 }
+                /*保存人脸到数据库*/
                 boolean b = faceService.saveBatch(faceArrayList);
+                /*更新对应的picture*/
                 if (b) {
                     String faceUid = "";
                     for (Face face : faceArrayList) {
                         int faceNameId = face.getFaceNameId();
                         /*若出现新的面孔 则创建新的faceName*/
-                        updateFaceNameTable(faceNameId);
-                        faceUid += faceNameId + ",";
+                        updatePerson(faceNameId,pictureId);
+                        faceUid += face.getId() + ",";
                     }
                     Picture picture = pictureMapper.selectById(pictureId);
                     picture.setFaceUid(faceUid);
@@ -220,18 +240,28 @@ public class PictureController {
         }
     }
 
-    @Autowired
-    FaceNameMapper faceNameMapper;
 
-    private void updateFaceNameTable(int faceNameId) {
-        FaceName faceName = faceNameMapper.selectById(faceNameId);
-        if (faceName == null) {
-            FaceName name = new FaceName();
+    @Autowired
+    PersonService personService;
+
+    /*更新人物的pid 或新建人物*/
+    private void updatePerson(int faceNameId,int pictureId) {
+        Person person = personService.getById(faceNameId);
+        //新建人物
+        if (person == null) {
+            Person name = new Person();
             name.setName("未命名");
             name.setId(faceNameId);
-            faceNameMapper.insert(name);
+            person.setCount(1);
+            name.setPictureUid(pictureId + ",");
+            personService.save(name);
+        }else {// 更新人物
+            person.setPictureUid(person.getPictureUid() + pictureId + ",");
+            person.setCount(person.getCount() + 1);
+            personService.updateById(person);
         }
     }
+
 
     public ArrayList<Face> getFaceMethod(String imgAbsPath) {
 
@@ -239,15 +269,15 @@ public class PictureController {
         /*1.人脸识别*/
         /*2.人类比对*/
         /*封装已经存在的人脸*/
-        ArrayList<String> face_encoding = new ArrayList();
-        ArrayList<Integer> face_name_id = new ArrayList();
-        List<Face> knownFaces = faceService.lambdaQuery().list();
-        for (Face face : knownFaces) {
-            face_encoding.add(face.getFaceEncoding());
-            face_name_id.add(face.getFaceNameId());
-        }
-        String known_face_encodings = face_encoding.toString();
-        String known_face_ids = face_name_id.toString();
+        // ArrayList<String> face_encoding = new ArrayList();
+        // ArrayList<Integer> face_name_id = new ArrayList();
+        // List<Face> knownFaces = faceService.lambdaQuery().list();
+        // for (Face face : knownFaces) {
+        //     face_encoding.add(face.getFaceEncoding());
+        //     face_name_id.add(face.getFaceNameId());
+        // }
+        // String known_face_encodings = face_encoding.toString();
+        // String known_face_ids = face_name_id.toString();
         /*使用已经得到的人脸作为人脸数据库*/
 
         /* 人脸编码：128*1 人脸位置： 矩形  特征点位置：72*2  */
@@ -258,7 +288,7 @@ public class PictureController {
             String pyFilePath = "D:\\MyMind\\note\\data\\pythonModule\\python\\getFaceInfo.py";
             //要指定python的环境 不然使用的系统默认
             String[] args = new String[]{"D:\\MyMind\\note\\venv\\Scripts\\python",
-                    pyFilePath, imgAbsPath, known_face_encodings, known_face_ids};
+                    pyFilePath, imgAbsPath}; /*, known_face_encodings, known_face_ids*/
             Process proc = Runtime.getRuntime().exec(args);// 执行py文件
             BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             String line = null;
@@ -266,10 +296,10 @@ public class PictureController {
             ArrayList<String> face_locations = new ArrayList<>();
             ArrayList<String> face_landmarks = new ArrayList<>();
             String[] face_name_ids = null;
-            List<Integer> face_name_ids_List = new ArrayList();
+
 
             int faceNum = 0;
-
+            /*判断是否检测到了人脸*/
             if ((line = in.readLine()) != null) {
                 if (Integer.valueOf(line) == 0) {
                     System.out.println("未检测到人脸");
@@ -277,20 +307,29 @@ public class PictureController {
                 }
                 faceNum = Integer.parseInt(line);
             }
-
+            /*face_name_ids*/
             if ((line = in.readLine()) != null) {
                 face_name_ids = line.replaceAll(" |\\[|\\]", "").split(",");
             }
+            /*face_encodings*/
             if ((line = in.readLine()) != null) {
                 /*可能存在 - 号开头的情况*/
                 getByReg("\\[\\-?\\d+.*?\\]", face_encodings, line);
             }
+            /*face_locations*/
             if ((line = in.readLine()) != null) {
-                /*将字符数组分割*/
                 getByReg("\\[\\d+.*?\\]", face_locations, line);
             }
+            /*face_landmarks*/
             if ((line = in.readLine()) != null) {
                 getByReg("\\[{2}\\d+.*?\\]{2}", face_landmarks, line);
+            }
+
+            /*对齐的人脸路径*/
+            String [] face_urls = null;
+            if ((line = in.readLine()) != null) {
+                //temp_1.jpg,temp_2.jpg,    String absPre = "D:\\MyMind\\note\\data\\pythonModule\\python\\";
+                face_urls = line.split(",");
             }
 
             /*将人脸封装为单张*/
@@ -300,9 +339,11 @@ public class PictureController {
                 face.setFaceEncoding(face_encodings.get(i));
                 face.setFaceLandmarks(face_landmarks.get(i));
                 face.setFaceLocations(face_locations.get(i));
+                face.setUrl(face_urls[i]);
                 faces.add(face);
             }
         } catch (IOException e) {
+            System.out.println(e);
             e.printStackTrace();
         }
         return faces;
@@ -436,12 +477,27 @@ public class PictureController {
         return getAllPictures();
     }
 
+
     private void fillPictureListList(List<Picture> pictureListList) {
         for (Picture picture : pictureListList) {
             if (picture.getTagUid() != null && picture.getTagUid().length() > 1) {
                 for (String tagId : picture.getTagUid().split(",")) {
                     ImageTag tag = imageTagService.getById(tagId);
                     picture.getTagList().add(tag);
+                }
+            }
+
+            /*封装所有人脸*/
+            if (picture.getFaceUid() != null && picture.getFaceUid().length() > 1) {
+                for (String faceId : picture.getFaceUid().split(",")) {
+                    Face face = faceService.getById(faceId);
+                    if(face != null){
+                        /*不封装人脸编码字段*/
+                        face.setFaceEncoding(null);
+                        List<Face> faceListTemp = picture.getFaceList();
+                        faceListTemp.add(face);
+                        picture.setFaceList(faceListTemp);
+                    }
                 }
             }
         }

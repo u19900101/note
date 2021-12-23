@@ -7,6 +7,7 @@ import NoteBook_Tag from "../components/NoteBook_Tag";
 import Notepage from "../components/Notepage";
 import  C from "../components/C";
 import  NoteMap from "../components/NoteMap";
+import  Person from "../components/Person";
 
 
 //创建并暴露一个路由器
@@ -49,6 +50,13 @@ export default new VueRouter({
             path:'/map',
             components: {
                 imageList: NoteMap,
+            },
+        },
+        {
+            name: 'person',
+            path:'/person',
+            components: {
+                imageList: Person,
             },
         },
     ]

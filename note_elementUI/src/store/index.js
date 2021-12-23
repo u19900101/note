@@ -86,6 +86,13 @@ const state = {
     /*************地图*************/
     noteClickLocation: false, //控制从笔记第一次进入地图时 鼠标经过密度线 地图中心不移动
     isImageTitle : false, //地图上的标题是否为照片名称  控制点击标题是否跳转到笔记
+
+    /*人物*/
+    persons : [],//人脸图片聚合类  {"id": 3, "name": "未命名", "pictureList": [ "faceList": [{ "id": 15,"faceNameId": 3,
+                                                                                        // "pictureId": 159,
+                                                                                        // "faceEncoding": "",
+                                                                                        // "faceLocations": "[1810, 206, 321, 321]",
+                                                                                        // "faceLandmarks": "[[1925, 267], [1908, 297],}
 }
 
 //创建并暴露store

@@ -48,13 +48,14 @@ def getdemo(face_file_path):
     face_landmarks = face_recognition.face_landmarks(rgb_img,face_locations) #72个点
     face_encodings = face_recognition.face_encodings(rgb_img,face_locations)
 
+    print(face_landmarks,face_encodings,face_locations)
 
+
+    # 人脸对齐
     # 识别人脸特征点，并保存下来
     faces = dlib.full_object_detections()
     for det in dets:
         faces.append(sp(rgb_img, det))
-
-    # 人脸对齐
     images = dlib.get_face_chips(rgb_img, faces, size=320)
     # 显示计数，按照这个计数创建窗口
     image_cnt = 0
@@ -68,6 +69,6 @@ def getdemo(face_file_path):
 
 # face_file_path = 'D:/py/My_work/6_27_facebook/mtcnn-keras-master/img1/M/静.jpg'# 要使用的图片，图片放在当前文件夹中
 # face_file_path = '../face/d/静.jpg'# 要使用的图片，图片放在当前文件夹中
-face_file_path = '../face/9.jpg'# 要使用的图片，图片放在当前文件夹中
+face_file_path = '../face/d/10.jpg'# 要使用的图片，图片放在当前文件夹中
 getdemo(face_file_path)
 print("写入完毕..")

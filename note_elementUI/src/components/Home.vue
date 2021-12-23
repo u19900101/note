@@ -103,6 +103,11 @@
                         this.tool.addNoteCount(this.$store.state.imageTagsTree, 'imageTag')
                     })
 
+                    /*人脸数据*/
+                    this.https.getPersons().then(({data}) => {
+                        this.$store.state.persons = data.data
+                    })
+
                 }).then(() => {
                     // 2.获取笔记数据 初始化 notes
                     this.https.getNotes().then(({data}) => {
@@ -194,7 +199,8 @@
         mounted() {
             // this.$router.push({name: 'notepage'})
             // this.$router.push({name: 'calendar'})
-            this.$router.push({name: 'map'})
+            // this.$router.push({name: 'map'})
+            this.$router.push({name: 'person'})
             // this.$router.push({name: 'imageList'})
         }
     }

@@ -8,9 +8,10 @@ import lombok.Data;
  * @date 2021/12/22 17:06
  */
 @Data
-public class FaceName {
+public class Person {
     @TableField()
     private Integer id;
     private String name;
     private Integer count;
+    private String pictureUid;
 }

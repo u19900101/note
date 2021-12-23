@@ -14,6 +14,8 @@ public class Face {
     private String faceEncoding;
     /*在图片中的位置 4*1坐标*/
     private String faceLocations;
-    /*72*2特征点*/
+    /*68*2特征点*/
     private String faceLandmarks;
+
+    private String url;
 }

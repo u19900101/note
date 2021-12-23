@@ -158,6 +158,10 @@ export function deleteImageTag(data) {
     return vm.post('/api/admin/imageTag/deleteImageTag',data)
 }
 
+/*人物*/
+export function getPersons() {
+    return vm.get('/api/admin/person/allPersons')
+}
 
 
 export default {
@@ -191,7 +195,10 @@ export default {
             getFiles,getImageTags,getWastepaperPictureList,
             updateImage,updateImageTags,
             deleteImage,deleteImageTag,
-            recoverAllPictures,recoverSelectedPictures,deleteImageBatch
+            recoverAllPictures,recoverSelectedPictures,deleteImageBatch,
+
+            /*person*/
+            getPersons,
         }
     }
 }
