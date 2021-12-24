@@ -92,8 +92,13 @@
                     })
                 }, 2000)
             },
+            /*跳转到照片列表页面*/
             personClick(p) {
-
+                this.$store.state.listTitle = p.name
+                let dayImages = p.pictureList
+                dayImages = this.tool.groupImages("day", dayImages)
+                this.$store.state.currentImageList = dayImages
+                this.$router.push({name: 'imageList'})
             },
             /*获取人物组第一张本人在照片中的face信息(定位和关键点)*/
             getFace(p) {
