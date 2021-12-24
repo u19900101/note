@@ -1,6 +1,8 @@
 package ppppp.evernote.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ppppp.evernote.entity.Person;
@@ -35,4 +37,10 @@ public class PersonController {
         return ResultUtil.successWithData(allPerson);
     }
 
+    /*修改人物姓名*/
+    @PostMapping("/updatePersonName")
+    public String updatePersonName(@RequestBody Person person) {
+        boolean b = personService.updateById(person);
+        return ResultUtil.successWithData(b);
+    }
 }

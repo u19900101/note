@@ -16,12 +16,13 @@
          </canvas>
          <el-button @click="draw">kkk</el-button>-->
         <div v-for="person in persons" style="position: relative">
-            <div @mouseover="faceId = person.faceUrls[0]"
+            <div @mouseover="currentPerson = person"
                  @mouseleave="editPersonName = false"
                  style="display:flex;flex-direction: column;align-items: center;
             width: 200px;height: 260px;margin-left: 10px;border: 1px solid red">
                 <el-image
-                        :style="{width: imageScale,height: imageScale,boxShadow: faceId == person.faceUrls[0]?'0 0 5px 3px #999':''}"
+                        :style="{width: imageScale,height: imageScale,
+                        boxShadow: currentPerson.id == person.id?'0 0 5px 3px #999':''}"
                         style="border-radius: 50%;"
                         @click="personClick(person)"
                         :src="person.faceUrls[0]"
@@ -29,10 +30,10 @@
                 </el-image>
 
 
-                <el-input v-if = "faceId == person.faceUrls[0] && editPersonName"
+                <el-input v-if="currentPerson.id == person.id && editPersonName"
                           style="width: 150px;padding-left: 26px;font-size:20px;font-weight:bold;"
                           placeholder="添加姓名"
-                          v-model="person.name == '添加姓名'?'':person.name"
+                          v-model="currentPersonName"
                           clearable>
                 </el-input>
                 <strong v-else style="margin-top: 10px;font-size: 25px;"
@@ -56,11 +57,41 @@
             return {
                 imageScale: '200px',
                 persons: this.$store.state.persons,
-                faceId: 0,
                 editPersonName: false,
+                currentPerson: this.$store.state.persons[0],
+                personNameLastTime : 0,//修改名称定时器
+
+            }
+        },
+        computed:{
+            currentPersonName:{
+                get: function () {
+                    let name = this.currentPerson.name
+                    return name == '添加姓名' ? '':name
+                },
+                set: function (newPersonName) {
+                    /*1.更新页面*/
+                    this.currentPerson.name = newPersonName
+                    if (newPersonName.length > 0) {
+                        /*2.修改到数据库*/
+                        this.tool.setTimeoutUpdate(this.updatePersonName, this.personNameLastTime)
+                    }
+                }
             }
         },
         methods: {
+            updatePersonName() {
+
+                this.personNameLastTime = setTimeout(() => {
+                    let p = this.currentPerson
+                    this.https.updatePersonName({
+                        id: this.currentPerson.id,
+                        name: this.currentPerson.name
+                    }).then(({data}) => {
+                        console.log("修改人物名称成功", data);
+                    })
+                }, 2000)
+            },
             personClick(p) {
 
             },
