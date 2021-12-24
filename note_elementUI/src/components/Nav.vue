@@ -767,7 +767,7 @@
                         /*地图*/
                         {
                             id: 'person',
-                            title: '人物 (xxx)'
+                            title: '人物 ('+this.$store.state.persons.length+')'
                         },
                         {
                             id: 'allNotes',

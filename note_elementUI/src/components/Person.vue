@@ -1,5 +1,5 @@
 <template>
-    <div class="imgItem">
+    <div >
         <!--{{persons}}-->
         <!--横线-->
         <!-- <div    :style="{left: getFace(p).faceLocations[0],top: getFace(p).faceLocations[1]}"
@@ -15,48 +15,55 @@
              这是浏览器不支持canvas时展示的信息
          </canvas>
          <el-button @click="draw">kkk</el-button>-->
-        <div v-for="person in persons" style="position: relative">
-            <div @mouseover="currentPerson = person"
-                 @mouseleave="editPersonName = false"
-                 style="display:flex;flex-direction: column;align-items: center;
-            width: 200px;height: 260px;margin-left: 10px;border: 1px solid red">
-                <el-image
-                        :style="{width: imageScale,height: imageScale,
+
+        <!--使用draggable组件-->
+        <draggable v-model="$store.state.persons"  chosenClass="chosen" forceFallback="true" group="people" animation="1000"
+                   :disabled="$store.state.persons.length < 2"
+                   @start="onStart" @end="onEnd">
+            <transition-group class="imgItem">
+                <div v-for="person in $store.state.persons" :key="person.id" style="position: relative">
+                    <div @mouseover="currentPerson = person"
+                         @mouseleave="editPersonName = false"
+                         style="display:flex;flex-direction: column;align-items: center;
+            width: 200px;margin-left: 10px;border: 1px solid red">
+                        <el-image
+                                :style="{width: imageScale,height: imageScale,
                         boxShadow: currentPerson.id == person.id?'0 0 5px 3px #999':''}"
-                        style="border-radius: 50%;"
-                        @click="personClick(person)"
-                        :src="person.faceUrls[0]"
-                        fit="cover">
-                </el-image>
+                                style="border-radius: 50%;"
+                                @click.stop="personClick(person)"
+                                :src="person.faceUrls[0]"
+                                fit="cover">
+                        </el-image>
 
 
-                <el-input v-if="currentPerson.id == person.id && editPersonName"
-                          style="width: 150px;padding-left: 26px;font-size:20px;font-weight:bold;"
-                          placeholder="添加姓名"
-                          v-model="currentPersonName"
-                          clearable>
-                </el-input>
-                <strong v-else style="margin-top: 10px;font-size: 25px;"
-                        @click="editPersonName = true">{{person.name}}</strong>
+                        <el-input v-if="currentPerson.id == person.id && editPersonName"
+                                  style="width: 150px;padding-left: 26px;font-size:20px;font-weight:bold;"
+                                  placeholder="添加姓名"
+                                  v-model="currentPersonName"
+                                  clearable>
+                        </el-input>
+                        <strong v-else style="margin-top: 10px;font-size: 25px;"
+                                @click="editPersonName = true">{{person.name}}</strong>
 
 
-                <span style="margin-top: 5px"> {{ person.pictureList.length}} 照片</span>
-            </div>
-        </div>
-
+                        <span style="margin-top: 5px"> {{ person.pictureList.length}} 照片</span>
+                    </div>
+                </div>
+            </transition-group>
+        </draggable>
     </div>
 
 </template>
 
 <script>
-
+    //导入draggable组件
+    import draggable from 'vuedraggable'
     export default {
         name: "Person",
-        components: {},
+        components: {draggable},
         data() {
             return {
                 imageScale: '200px',
-                persons: this.$store.state.persons,
                 editPersonName: false,
                 currentPerson: this.$store.state.persons[0],
                 personNameLastTime : 0,//修改名称定时器
@@ -80,8 +87,39 @@
             }
         },
         methods: {
-            updatePersonName() {
+            //开始拖拽事件
+            onStart(){
+            },
+            //拖拽结束事件
+            onEnd(e) {
+                /*此时数组已发生改变*/
+                let fromIndex = e.newIndex
+                let toIndex = e.oldIndex <  e.newIndex ? e.newIndex-1 : e.newIndex + 1
+                console.log(fromIndex,toIndex)
 
+                this.$confirm("<h2>此操作将合并</h2>" +
+                    "<img style='border-radius: 50%;width:100px;height:100px' src=" + this.$store.state.persons[fromIndex].faceUrls[0] + " >"
+                    + "<img style='border-radius: 50%;width:100px;height:100px' src=" + this.$store.state.persons[toIndex].faceUrls[0] + " >"+
+                    "<h3>是否继续?</h3>", '提示', {
+                    dangerouslyUseHTMLString: true,
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    center: true
+                }).then(() => {
+                    /*合并相同的面孔*/
+                    this.mergePerson(fromIndex,toIndex)
+                    this.$message({type: 'success', message: '成功!', duration: 1000,});
+                }).catch((e) => {
+                    console.log(e)
+                    this.$message({
+                        type: 'info',
+                        message: '取消',
+                        duration: 1000,
+                    });
+                });
+            },
+            updatePersonName() {
                 this.personNameLastTime = setTimeout(() => {
                     let p = this.currentPerson
                     this.https.updatePersonName({
@@ -100,23 +138,6 @@
                 this.$store.state.currentImageList = dayImages
                 this.$router.push({name: 'imageList'})
             },
-            /*获取人物组第一张本人在照片中的face信息(定位和关键点)*/
-            getFace(p) {
-                let personId = p.id;
-                let faceUrls = []
-                for (let picture of p.pictureList) {
-                    for (let f of picture.faceList) {
-                        if (f.faceNameId == personId) {
-                            // console.log(f)
-                            // let faceLocations = f.faceLocations.replaceAll("\\[|\\]","").replaceAll(",","px")
-                            // return faceLocations
-                            faceUrls.push(f.url)
-                        }
-                    }
-                }
-                // console.log(personId,faceUrls)
-                return faceUrls
-            },
             /*绘制矩形框*/
             draw() {
                 let canvasId = "myCanvas";
@@ -124,7 +145,7 @@
                 let rects = [[0, 0, 100, 100]];
                 let points = "";
                 let faceNamesList = "";
-                let srcImgPath = this.persons[0].pictureList[0].url;
+                let srcImgPath = this.$store.state.persons[0].pictureList[0].url;
                 // let face_paths = data.face_paths;
                 this.canvasPart(canvasId, srcImgPath, rects, points, faceNum, faceNamesList);
                 // showFace(face_paths)
@@ -189,6 +210,16 @@
                     }
                 }
             },
+            mergePerson(fromIndex, toIndex) {
+                /*合并*/
+                let pictureList = [...this.$store.state.persons[fromIndex].pictureList,...this.$store.state.persons[toIndex].pictureList]
+                /*去重*/
+                pictureList = pictureList.filter((item, index) => pictureList.indexOf(item) === index);
+                this.$store.state.persons[toIndex].pictureList = pictureList
+                this.$store.state.persons.splice(fromIndex,1)
+                /*更新数据库*/
+                console.log()
+            }
         },
         created() {
             /*给人脸封装picture*/
