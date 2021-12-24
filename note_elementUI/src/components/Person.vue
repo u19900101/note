@@ -1,33 +1,48 @@
 <template>
     <div class="imgItem">
-        <!--{{persons[0]}}-->
-        <div v-for="p in persons" style="position: relative">
-            <h1> {{p.name}}</h1>
-            <h1> {{ p.id}}</h1>
-            <h1> {{getFace(p)}}</h1>
+        <!--{{persons}}-->
+        <!--横线-->
+        <!-- <div    :style="{left: getFace(p).faceLocations[0],top: getFace(p).faceLocations[1]}"
+                 style="height: 1px;width: 50px;background-color: #c70a0a;position: absolute;z-index: 10;
+        "></div>
+         &lt;!&ndash;竖线&ndash;&gt;
+         <div style="height: 50px;width: 1px;background-color: #c70a0a;
+              position: absolute;
+              z-index: 10;
+              left: 80px;
+              top: 156px;"></div>-->
+        <!-- <canvas id="myCanvas" style="border:1px solid red;">
+             这是浏览器不支持canvas时展示的信息
+         </canvas>
+         <el-button @click="draw">kkk</el-button>-->
+        <div v-for="person in persons" style="position: relative">
+            <div @mouseover="faceId = person.faceUrls[0]"
+                 @mouseleave="editPersonName = false"
+                 style="display:flex;flex-direction: column;align-items: center;
+            width: 200px;height: 260px;margin-left: 10px;border: 1px solid red">
+                <el-image
+                        :style="{width: imageScale,height: imageScale,boxShadow: faceId == person.faceUrls[0]?'0 0 5px 3px #999':''}"
+                        style="border-radius: 50%;"
+                        @click="personClick(person)"
+                        :src="person.faceUrls[0]"
+                        fit="cover">
+                </el-image>
 
-            <!--横线-->
-           <!-- <div    :style="{left: getFace(p).faceLocations[0],top: getFace(p).faceLocations[1]}"
-                    style="height: 1px;width: 50px;background-color: #c70a0a;position: absolute;z-index: 10;
-           "></div>
-            &lt;!&ndash;竖线&ndash;&gt;
-            <div style="height: 50px;width: 1px;background-color: #c70a0a;
-                 position: absolute;
-                 z-index: 10;
-                 left: 80px;
-                 top: 156px;"></div>-->
-          <!--  <el-image
-                    :style="{width: imageScale,height: imageScale}"
-                    style="margin-left:10px;"
-                    @click="personClick(p)"
-                    :src="p.pictureList[0].url"
-                    fit="cover">
-            </el-image>-->
+
+                <el-input v-if = "faceId == person.faceUrls[0] && editPersonName"
+                          style="width: 150px;padding-left: 26px;font-size:20px;font-weight:bold;"
+                          placeholder="添加姓名"
+                          v-model="person.name == '添加姓名'?'':person.name"
+                          clearable>
+                </el-input>
+                <strong v-else style="margin-top: 10px;font-size: 25px;"
+                        @click="editPersonName = true">{{person.name}}</strong>
+
+
+                <span style="margin-top: 5px"> {{ person.pictureList.length}} 照片</span>
+            </div>
         </div>
-        <!--<canvas id="myCanvas" style="border:1px solid red;">-->
-        <!--    这是浏览器不支持canvas时展示的信息-->
-        <!--</canvas>-->
-        <!--<el-button @click="draw">kkk</el-button>-->
+
     </div>
 
 </template>
@@ -40,7 +55,9 @@
         data() {
             return {
                 imageScale: '200px',
-                persons: this.$store.state.persons
+                persons: this.$store.state.persons,
+                faceId: 0,
+                editPersonName: false,
             }
         },
         methods: {
@@ -52,7 +69,7 @@
                 let personId = p.id;
                 let faceUrls = []
                 for (let picture of p.pictureList) {
-                    for (let f of  picture.faceList ) {
+                    for (let f of picture.faceList) {
                         if (f.faceNameId == personId) {
                             // console.log(f)
                             // let faceLocations = f.faceLocations.replaceAll("\\[|\\]","").replaceAll(",","px")
@@ -61,14 +78,14 @@
                         }
                     }
                 }
-                console.log(personId,faceUrls)
+                // console.log(personId,faceUrls)
                 return faceUrls
             },
             /*绘制矩形框*/
             draw() {
                 let canvasId = "myCanvas";
                 let faceNum = 1;
-                let rects = [[0,0,100,100]];
+                let rects = [[0, 0, 100, 100]];
                 let points = "";
                 let faceNamesList = "";
                 let srcImgPath = this.persons[0].pictureList[0].url;
@@ -123,36 +140,45 @@
                         // ctx.fillText(faceNamesList[i], rects[i][0] * scale, rects[i][1] * scale - 10);
                         //  画圈
                         let r = 1;
-                       /* for (let j = 0; j < points[0].length; j++) {
-                            // ctx.strokeStyle = '#03e2db';
-                            ctx.lineWidth = 1;
-                            ctx.beginPath();
-                            ctx.arc(points[i][j][0] * scale, points[i][j][1] * scale, r, 0, Math.PI * 2, true);
-                            // ctx.stroke();// 空心圆
-                            ctx.fillStyle = "#69fcd5";
-                            ctx.fill();//画实心圆
+                        /* for (let j = 0; j < points[0].length; j++) {
+                             // ctx.strokeStyle = '#03e2db';
+                             ctx.lineWidth = 1;
+                             ctx.beginPath();
+                             ctx.arc(points[i][j][0] * scale, points[i][j][1] * scale, r, 0, Math.PI * 2, true);
+                             // ctx.stroke();// 空心圆
+                             ctx.fillStyle = "#69fcd5";
+                             ctx.fill();//画实心圆
 
-                        }*/
+                         }*/
                     }
                 }
             },
         },
-            created() {
-                /*给人脸封装picture*/
-                for (let person of this.$store.state.persons){
-                    if (person.pictureUid.length > 1) {
-                        person.pictureList = []
-                        let pids = person.pictureUid.split(",")
-                        for (let pid of pids) {
-                            let image = this.$store.state.fileList.filter(i => i.id == pid)[0]
-                            if(image){
-                                person.pictureList.push(image)
+        created() {
+            /*给人脸封装picture*/
+            for (let person of this.$store.state.persons) {
+                if (person.pictureUid.length > 1) {
+                    person.pictureList = []
+                    person.faceUrls = []
+                    let pictureIds = person.pictureUid.split(",")
+                    for (let pictureId of pictureIds) {
+                        let image = this.$store.state.fileList.filter((i) => i.id == pictureId)[0]
+                        if (image) {
+                            /*将照片列表封装到person中*/
+                            person.pictureList.push(image)
+                            /*将人脸url封装到person中*/
+                            for (let f of image.faceList) {
+                                if (f.faceNameId == person.id) {
+                                    person.faceUrls.push(f.url)
+                                }
                             }
                         }
                     }
+                    // console.log(person)
                 }
             }
         }
+    }
 </script>
 
 <style scoped>

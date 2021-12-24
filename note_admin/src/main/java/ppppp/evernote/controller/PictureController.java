@@ -250,9 +250,9 @@ public class PictureController {
         //新建人物
         if (person == null) {
             Person name = new Person();
-            name.setName("未命名");
+            name.setName("添加姓名");
             name.setId(faceNameId);
-            person.setCount(1);
+            name.setCount(1);
             name.setPictureUid(pictureId + ",");
             personService.save(name);
         }else {// 更新人物

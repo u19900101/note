@@ -137,9 +137,6 @@ def getFaceIndex(face_encodings):
     known_face_ids = np.loadtxt(abs_pre + 'known_face_ids.txt').tolist()
     known_face_ids = [int(x) for x in known_face_ids]
 
-
-    # known_face_encodings = strToList(known_face_encodings,128)
-
     # 计算 面孔编码两两之间的距离 来判断是否为同一人
     faceId = ""
     # known_face_ids = list(map(int, (re.compile(r'\d+')).findall(known_face_ids)))# 查找数字
@@ -165,14 +162,6 @@ def getFaceIndex(face_encodings):
             f.write('\n' + str(face_encoding.tolist()).replace("[","").replace("]","").replace(","," "))
         faceId += str(face_id) + ","
     return faceId
-def strToList(str,y):
-    if len(str.replace("[","").replace("]","")) == 0:
-        return []
-    M = (np.array(str.replace("[","").replace("]","").split(','))).astype(float).tolist()# 查找数字
-    res =[]
-    for i in range(int(len(M)/y)):
-        res.append( np.asarray(M[i*y:(i+1)*y]))
-    return res
 
 # faceDic = init(imgpath)
 # print(faceDic)
