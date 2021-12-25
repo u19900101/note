@@ -7,9 +7,15 @@
 
             <!--年月日 图片上传 大中小 视图  当前图片分组名称-->
             <div style="text-align: center;">
-                <el-button @click="showImageByTimeType('year')" :disabled="disabledControl" style="float:left;" size="mini" round>年</el-button>
-                <el-button @click="showImageByTimeType('month')" :disabled="disabledControl" style="float:left;" size="mini" round>月</el-button>
-                <el-button @click="showImageByTimeType('day')" :disabled="disabledControl" style="float:left;" size="mini" round>日</el-button>
+                <el-button @click="showImageByTimeType('year')" :disabled="disabledControl" style="float:left;"
+                           size="mini" round>年
+                </el-button>
+                <el-button @click="showImageByTimeType('month')" :disabled="disabledControl" style="float:left;"
+                           size="mini" round>月
+                </el-button>
+                <el-button @click="showImageByTimeType('day')" :disabled="disabledControl" style="float:left;"
+                           size="mini" round>日
+                </el-button>
                 <!--项目标题-->
                 <strong>{{$store.state.listTitle}}</strong>
                 <span style="color: rgba(40,59,55,0.77)">(共{{currentImagesCount}}条)</span>
@@ -40,9 +46,10 @@
                             action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
                             :on-success="uploadSuccess"
                             :on-error="uploadFail"
-                            :show-file-list = "false"
+                            :show-file-list="false"
                             multiple>
-                        <i slot="default" class="el-icon-upload" @click="uploadClick" :style="{color: uploading ? '#1d9351' : '#000000'}" style="font-size: 30px;"></i>
+                        <i slot="default" class="el-icon-upload" @click="uploadClick"
+                           :style="{color: uploading ? '#1d9351' : '#000000'}" style="font-size: 30px;"></i>
                     </el-upload>
                 </el-tooltip>
             </div>
@@ -57,8 +64,8 @@
 
             </div>
 
+            <!--回收站信息显示-->
             <div class="imageTitle" style="left: 50%">
-                <!--清空回收站-->
                 <el-button @click="clearPictures" v-if="$store.state.currentNoteBook.title == '回收站'" size="mini"
                            :disabled="disabledControl"
                            type="danger" round style="margin-left: 10px;">
@@ -107,8 +114,9 @@
                                         <div class="imageIcon">
 
                                             <!--照片多选框 鼠标移入时会显示  当选中一个后其余所有的都出现选框-->
-                                            <el-checkbox v-if="$store.state.currentImageId == img.id || checkedImages.length > 0"
-                                                         :label="img" :key="img.id" class="imageCheck"><br>
+                                            <el-checkbox
+                                                    v-if="$store.state.currentImageId == img.id || checkedImages.length > 0"
+                                                    :label="img" :key="img.id" class="imageCheck"><br>
                                                 <!-- 多选框不显示label 只要在里面加上<br>就OK了 -->
                                             </el-checkbox>
 
@@ -125,19 +133,19 @@
                                             <imageDetail :image-scale="imageScale"
                                                          :img="img"
                                                          :index-inner="indexInner"
-                                                         :images = "image.images"
+                                                         :images="image.images"
                                                          @getShowImageInfo="getShowImageInfo"
                                             >
                                             </imageDetail>
-                                           <!-- <el-image :style="{width: imageScale,height: imageScale}"
-                                                      style="margin-left:10px;"
-                                                      @click="imageClick(img,image.images,indexInner)"
-                                                      :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
-                                                      fit="cover"
-                                                      :preview-src-list="$store.state.currentImageUrlList"
-                                                      @mouseover="currentImageId = img.id"
-                                                      :alt="img.title">
-                                            </el-image>-->
+                                            <!-- <el-image :style="{width: imageScale,height: imageScale}"
+                                                       style="margin-left:10px;"
+                                                       @click="imageClick(img,image.images,indexInner)"
+                                                       :src="imageScale == '500px' ? img.url :getThumbnails(img.url,img.title)"
+                                                       fit="cover"
+                                                       :preview-src-list="$store.state.currentImageUrlList"
+                                                       @mouseover="currentImageId = img.id"
+                                                       :alt="img.title">
+                                             </el-image>-->
                                         </div>
                                     </div>
 
@@ -161,7 +169,7 @@
     export default {
         name: "ImageList",
         components: {
-            cascader,ElImageViewer,ImageDetail,imageInfo
+            cascader, ElImageViewer, ImageDetail, imageInfo
         },
         data() {
             return {
@@ -172,8 +180,8 @@
                 imageScale: "200px", //视图大小  默认为小等视图
                 currentImageId: "", //当前图片id
                 enterIndex: 0, // 鼠标移入的index
-                imageUploadLastTime:0, //上传图片的定时器
-                uploading : false, //控制上传的状态
+                imageUploadLastTime: 0, //上传图片的定时器
+                uploading: false, //控制上传的状态
             }
         },
 
@@ -184,7 +192,7 @@
                     total + currentValue.images.length, 0);
             },
             /*图标禁用*/
-            disabledControl(){
+            disabledControl() {
                 return this.$store.state.currentImageList.length == 0
             },
 
@@ -207,7 +215,7 @@
             }
         },
         methods: {
-            imageToMap(index){
+            imageToMap(index) {
                 this.$store.state.currentIndex = index
                 this.$bus.$emit("imageToMap")
             },
@@ -222,7 +230,7 @@
                 // console.log(this.$store.state.uploadImageList)
             },
             /*文件上传失败时的钩子	*/
-            uploadFail(err, file, fileList){
+            uploadFail(err, file, fileList) {
                 console.log('上传失败')
                 this.$message({type: 'error', message: '上传失败!', duration: 1000,});
             },
@@ -240,7 +248,7 @@
                     this.$message({type: 'success', message: '上传成功!', duration: 1000,});
                 }, 1000)
             },
-            uploadClick(){
+            uploadClick() {
                 console.log('清空上一次的列表')
                 /*清空上一次的列表*/
                 this.$store.state.uploadImageList = []
@@ -249,7 +257,7 @@
             handleCheckAllChange(allChecked) {
                 /*添加当前日期聚合的照片id到选中列表中*/
                 if (allChecked) {
-                    this.$store.state.currentImageList[ this.$store.state.currentIndex].checkedImages = []
+                    this.$store.state.currentImageList[this.$store.state.currentIndex].checkedImages = []
                     this.$store.state.currentImageList[this.$store.state.currentIndex].checkedImages = this.$store.state.currentImageList[this.$store.state.currentIndex].images
                 } else { /*移除当前选中的list*/
                     this.$store.state.currentImageList[this.$store.state.currentIndex].checkedImages = []
@@ -285,24 +293,24 @@
                 /*4.后台 将 wastepaper设置为 false 重新请求数据*/
                 let ids = this.checkedImages.map(x => x.id)
                 let count = 0 //计数
-                if(this.checkedImages.length > 0){ //恢复选中照片
+                if (this.checkedImages.length > 0) { //恢复选中照片
                     this.https.recoverSelectedPictures(ids).then(({data}) => {
                         console.log("恢复所选的图片 成功", data);
                         this.$store.state.fileList = data.data; // 进入的笔记本列表数据
                         this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
                         this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => ids.indexOf(i.id) == -1)
 
-                        this.$store.state.currentImageList.forEach((i) =>{
+                        this.$store.state.currentImageList.forEach((i) => {
                             i.images = i.images.filter((inner) => {
-                                if(ids.indexOf(inner.id) == -1) {
+                                if (ids.indexOf(inner.id) == -1) {
                                     count += 1
-                                    if(count == ids.length) return /*跳出 停止循环*/
+                                    if (count == ids.length) return /*跳出 停止循环*/
                                 }
                                 return ids.indexOf(inner.id) == -1
-                            } )
+                            })
                         })
                     })
-                }else { //恢复所有
+                } else { //恢复所有
                     this.https.recoverAllPictures().then(({data}) => {
                         console.log("成功 恢复所有删除的图片 ", data);
                         this.$store.state.fileList = data.data; // 进入的笔记本列表数据
@@ -314,11 +322,11 @@
                 }
 
             },
-            getCurrentImageId(currentImageId){
-              this.currentImageId =  currentImageId
+            getCurrentImageId(currentImageId) {
+                this.currentImageId = currentImageId
             },
-            getShowImageInfo(showImageInfo){
-              this.showImageInfo =  showImageInfo
+            getShowImageInfo(showImageInfo) {
+                this.showImageInfo = showImageInfo
             },
 
             /*批量移动图片到回收站 或彻底删除*/
@@ -329,30 +337,31 @@
                 this.https.deleteImageBatch(ids).then(({data}) => {
                     let addImageToRecyleBin = true
                     let dayImages = []
-                    console.log(this.$store.state.currentNoteBook.id == 10 ? "彻底删除图片":"批量移动图片到回收站", data);
+                    console.log(this.$store.state.currentNoteBook.id == 10 ? "彻底删除图片" : "批量移动图片到回收站", data);
+                    this.$store.state.fileList = data.data; // 进入的图片列表数据
+                    this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
 
-
-                    if (this.$store.state.currentNoteBook.id == 10) {  //回收站下的批量删除
-                        this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => ids.indexOf(i.id) == -1)
-                        dayImages = this.$store.state.wastepaperPictureList
-                        addImageToRecyleBin = false
-                    }else {
-                        this.$store.state.fileList = data.data; // 进入的图片列表数据
-                        this.$store.state.starImageList = this.$store.state.fileList.filter((i) => i.star == true)
+                    switch (this.$store.state.currentNoteBook.id) {
+                        case 8: //全部图片
+                            dayImages = this.$store.state.fileList;
+                            break;
+                        case 9: //收藏图片
+                            dayImages = this.$store.state.starImageList;
+                            break;
+                        case 10://回收站下的批量删除  彻底删除
+                            this.$store.state.wastepaperPictureList = this.$store.state.wastepaperPictureList.filter((i) => ids.indexOf(i.id) == -1)
+                            dayImages = this.$store.state.wastepaperPictureList
+                            addImageToRecyleBin = false
+                            break;
+                        case 14: //人物
+                            dayImages = this.$store.state.currentPerson.pictureList.filter((i) => ids.indexOf(i.id) == -1)
+                            break;
                     }
-
-                    // 全部图片和收藏图片下的批量删除
-                    /*重新初始化当前图片列表*/
-                    if (this.$store.state.currentNoteBook.id == 8) {
-                        dayImages = this.$store.state.fileList
-                    } else if (this.$store.state.currentNoteBook.id == 9) {
-                        dayImages = this.$store.state.starImageList
-                    }
-
+                    /*重新按天进行聚合*/
                     dayImages = this.tool.groupImages("day", dayImages)
                     this.$store.state.currentImageList = dayImages
 
-                    /*2.将照片加入到回收站回收站*/
+                    /*2.将照片加入到回收站*/
                     if (addImageToRecyleBin) {
                         checkedImages = checkedImages.map(x => {
                             x.wastepaper = true
@@ -362,11 +371,11 @@
                     }
                 })
             },
-            clearRecyleBin(){
+            clearRecyleBin() {
                 let ids = this.$store.state.wastepaperPictureList.map(x => x.id)
                 /*重新请求数据 避免繁琐的判断和调整*/
                 this.https.deleteImageBatch(ids).then(({data}) => {
-                    console.log( data);
+                    console.log(data);
                 })
                 this.$store.state.currentImageList = []
                 this.$store.state.wastepaperPictureList = []
@@ -520,14 +529,14 @@
     }
 
     /*鼠标经过图片变大*/
-   /* .el-image {
-        cursor: pointer;
-        transition: all 0.6s;
-    }
+    /* .el-image {
+         cursor: pointer;
+         transition: all 0.6s;
+     }
 
-    .el-image:hover {
-        transform: scale(1.02);
-    }*/
+     .el-image:hover {
+         transform: scale(1.02);
+     }*/
 
     /*图片布局样式*/
     .imgItem {
@@ -545,7 +554,6 @@
     .el-image-viewer__wrapper {
         z-index: 1000 !important;
     }
-
 
 
     .el-date-editor.el-input, .el-date-editor.el-input__inner {

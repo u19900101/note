@@ -17,11 +17,11 @@
          <el-button @click="draw">kkk</el-button>-->
 
         <!--使用draggable组件-->
-        <draggable v-model="$store.state.persons"  chosenClass="chosen" forceFallback="true" group="people" animation="1000"
-                   :disabled="$store.state.persons.length < 2"
+        <draggable v-model="persons"  chosenClass="chosen" forceFallback="true" group="people" animation="1000"
+                   :disabled="persons.length < 2"
                    @start="onStart" @end="onEnd">
             <transition-group class="imgItem">
-                <div v-for="person in $store.state.persons" :key="person.id" style="position: relative">
+                <div v-for="person in persons" :key="person.id" style="position: relative">
                     <div @mouseover="currentPerson = person"
                          @mouseleave="editPersonName = false"
                          style="display:flex;flex-direction: column;align-items: center;
@@ -84,6 +84,36 @@
                         this.tool.setTimeoutUpdate(this.updatePersonName, this.personNameLastTime)
                     }
                 }
+            },
+            persons(){
+                /*给人脸封装picture*/
+                let persons = []
+
+                for (let person of this.$store.state.persons) {
+                    if (person.pictureUid.length > 1) {
+                        person.pictureList = []
+                        person.faceUrls = []
+                        let pictureIds = person.pictureUid.split(",")
+                        for (let pictureId of pictureIds) {
+                            let image = this.$store.state.fileList.filter((i) => i.id == pictureId)[0]
+                            if (image) {
+                                /*将照片列表封装到person中*/
+                                person.pictureList.push(image)
+                                /*将人脸url封装到person中*/
+                                for (let f of image.faceList) {
+                                    if (f.faceNameId == person.id) {
+                                        person.faceUrls.push(f.url)
+                                    }
+                                }
+                            }
+                        }
+                        if(person.faceUrls.length > 0){
+                            persons.push(person)
+                        }
+                    }
+                }
+                this.$store.state.personNum = persons.length
+                return persons
             }
         },
         methods: {
@@ -98,8 +128,8 @@
                 console.log(fromIndex,toIndex)
 
                 this.$confirm("<h2>此操作将合并</h2>" +
-                    "<img style='border-radius: 50%;width:100px;height:100px' src=" + this.$store.state.persons[fromIndex].faceUrls[0] + " >"
-                    + "<img style='border-radius: 50%;width:100px;height:100px' src=" + this.$store.state.persons[toIndex].faceUrls[0] + " >"+
+                    "<img style='border-radius: 50%;width:100px;height:100px' src=" + this.persons[fromIndex].faceUrls[0] + " >"
+                    + "<img style='border-radius: 50%;width:100px;height:100px' src=" + this.persons[toIndex].faceUrls[0] + " >"+
                     "<h3>是否继续?</h3>", '提示', {
                     dangerouslyUseHTMLString: true,
                     confirmButtonText: '确定',
@@ -136,6 +166,8 @@
                 let dayImages = p.pictureList
                 dayImages = this.tool.groupImages("day", dayImages)
                 this.$store.state.currentImageList = dayImages
+                /*保存当前人物的照片列表 用于删除时的页面更新*/
+                this.$store.state.currentPerson = p
                 this.$router.push({name: 'imageList'})
             },
             /*绘制矩形框*/
@@ -145,7 +177,7 @@
                 let rects = [[0, 0, 100, 100]];
                 let points = "";
                 let faceNamesList = "";
-                let srcImgPath = this.$store.state.persons[0].pictureList[0].url;
+                let srcImgPath = this.persons[0].pictureList[0].url;
                 // let face_paths = data.face_paths;
                 this.canvasPart(canvasId, srcImgPath, rects, points, faceNum, faceNamesList);
                 // showFace(face_paths)
@@ -216,41 +248,20 @@
                 /*去重 todo 优化*/
                 /*更新数据库 1.修改所有fromId的 faceNameId为 to 2.删除from 3.增加to的数量*/
                 this.https.mergePerson({
-                    fromIndex: this.$store.state.persons[fromIndex].id,
-                    toIndex: this.$store.state.persons[toIndex].id
+                    fromIndex: this.persons[fromIndex].id,
+                    toIndex: this.persons[toIndex].id
                 }).then(({data}) => {
                     console.log("合并人物成功", data);
                 })
                 pictureList = pictureList.filter((item, index) => pictureList.indexOf(item) === index);
-                this.$store.state.persons[toIndex].pictureList = pictureList
-                this.$store.state.persons.splice(fromIndex,1)
+                this.persons[toIndex].pictureList = pictureList
+                this.persons.splice(fromIndex,1)
 
 
             }
         },
         created() {
-            /*给人脸封装picture*/
-            for (let person of this.$store.state.persons) {
-                if (person.pictureUid.length > 1) {
-                    person.pictureList = []
-                    person.faceUrls = []
-                    let pictureIds = person.pictureUid.split(",")
-                    for (let pictureId of pictureIds) {
-                        let image = this.$store.state.fileList.filter((i) => i.id == pictureId)[0]
-                        if (image) {
-                            /*将照片列表封装到person中*/
-                            person.pictureList.push(image)
-                            /*将人脸url封装到person中*/
-                            for (let f of image.faceList) {
-                                if (f.faceNameId == person.id) {
-                                    person.faceUrls.push(f.url)
-                                }
-                            }
-                        }
-                    }
-                    // console.log(person)
-                }
-            }
+
         }
     }
 </script>

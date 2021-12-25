@@ -89,8 +89,8 @@ const state = {
 
     /*人物*/
     persons : [],//人脸图片聚合类  {"id": 3, "name": "添加姓名", "pictureList": [ "faceList": [{ "id": 15,"faceNameId": 3,
-                                                                                        // "pictureId": 159,
-                                                                                        // "faceEncoding": "",
+    personNum: 0,                                                                                   // "pictureId": 159,
+    currentPerson : [], //当前人物                                                                                   // "faceEncoding": "",
                                                                                         // "faceLocations": "[1810, 206, 321, 321]",
                                                                                         // "faceLandmarks": "[[1925, 267], [1908, 297],}
 }

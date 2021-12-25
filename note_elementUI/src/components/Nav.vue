@@ -177,8 +177,9 @@
                         this.toPage('map')
                         break; /* 地图模式 */
                     /*人物*/
-                    case 'person':
+                    case 'person': //人物 id=14
                         this.toPage('person')
+                        this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 14)[0]
                         break;
                     default:
                         /*区分是 点击的是笔记本 还是 标签*/
@@ -764,10 +765,10 @@
                             id: 'map',
                             title: '地图 (' + this.$store.state.notes.length + ')'
                         },
-                        /*地图*/
+                        /*人物*/
                         {
                             id: 'person',
-                            title: '人物 ('+this.$store.state.persons.length+')'
+                            title: '人物 ('+this.$store.state.personNum+')'
                         },
                         {
                             id: 'allNotes',
