@@ -213,12 +213,19 @@
             mergePerson(fromIndex, toIndex) {
                 /*合并*/
                 let pictureList = [...this.$store.state.persons[fromIndex].pictureList,...this.$store.state.persons[toIndex].pictureList]
-                /*去重*/
+                /*去重 todo 优化*/
+                /*更新数据库 1.修改所有fromId的 faceNameId为 to 2.删除from 3.增加to的数量*/
+                this.https.mergePerson({
+                    fromIndex: this.$store.state.persons[fromIndex].id,
+                    toIndex: this.$store.state.persons[toIndex].id
+                }).then(({data}) => {
+                    console.log("合并人物成功", data);
+                })
                 pictureList = pictureList.filter((item, index) => pictureList.indexOf(item) === index);
                 this.$store.state.persons[toIndex].pictureList = pictureList
                 this.$store.state.persons.splice(fromIndex,1)
-                /*更新数据库*/
-                console.log()
+
+
             }
         },
         created() {
