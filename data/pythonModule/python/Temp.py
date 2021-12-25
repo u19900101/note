@@ -4,5 +4,5 @@ import numpy as np
 #     f.write('\n' + str(l).replace("[","").replace("]","").replace(","," "))
 # known_face_ids = np.loadtxt('t.txt').tolist()
 # print(known_face_ids)
-known_face_encodings = np.loadtxt('known_face_encoding.txt').tolist()
+known_face_encodings = np.loadtxt('known_face_encodings.txt').tolist()
 print(known_face_encodings)

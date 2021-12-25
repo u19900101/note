@@ -314,7 +314,7 @@ public class sftp {
         return fileName;
     }
 
-    public static Boolean deleteFiles(String basePath,ArrayList<String> paths) throws IOException {
+    public static Boolean deleteFiles(String basePath,ArrayList<String> paths,boolean deleteThumbnails) throws IOException {
         boolean flag = true;
         try {
             sftpLocal.get().channel.cd(basePath);
@@ -322,12 +322,14 @@ public class sftp {
                 /*删除大图*/
                 sftpLocal.get().channel.rm(path);
                 /*删除缩略图 NAME_thumbnails.jpg*/
-                String s = path.split("\\.")[0] + "_thumbnails." + path.split("\\.")[1];
-                sftpLocal.get().channel.rm(s);
+                if(deleteThumbnails){
+                    String s = path.split("\\.")[0] + "_thumbnails." + path.split("\\.")[1];
+                    sftpLocal.get().channel.rm(s);
+                }
             }
-
+            System.out.println("删除成功");
         } catch (Exception e) {
-            logger.error(e.getLocalizedMessage() + e.getMessage() + e.toString());
+            System.out.println("删除服务器文件失败" + e.getLocalizedMessage() + e.getMessage() + e.toString());
             flag = false;
         }
         return flag;

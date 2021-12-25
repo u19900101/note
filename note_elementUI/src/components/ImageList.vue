@@ -334,7 +334,8 @@
                 let ids = this.checkedImages.map(x => x.id)
                 let checkedImages = this.checkedImages // 为异步操作保存当前值
                 /*重新请求数据 避免繁琐的判断和调整*/
-                this.https.deleteImageBatch(ids).then(({data}) => {
+                let type = this.$store.state.currentNoteBook.id == 10 ? 'delete':'move'
+                this.https.deleteImageBatch({deleteIds:ids,type:type}).then(({data}) => {
                     let addImageToRecyleBin = true
                     let dayImages = []
                     console.log(this.$store.state.currentNoteBook.id == 10 ? "彻底删除图片" : "批量移动图片到回收站", data);
@@ -374,7 +375,7 @@
             clearRecyleBin() {
                 let ids = this.$store.state.wastepaperPictureList.map(x => x.id)
                 /*重新请求数据 避免繁琐的判断和调整*/
-                this.https.deleteImageBatch(ids).then(({data}) => {
+                this.https.deleteImageBatch({deleteIds:ids,type:'delete'}).then(({data}) => {
                     console.log(data);
                 })
                 this.$store.state.currentImageList = []

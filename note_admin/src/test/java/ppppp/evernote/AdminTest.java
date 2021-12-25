@@ -31,12 +31,25 @@ public class AdminTest {
     @Autowired
     ImageTagService imageTagService;
 
+    @Autowired
+    PersonService personService;
     @Test
     public void T_getTagById(){
         Tag byId = tagService.getById(32);
         System.out.println(byId);
     }
 
+    @Test
+    public void T_savePerson(){
+        Person name = new Person();
+        name.setName("添加姓名");
+        name.setId(8);
+        name.setCount(1);
+        name.setPictureUid(5 + ",");
+        boolean save = personService.save(name);
+        System.out.println(save);
+        System.out.println(name);
+    }
    /* @Test
     public void T_将图片创建时间修改为201701(){
         List<Picture> list = pictureService.lambdaQuery().list();

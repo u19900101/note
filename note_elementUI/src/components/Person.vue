@@ -96,8 +96,8 @@
                         let pictureIds = person.pictureUid.split(",")
                         for (let pictureId of pictureIds) {
                             let image = this.$store.state.fileList.filter((i) => i.id == pictureId)[0]
+                            /*将照片列表和faceUrl封装到person中*/
                             if (image) {
-                                /*将照片列表封装到person中*/
                                 person.pictureList.push(image)
                                 /*将人脸url封装到person中*/
                                 for (let f of image.faceList) {

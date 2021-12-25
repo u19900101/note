@@ -1,6 +1,7 @@
 package ppppp.evernote.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 /**
@@ -9,7 +10,7 @@ import lombok.Data;
  */
 @Data
 public class Person {
-    @TableField()
+    @TableId(type = IdType.INPUT) //type = IdType.INPUT,没有的话无法插入主键
     private Integer id;
     private String name;
     private Integer count;

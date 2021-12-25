@@ -133,7 +133,7 @@ def getFaceInfo(imgpath):
 
 def getFaceIndex(face_encodings):
     # 从本地读取人脸文件
-    known_face_encodings = np.loadtxt(abs_pre + 'known_face_encoding.txt').tolist()
+    known_face_encodings = np.loadtxt(abs_pre + 'known_face_encodings.txt').tolist()
     known_face_ids = np.loadtxt(abs_pre + 'known_face_ids.txt').tolist()
     known_face_ids = [int(x) for x in known_face_ids]
 
@@ -158,7 +158,7 @@ def getFaceIndex(face_encodings):
         #  更新两个txt文件
         with open(abs_pre + 'known_face_ids.txt', 'a+') as f:
             f.write(' '+str(face_id))
-        with open(abs_pre + 'known_face_encoding.txt', 'a+') as f:
+        with open(abs_pre + 'known_face_encodings.txt', 'a+') as f:
             f.write('\n' + str(face_encoding.tolist()).replace("[","").replace("]","").replace(","," "))
         faceId += str(face_id) + ","
     return faceId
