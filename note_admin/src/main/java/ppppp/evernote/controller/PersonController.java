@@ -127,6 +127,7 @@ public class PersonController {
             List<Picture> pictureList = pictureMapper.selectBatchIds(Arrays.asList(pids));
             person.setPictureList(pictureList);
             List<Face> faceList = faceService.lambdaQuery().select(Face::getId, Face::getPersonId,Face::getPictureId,Face::getUrl).eq(Face::getPersonId, person.getId()).list();
+            faceList.forEach((f) -> f.setPersonName(person.getName()));
             person.setFaceList(faceList);
         }
     }

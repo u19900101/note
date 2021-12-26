@@ -11,7 +11,7 @@
                     <el-select v-model="currentNoteBook" filterable placeholder="请选择"
                                size="mini"
                                :disabled="$store.state.currentNote.wastepaper"
-                               :style="{width: getBt(currentNoteBook.label)*6 + 70+ 'px'}">
+                               :style="{width: tool.getCharLength(currentNoteBook.label)*6 + 70+ 'px'}">
                         <!--slice(3) 过滤掉 数据库中 所有笔记，收藏，废纸篓三项-->
                         <el-option
                                 v-for="item in $store.state.noteBooks.slice(3)"
@@ -214,11 +214,7 @@
                 this.$refs['timePicker'].pickerVisible = false
             },
 
-            /*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
-            getBt(str) {
-                let char = str.replace(/[^\x00-\xff]/g, '**');
-                return char.length;
-            },
+
 
             handleTargetDragOver(e) {
                 let firstLevelId = this.tool.getfirstLevelId(this.$store.state.currentNode)

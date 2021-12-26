@@ -17,7 +17,7 @@
         <el-tabs v-model="activeName" @tab-click="handleClick">
             <el-tab-pane label="人物" name="first">人物
                 <!--使用draggable组件-->
-                <draggable v-model="persons"  chosenClass="chosen" forceFallback="true" group="people" animation="1000"
+                <draggable v-model="persons" chosenClass="chosen" forceFallback="true" group="people" animation="1000"
                            :disabled="persons.length < 2"
                            @start="onStart" @end="onEnd">
                     <transition-group class="imgItem">
@@ -36,12 +36,12 @@
                                 </el-image>
 
 
-                                <el-input v-if="currentPerson.id == person.id && editPersonName"
+                                <input v-focus v-if="currentPerson.id == person.id && editPersonName"
                                           style="width: 150px;padding-left: 26px;font-size:20px;font-weight:bold;"
                                           placeholder="添加姓名"
                                           v-model="currentPersonName"
                                           clearable>
-                                </el-input>
+                                </input>
                                 <strong v-else style="margin-top: 10px;font-size: 25px;"
                                         @click="editPersonName = true">{{person.name}}</strong>
                                 <span style="margin-top: 5px"> {{ person.pictureList.length}} 照片</span>
@@ -51,41 +51,46 @@
                 </draggable>
             </el-tab-pane>
             <el-tab-pane label="人脸管理" name="second">
-                人脸管理
-                <div v-for="person in persons" :key="person.id" style="position: relative">
+                <div v-for="person in persons" :key="person.id" style="position: relative;margin-left: 10px;border: 1px solid #7f958d">
                     <!--名称显示-->
-                    <el-input v-if="currentPerson.id == person.id && editPersonName"
+                    <input v-focus
+                              v-if="currentPerson.id == person.id && editPersonName"
                               style="width: 150px;padding-left: 26px;font-size:20px;font-weight:bold;"
                               placeholder="添加姓名"
                               v-model="currentPersonName"
                               clearable>
-                    </el-input>
+                    </input>
                     <strong v-else style="margin-top: 10px;font-size: 25px;"
-                            @click="editPersonName = true">{{person.name}} id {{person.id}}</strong>
+                            @click="editPersonName = true">{{person.name}}</strong>
                     <span style="margin-top: 5px"> {{ person.pictureList.length}} 照片</span><br>
-                <!--    {{  person.faceUrls}}-->
-                  <div class="imgItem"
-                         style="margin-left: 10px;border: 1px solid red">
-                      <div  v-for="face in person.faceList">
-                          <div style="display: flex;flex-direction: column"  @mouseover="currentPerson = person">
-                              <el-image
-                                      @mouseover="currentFace = face"
-                                      @mouseleave="editPersonName = false"
-                                      :style="{width: imageScale,height: imageScale,
-                        boxShadow: currentFace.id == face.id?'0 0 5px 3px #999':''}"
-                                      style="border-radius: 50%;"
-                                      @click.stop="personClick(person)"
-                                      :src="face.url"
-                                      fit="cover">
-                              </el-image>
-                              <div>
-                                  <el-button @click="deleteFace(face)">移除</el-button>
-                                  <el-button>添加到</el-button>
-                              </div>
+                    <div class="imgItem">
+                        <div v-for="face in person.faceList">
+                            <div style="display: flex;flex-direction: column"
+                                 @mouseover="currentPerson = person;currentFace = face">
+                                <el-image
+                                        @mouseleave="editPersonName = false"
+                                        :style="{width: imageScale,height: imageScale, boxShadow: currentFace.id == face.id?'0 0 5px 3px #999':''}"
+                                        style="border-radius: 50%;"
+                                        @click.stop="personClick(person)"
+                                        :src="face.url"
+                                        fit="cover">
+                                </el-image>
+                                <div>
+                                    <el-button @click="deleteFace(face)">移除</el-button>
+                                    <el-select v-model="face.personName" :style="{width: tool.getCharLength(face.personName)*6 + 70+ 'px'}"
+                                               filterable placeholder="请选择"
+                                               @change = "moveFaceTo"
+                                               allow-create>
+                                        <el-option
+                                                v-for="item in $store.state.persons"
+                                                :key="item.id"
+                                                :value="item.name">
+                                        </el-option>
+                                    </el-select>
+                                </div>
 
-                          </div>
-
-                      </div>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
@@ -99,7 +104,6 @@
 <script>
     //导入draggable组件
     import draggable from 'vuedraggable'
-
     export default {
         name: "Person",
         components: {draggable},
@@ -131,38 +135,71 @@
             },
             persons() {
                 /*给人脸封装picture*/
-              /*  let persons = []
-                for (let person of this.$store.state.persons) {
-                    if (person.pictureUid.length > 1) {
-                        person.pictureList = []
-                        person.faceUrls = []
-                        let pictureIds = person.pictureUid.split(",")
-                        for (let pictureId of pictureIds) {
-                            let image = this.$store.state.fileList.filter((i) => i.id == pictureId)[0]
-                            /!*将照片列表和faceUrl封装到person中*!/
-                            if (image) {
-                                person.pictureList.push(image)
-                                /!*将人脸url封装到person中*!/
-                                for (let f of image.faceList) {
-                                    if (f.faceNameId == person.id) {
-                                        person.faceUrls.push(f.url)
-                                    }
-                                }
-                            }
-                        }
-                        if (person.faceUrls.length > 0) {
-                            persons.push(person)
-                        }
-                    }
-                }
-                this.$store.state.personNum = persons.length
-                return persons*/
+                /*  let persons = []
+                  for (let person of this.$store.state.persons) {
+                      if (person.pictureUid.length > 1) {
+                          person.pictureList = []
+                          person.faceUrls = []
+                          let pictureIds = person.pictureUid.split(",")
+                          for (let pictureId of pictureIds) {
+                              let image = this.$store.state.fileList.filter((i) => i.id == pictureId)[0]
+                              /!*将照片列表和faceUrl封装到person中*!/
+                              if (image) {
+                                  person.pictureList.push(image)
+                                  /!*将人脸url封装到person中*!/
+                                  for (let f of image.faceList) {
+                                      if (f.faceNameId == person.id) {
+                                          person.faceUrls.push(f.url)
+                                      }
+                                  }
+                              }
+                          }
+                          if (person.faceUrls.length > 0) {
+                              persons.push(person)
+                          }
+                      }
+                  }
+                  this.$store.state.personNum = persons.length
+                  return persons*/
                 return this.$store.state.persons
             }
         },
         methods: {
+            /*将人脸添加到人物组*/
+            moveFaceTo(newPersonName){
+                /*页面更新*/
+                /*a.to +1 from -1*/
+                let createName = true
+                for (let p of this.$store.state.persons) {
+                    if(p.name == newPersonName)   {
+                        p.faceList.push(this.currentFace)
+                        createName = false
+                        break;
+                    }
+                }
+
+
+                if (this.currentPerson.faceList.length == 1) {
+                    this.$store.state.persons = this.persons.filter(p => p.id != this.currentPerson.id)
+                } else {
+                    this.currentPerson.faceList = this.currentPerson.faceList.filter(f => f.id != this.currentFace.id)
+                }
+
+                if(createName){
+                    /*在服务器新建person*/
+                    let newPerson = {
+                        "id": this.$store.state.persons[this.$store.state.persons.length-1].id + 1,
+                        "name": newPersonName,
+                        "count": 1,
+                        "pictureList":[1110],
+                        "pictureUid": this.currentFace.pictureId + ",",
+                        "faceList": [this.currentFace]}
+                    this.$store.state.persons.push(newPerson)
+                }
+
+            },
             /*删除不需要的人脸*/
-            deleteFace(face){
+            deleteFace(face) {
                 /*1.从face表中删除*/
                 /*2.从服务器中删除*/
                 /*3.更新相关联的 person、picture表*/
@@ -170,9 +207,9 @@
                     console.log("成功删除人脸", data);
                 })
                 /*4.页面更新*/
-                if(this.currentPerson.faceList.length ==1){
+                if (this.currentPerson.faceList.length == 1) {
                     this.$store.state.persons = this.persons.filter(p => p.id != this.currentPerson.id)
-                }else {
+                } else {
                     this.currentPerson.faceList = this.currentPerson.faceList.filter(f => f.id != face.id)
                 }
 
@@ -325,6 +362,14 @@
         },
         created() {
 
+        },
+        //注册一个局部的自定义指令 v-focus
+        directives: {
+            focus: {
+                inserted: function (el) {
+                    el.focus();
+                }
+            }
         }
     }
 </script>

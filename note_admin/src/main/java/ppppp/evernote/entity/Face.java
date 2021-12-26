@@ -2,6 +2,7 @@ package ppppp.evernote.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
+
 /*人脸库*/
 @Data
 public class Face {
@@ -18,4 +19,6 @@ public class Face {
     private String faceLandmarks;
 
     private String url;
+    @TableField(exist = false)
+    private String personName;
 }

@@ -13,7 +13,7 @@ export default {
             groupImages,
             setTimeoutUpdate,
             getThumbnails,
-            isImageType,
+            isImageType,getCharLength,
         }
     }
 }
@@ -175,6 +175,14 @@ function sortWay(notes, sortWay) {
     getDateTimes(notes, sortWay)
 
 }
+
+
+/*获取带有中文字符的长度  一个中文的宽度对应两个英文的宽度*/
+function getCharLength(str) {
+    let char = str.replace(/[^\x00-\xff]/g, '**');
+    return char.length;
+}
+
 
 function getTime(strTime) {
     // 第三种方式 "2014-07-10 10:21:12"
