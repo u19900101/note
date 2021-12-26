@@ -80,6 +80,7 @@
                                     <el-select v-model="face.personName" :style="{width: tool.getCharLength(face.personName)*6 + 70+ 'px'}"
                                                filterable placeholder="请选择"
                                                @change = "moveFaceTo"
+                                               default-first-option
                                                allow-create>
                                         <el-option
                                                 v-for="item in $store.state.persons"
