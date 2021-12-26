@@ -7,7 +7,7 @@ import lombok.Data;
 public class Face {
     @TableField()
     private Integer id;
-    private Integer faceNameId;
+    private Integer personId;
     /*所对应的图片*/
     private Integer pictureId;
     /*faceId 编码 128*1 的浮点数组*/

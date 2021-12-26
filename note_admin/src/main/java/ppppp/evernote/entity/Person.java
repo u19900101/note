@@ -1,8 +1,12 @@
 package ppppp.evernote.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author pppppp
@@ -15,4 +19,8 @@ public class Person {
     private String name;
     private Integer count;
     private String pictureUid;
+    @TableField(exist = false)
+    private List<Face> faceList = new ArrayList<>();
+    @TableField(exist = false)
+    private List<Picture> pictureList = new ArrayList<>();
 }

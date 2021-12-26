@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ppppp.evernote.util.RequestUtils.sendGetRequest;
-import static ppppp.evernote.util.ftp.sftp.deleteFiles;
+import static ppppp.evernote.util.ftp.sftp.deleteImageFromServer;
 
 /**
  * 文件上传
@@ -197,6 +197,8 @@ public class PictureController {
 
     /*进行人脸识别 若存在人脸则写入face表中 并且更新picture表*/
     private void faceRecognition(MultipartFile multipartFile, Integer pictureId) throws IOException, InterruptedException {
+        /*1.检测known_face.txt是否需要更新*/
+        checkKnowFaceData();
         File pictureFile = File.createTempFile(String.valueOf(UUID.randomUUID()), multipartFile.getOriginalFilename());
         try {
             multipartFile.transferTo(pictureFile);
@@ -231,7 +233,7 @@ public class PictureController {
                 if (b) {
                     String faceUid = "";
                     for (Face face : faceArrayList) {
-                        int faceNameId = face.getFaceNameId();
+                        int faceNameId = face.getPersonId();
                         /*若出现新的面孔 则创建新的faceName*/
                         updatePerson(faceNameId, pictureId);
                         faceUid += face.getId() + ",";
@@ -245,6 +247,16 @@ public class PictureController {
             if (!pictureFile.delete()) {
                 System.out.println("人脸识别的临时文件删除失败...");
             }
+        }
+    }
+    /*检测known_face.txt是否需要更新 因为删除face后，不更新data，改为识别之前进行更新*/
+    public void checkKnowFaceData() throws IOException {
+        int count = faceService.count();
+        BufferedReader reader = new BufferedReader(new FileReader(knownFaceIdsPath));
+        String[] line = reader.readLine().replaceAll(" +"," ").split(" ");
+       /*若两者不相等 重写文件*/
+        if(count != line.length){
+            reWriteKnownFace();
         }
     }
 
@@ -331,7 +343,7 @@ public class PictureController {
             /*将人脸封装为单张*/
             for (int i = 0; i < faceNum; i++) {
                 Face face = new Face();
-                face.setFaceNameId(Integer.valueOf(face_name_ids[i]));
+                face.setPictureId(Integer.valueOf(face_name_ids[i]));
                 face.setFaceEncoding(face_encodings.get(i));
                 face.setFaceLandmarks(face_landmarks.get(i));
                 face.setFaceLocations(face_locations.get(i));
@@ -396,21 +408,7 @@ public class PictureController {
         return ResultUtil.successWithData(update);
     }
 
-    private void deleteImageFromServer(String basePath, ArrayList<String> paths,boolean deleteThumbnails) {
 
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
-                    Boolean deleteFiles = deleteFiles(basePath, paths, deleteThumbnails);
-                    sftp.release();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-    }
 
     /*批量移入到回收站或者从回收站彻底删除*/
     @PostMapping("/deleteImageBatch")
@@ -493,7 +491,6 @@ public class PictureController {
 
 
     private void updateFaceTable(List<Picture> pictureList) throws IOException {
-        boolean face = false;
         for (Picture picture : pictureList) {
             String faceUid = picture.getFaceUid();
             if (faceUid != null && faceUid.length() > 1) {
@@ -507,15 +504,11 @@ public class PictureController {
                     // 1.更新 标签数量
                     deleteFaceUrls.add(f.getUrl().replace("http://lpgogo.top/img/face/", ""));
                     /*2.更新人物 将pid从人物中移除 若移除后无pid 则将该人物删除*/
-                    updatePersonByPid(f.getFaceNameId(),picture.getId());
+                    updatePersonByPid(f.getPersonId(),picture.getId());
                 }
                 deleteImageFromServer("/mydata/nginx/html/img/face", deleteFaceUrls,false);
                 faceMapper.deleteBatchIds(faceUids);
-                face = true;
             }
-        }
-        if (face) {
-            reWriteKnownFace();
         }
     }
 
@@ -534,13 +527,13 @@ public class PictureController {
     }
 
     public void reWriteKnownFace() {
-        List<Face> knownFaces = faceService.lambdaQuery().select(Face::getFaceNameId, Face::getFaceEncoding).list();
+        List<Face> knownFaces = faceService.lambdaQuery().select(Face::getPersonId, Face::getFaceEncoding).list();
         try {
             BufferedWriter out = new BufferedWriter(new FileWriter(knownFaceEncodingsPath));
             BufferedWriter out2 = new BufferedWriter(new FileWriter(knownFaceIdsPath));
             for (Face face : knownFaces) {
                 out.write(face.getFaceEncoding().replaceAll(" |\\[|\\]", "").replace(",", " ") + "\n");
-                out2.write(face.getFaceNameId() + " ");
+                out2.write(face.getPersonId() + " ");
             }
             out.close();
             out2.close();
@@ -552,11 +545,11 @@ public class PictureController {
 
     /*重写ids*/
     public void reWriteKnownFaceIds() {
-        List<Face> knownFaces = faceService.lambdaQuery().select(Face::getFaceNameId).list();
+        List<Face> knownFaces = faceService.lambdaQuery().select(Face::getPersonId).list();
         try {
             BufferedWriter out = new BufferedWriter(new FileWriter(knownFaceIdsPath));
             for (Face face : knownFaces) {
-                out.write(face.getFaceNameId() + " ");
+                out.write(face.getPersonId() + " ");
             }
             out.close();
             System.out.println("success reWriteKnownFace！");

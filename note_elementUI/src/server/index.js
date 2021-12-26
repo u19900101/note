@@ -171,6 +171,10 @@ export function mergePerson(data) {
     return vm.post('/api/admin/person/mergePerson',data)
 }
 
+export function deleteFace(data) {
+    return vm.post('/api/admin/person/deleteFace',data)
+}
+
 
 export default {
     install(Vue) {
@@ -207,7 +211,7 @@ export default {
 
             /*person*/
             getPersons,
-            updatePersonName,mergePerson,
+            updatePersonName,mergePerson,deleteFace,
         }
     }
 }

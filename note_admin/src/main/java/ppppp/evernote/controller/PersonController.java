@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ppppp.evernote.entity.Face;
 import ppppp.evernote.entity.Person;
+import ppppp.evernote.entity.Picture;
 import ppppp.evernote.mapper.FaceMapper;
+import ppppp.evernote.mapper.PictureMapper;
 import ppppp.evernote.service.FaceService;
 import ppppp.evernote.service.PersonService;
 import ppppp.evernote.service.PictureService;
@@ -19,6 +21,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static ppppp.evernote.util.ftp.sftp.deleteImageFromServer;
 
 /**
  * @author lppppp
@@ -37,13 +41,46 @@ public class PersonController {
     PersonService personService;
     @Autowired
     FaceMapper faceMapper;
+    @Autowired
+    PictureMapper pictureMapper;
     /*将人物聚合封装*/
     @RequestMapping("/allPersons")
     public String getAllPersons() {
 
         List<Person> allPerson = personService.lambdaQuery().list();
-
+        /*封装face和picture数据*/
+        fillFaceAndPicture(allPerson);
         return ResultUtil.successWithData(allPerson);
+    }
+
+    @PostMapping("/deleteFace")
+    public String deleteFace(@RequestBody Face face) {
+        /*1.从face表中删除*/
+        /*2.从服务器中删除*/
+        /*3.从 person、picture表中删除face*/
+        boolean removeFace = faceService.removeById(face.getId());
+        deleteImageFromServer("/mydata/nginx/html/img/face", face.getUrl().replace("http://lpgogo.top/img/face/",""),false);
+        boolean deleteFaceFromPictureAndPerson = deleteFaceFromPictureAndPerson(face.getId(), face.getPersonId(), face.getPictureId());
+        return ResultUtil.successWithData(removeFace && deleteFaceFromPictureAndPerson);
+    }
+
+    private boolean deleteFaceFromPictureAndPerson(Integer faceId, Integer personId, Integer pictureId) {
+        /*更新人物*/
+        boolean updatePerson = false;
+        Person person = personService.getById(personId);
+        if(person.getCount() == 1){
+            updatePerson = personService.removeById(personId);
+        }else {
+            person.setCount(person.getCount() - 1);
+            updatePerson = personService.updateById(person);
+        }
+
+        /*更新图片*/
+
+        Picture picture = pictureService.getById(pictureId);
+        picture.setFaceUid(picture.getFaceUid().replace(faceId + ",",""));
+        boolean updatePicture = pictureService.updateById(picture);
+        return updatePerson && updatePicture;
     }
 
     /*修改人物姓名*/
@@ -63,7 +100,7 @@ public class PersonController {
 
         //1.修改所有fromId的 faceNameId为 to
         LambdaUpdateChainWrapper<Face> lambdaUpdateChainWrapper = new LambdaUpdateChainWrapper<>(faceMapper);
-        boolean update = lambdaUpdateChainWrapper.eq(Face::getFaceNameId, fromIndex).set(Face::getFaceNameId, toIndex).update();
+        boolean update = lambdaUpdateChainWrapper.eq(Face::getPersonId, fromIndex).set(Face::getPersonId, toIndex).update();
 
         //2.增加to的数量
         Person fromPerson = personService.getById(fromIndex);
@@ -82,5 +119,15 @@ public class PersonController {
         boolean b = personService.removeById(fromIndex);
 
         return ResultUtil.successWithData(update && update1 && b);
+    }
+
+    private void fillFaceAndPicture(List<Person> allPerson) {
+        for (Person person : allPerson) {
+            String[] pids = person.getPictureUid().split(",");
+            List<Picture> pictureList = pictureMapper.selectBatchIds(Arrays.asList(pids));
+            person.setPictureList(pictureList);
+            List<Face> faceList = faceService.lambdaQuery().select(Face::getId, Face::getPersonId,Face::getPictureId,Face::getUrl).eq(Face::getPersonId, person.getId()).list();
+            person.setFaceList(faceList);
+        }
     }
 }

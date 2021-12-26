@@ -314,6 +314,36 @@ public class sftp {
         return fileName;
     }
 
+    public static void deleteImageFromServer(String basePath, String path, boolean deleteThumbnails) {
+
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
+                    Boolean deleteFiles = deleteFile(basePath, path, deleteThumbnails);
+                    sftp.release();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+    public static void deleteImageFromServer(String basePath, ArrayList<String> paths, boolean deleteThumbnails) {
+
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
+                    Boolean deleteFiles = deleteFiles(basePath, paths, deleteThumbnails);
+                    sftp.release();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
     public static Boolean deleteFiles(String basePath,ArrayList<String> paths,boolean deleteThumbnails) throws IOException {
         boolean flag = true;
         try {
@@ -326,6 +356,25 @@ public class sftp {
                     String s = path.split("\\.")[0] + "_thumbnails." + path.split("\\.")[1];
                     sftpLocal.get().channel.rm(s);
                 }
+            }
+            System.out.println("删除成功");
+        } catch (Exception e) {
+            System.out.println("删除服务器文件失败" + e.getLocalizedMessage() + e.getMessage() + e.toString());
+            flag = false;
+        }
+        return flag;
+    }
+    /*删除单张*/
+    public static Boolean deleteFile(String basePath,String path,boolean deleteThumbnails) throws IOException {
+        boolean flag = true;
+        try {
+            sftpLocal.get().channel.cd(basePath);
+            /*删除大图*/
+            sftpLocal.get().channel.rm(path);
+            /*删除缩略图 NAME_thumbnails.jpg*/
+            if(deleteThumbnails){
+                String s = path.split("\\.")[0] + "_thumbnails." + path.split("\\.")[1];
+                sftpLocal.get().channel.rm(s);
             }
             System.out.println("删除成功");
         } catch (Exception e) {
