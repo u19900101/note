@@ -67,7 +67,7 @@
                   <div class="imgItem"
                          style="margin-left: 10px;border: 1px solid red">
                       <div  v-for="face in person.faceList">
-                          <div style="display: flex;flex-direction: column">
+                          <div style="display: flex;flex-direction: column"  @mouseover="currentPerson = person">
                               <el-image
                                       @mouseover="currentFace = face"
                                       @mouseleave="editPersonName = false"
@@ -166,12 +166,15 @@
                 /*1.从face表中删除*/
                 /*2.从服务器中删除*/
                 /*3.更新相关联的 person、picture表*/
-                /*4.页面更新*/
-                this.https.deleteFace(
-                    face
-                ).then(({data}) => {
+                this.https.deleteFace(face).then(({data}) => {
                     console.log("成功删除人脸", data);
                 })
+                /*4.页面更新*/
+                if(this.currentPerson.faceList.length ==1){
+                    this.$store.state.persons = this.persons.filter(p => p.id != this.currentPerson.id)
+                }else {
+                    this.currentPerson.faceList = this.currentPerson.faceList.filter(f => f.id != face.id)
+                }
 
             },
             handleClick(tab, event) {

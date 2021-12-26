@@ -343,7 +343,7 @@ public class PictureController {
             /*将人脸封装为单张*/
             for (int i = 0; i < faceNum; i++) {
                 Face face = new Face();
-                face.setPictureId(Integer.valueOf(face_name_ids[i]));
+                face.setPersonId(Integer.valueOf(face_name_ids[i]));
                 face.setFaceEncoding(face_encodings.get(i));
                 face.setFaceLandmarks(face_landmarks.get(i));
                 face.setFaceLocations(face_locations.get(i));
