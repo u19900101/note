@@ -4,6 +4,7 @@ package ppppp.evernote.util.ftp;
  * @author pppppp
  * @date 2021/11/26 22:53
  */
+
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
@@ -289,8 +290,9 @@ public class sftp {
                 ChannelSftp.LsEntry l = (ChannelSftp.LsEntry) ls.get(i);
                 if(l.getFilename().equals(fileName)){
                     System.out.println("重名鸟...");
-                    String[] s = fileName.split("\\.");
-                    fileName = s[0] + "_"+ UUID.randomUUID().toString().substring(0,2) + "." + s[1];
+                    String type = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
+                    String name = fileName.substring(0,fileName.lastIndexOf("."));
+                    fileName = name.replaceAll("\\.| ","_") + "_"+ UUID.randomUUID().toString().substring(0,2) + type;
                     i = 1;
                 }
             }
@@ -313,6 +315,7 @@ public class sftp {
         }
         return fileName;
     }
+
 
     public static void deleteImageFromServer(String basePath, String path, boolean deleteThumbnails) {
 

@@ -5,49 +5,6 @@ import dlib
 import re
 import sys
 abs_pre = 'D:/MyMind/note/data/pythonModule/python/'
-def init(imgpath):
-    rectangle = [];
-    keypoint = [];
-    scale = 1
-    img = cv2.imread(imgpath) # 0.22s
-    if(img.shape[0]<2000):
-        img = cv2.resize(img,(3000,int(img.shape[0]/(img.shape[1])*3000)))
-        scale = 3000.0/img.shape[1]
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-    face_locations = face_recognition.face_locations(img_rgb,1)
-    face_landmarks = face_recognition.face_landmarks(img,face_locations) #72个点
-    face_encodings = face_recognition.face_encodings(img,face_locations)
-
-    for (top, right, bottom, left),face_landmark  in zip(face_locations,face_landmarks):
-        rectangle.append([left,top,right-left,bottom-top])
-        pointTemp = []
-        for value in face_landmark.values():
-            for point in value:
-                pointTemp.append([point[0], point[1]])
-        keypoint.append(pointTemp)
-
-    faceNum = len(face_locations)
-    faceDic = {}
-    faceDic['faceNum'] = faceNum
-    faceDic['face_locations'] = (np.array(rectangle)/scale).astype(int).tolist()
-    faceDic['face_landmarks'] = (np.array(keypoint)/scale).astype(int).tolist()
-    faceDic['face_encodings'] = np.asarray(face_encodings).tolist()
-
-
-    #  检测照片中是否 存在相同的脸
-    faceDic['face_ids'] = getFaceIndex(face_encodings)
-    # pic_id,face_num,locations,face_ids,landmarks
-    print(faceDic['faceNum'])
-    print([a for a in  faceDic['face_locations']])
-    print(faceDic['face_ids'])
-    print([a for a in  faceDic['face_landmarks']])
-    print([a for a in  faceDic['face_encodings']])
-
-
-    # return faceDic
-
-
 # 人脸对齐
 def face_alignment(rgb_img):
     # opencv的颜色空间是BGR，需要转为RGB才能用在dlib中
@@ -135,13 +92,25 @@ def getFaceIndex(face_encodings):
     # 从本地读取人脸文件
     known_face_encodings = np.loadtxt(abs_pre + 'known_face_encodings.txt').tolist()
     known_face_ids = np.loadtxt(abs_pre + 'known_face_ids.txt').tolist()
-    known_face_ids = [int(x) for x in known_face_ids]
-
     # 计算 面孔编码两两之间的距离 来判断是否为同一人
     faceId = ""
+    # 当文件为空时 直接写入
+    if(len(known_face_encodings) == 0):
+        face_id = 0
+        for face_encoding in  face_encodings:
+            #  更新两个txt文件
+            with open(abs_pre + 'known_face_ids.txt', 'a+') as f:
+                f.write(str(face_id)+' ')
+            with open(abs_pre + 'known_face_encodings.txt', 'a+') as f:
+                f.write(str(face_encoding.tolist()).replace("[","").replace("]","").replace(","," ") + '\n')
+            faceId += str(face_id) + ","
+            face_id += 1
+        return faceId
+
+
+    known_face_ids = [int(x) for x in known_face_ids]
     # known_face_ids = list(map(int, (re.compile(r'\d+')).findall(known_face_ids)))# 查找数字
     max_faceId = np.asarray(known_face_ids).max()
-
     for face_encoding in  face_encodings:
         #  找到差距小于 0.2 的所有位置 true false
         compare_faces = face_recognition.compare_faces(known_face_encodings,face_encoding,0.5)

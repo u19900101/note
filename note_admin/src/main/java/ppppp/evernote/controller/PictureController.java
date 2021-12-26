@@ -253,10 +253,13 @@ public class PictureController {
     public void checkKnowFaceData() throws IOException {
         int count = faceService.count();
         BufferedReader reader = new BufferedReader(new FileReader(knownFaceIdsPath));
-        String[] line = reader.readLine().replaceAll(" +"," ").split(" ");
-       /*若两者不相等 重写文件*/
-        if(count != line.length){
-            reWriteKnownFace();
+        String readLine = reader.readLine();
+        if( readLine != null){
+            String[] line = readLine.replaceAll(" +"," ").split(" ");
+            /*若两者不相等 重写文件*/
+            if(count != line.length){
+                reWriteKnownFace();
+            }
         }
     }
 

@@ -2,6 +2,7 @@ package ppppp.evernote;
 
 import org.junit.Test;
 
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,6 +11,16 @@ import java.util.regex.Pattern;
  * @date 2021/12/7 23:18
  */
 public class RegexDemo {
+
+    @Test
+    public void T_(){
+        String fileName = "vip-jingjing-3.18 (14).jpg";
+        String type = fileName.substring(fileName.lastIndexOf("."));
+        String name = fileName.substring(0,fileName.lastIndexOf("."));
+        fileName = name.replaceAll("\\.| ","_") + "_"+ UUID.randomUUID().toString().substring(0,2) + type;
+        System.out.println(fileName);
+    }
+
     @Test
     public void T_特殊字符(){
         String re1 = "abc";
