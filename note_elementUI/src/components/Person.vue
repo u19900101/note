@@ -127,8 +127,20 @@
                     return name == '添加姓名' ? '' : name
                 },
                 set: function (newPersonName) {
+                    /*1.判断是否重名*/
+                    for (let p of this.$store.state.persons) {
+                        if(p.name == newPersonName)   {
+                            this.$message({
+                                type: 'warning',
+                                message: '重名了',
+                                duration: 1000,
+                            });
+                            return
+                        }
+                    }
                     /*1.更新页面*/
                     this.currentPerson.name = newPersonName
+
                     if (newPersonName.length > 0) {
                         /*2.修改到数据库*/
                         this.tool.setTimeoutUpdate(this.updatePersonName, this.personNameLastTime)
