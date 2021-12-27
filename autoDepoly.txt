@@ -1,0 +1,2 @@
+docker stop note-admin && docker rm note-admin && docker rmi  note-admin && cd /mydata/service/admin  && rm -rf note-*  && docker build -t note-admin . && docker run --name note-admin -d -p 8080:8080 note-admin  && docker update note-admin --restart=always
+docker stop note-search && docker rm note-search && docker rmi  note-search && cd /mydata/service/search  && rm -rf note-*  && docker build -t note-search . && docker run --name note-search -d -p 9000:9000 note-search  && docker update note-search --restart=always

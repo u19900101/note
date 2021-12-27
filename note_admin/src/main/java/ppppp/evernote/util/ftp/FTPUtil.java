@@ -1,7 +1,6 @@
 package ppppp.evernote.util.ftp;
 
 import com.jcraft.jsch.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import ppppp.evernote.entity.Picture;
@@ -20,27 +19,27 @@ import static ppppp.evernote.controller.PictureController.getPictureInfo;
 @Component
 public class FTPUtil {
     private static String host;
-    @Value(value = "${ftp-centos.host}")
+    // @Value(value = "${ftp-centos.host}")
     public void setHost(String hostName) {
         host = hostName;
     }
     private static Integer port;
-    @Value(value = "${ftp-centos.port}")
+    // @Value(value = "${ftp-centos.port}")
     public void setPort(Integer portName) {
         port = portName;
     }
     private static String user;
-    @Value(value = "${ftp-centos.user}")
+    // @Value(value = "${ftp-centos.user}")
     public void setUser(String userName) {
         user = userName;
     }
     private static String password;
-    @Value(value = "${ftp-centos.password}")
+    // @Value(value = "${ftp-centos.password}")
     public void setPassword(String passwordName) {
         password = passwordName;
     }
     private static String basePath;
-    @Value(value = "${ftp-centos.basePath}")
+    // @Value(value = "${ftp-centos.basePath}")
     public void setBasePath(String basePath) {
         FTPUtil.basePath = basePath;
     }

@@ -49,7 +49,7 @@
                 <el-aside id="innner" :style="{width: noteListWidth + 'px'}">
                     <el-scrollbar class="page-scroll" ref="scroll">
                         <!--笔记本名称 && 笔记排序按钮 搜索-->
-                        <div v-if="!$store.state.fileMode">
+                        <div>
                             <!--笔记列表-->
                             <el-container>
                                 <el-aside :style="{width: noteListWidth + 'px'}" >
