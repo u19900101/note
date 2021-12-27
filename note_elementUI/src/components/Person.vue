@@ -53,7 +53,9 @@
             <el-tab-pane label="人脸管理" name="second">
                 <div v-for="person in persons" :key="person.id" style="position: relative;margin-left: 10px;border: 1px solid #7f958d">
                     <!--名称显示-->
-                    <input v-focus
+                    <input    v-focus
+                              @blur.stop="editPersonName = false"
+                              @keyup.enter="editPersonName = false"
                               v-if="currentPerson.id == person.id && editPersonName"
                               style="width: 150px;padding-left: 26px;font-size:20px;font-weight:bold;"
                               placeholder="添加姓名"
@@ -90,7 +92,6 @@
                                         </el-option>
                                     </el-select>
                                 </div>
-
                             </div>
                         </div>
 
@@ -232,8 +233,6 @@
                 }).then(({data}) => {
                     console.log("成功移动人脸", data);
                 })
-
-
             },
             /*删除不需要的人脸*/
             deleteFace(face) {
@@ -288,7 +287,7 @@
             },
             updatePersonName() {
                 this.personNameLastTime = setTimeout(() => {
-                    let p = this.currentPerson
+                    this.currentPerson.faceList.forEach(f => f.personName = this.currentPerson.name)
                     this.https.updatePersonName({
                         id: this.currentPerson.id,
                         name: this.currentPerson.name
