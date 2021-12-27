@@ -1,6 +1,7 @@
 package ppppp.evernote;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,14 @@ public class AdminTest {
         System.out.println(byId);
     }
 
+    @Test
+    public void T_带条件的批量查询(){
+        // pictureService.listByIds(Arrays.asList(pids))
+        String[] pids = "232,233,240,240,240,240,240,241,241,241,241,241,".split(",");
+        List<Picture> list = pictureService.list(Wrappers.<Picture>lambdaQuery().eq(Picture::getWastepaper,false).in(Picture::getId, pids));
+        System.out.println(pids.length);
+        System.out.println(list.size());
+    }
    /* @Test
     public void T_将图片创建时间修改为201701(){
         List<Picture> list = pictureService.lambdaQuery().list();

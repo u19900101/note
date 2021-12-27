@@ -768,7 +768,7 @@
                         /*人物*/
                         {
                             id: 'person',
-                            title: '人物 ('+this.$store.state.personNum+')'
+                            title: '人物 ('+this.$store.state.persons.length+')'
                         },
                         {
                             id: 'allNotes',

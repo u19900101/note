@@ -106,7 +106,6 @@
                     /*人脸数据*/
                     this.https.getPersons().then(({data}) => {
                         this.$store.state.persons = data.data
-                        this.$store.state.personNum =  data.data.length
                     })
 
                 }).then(() => {

@@ -1,6 +1,7 @@
 package ppppp.evernote.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.additional.update.impl.LambdaUpdateChainWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -170,13 +171,25 @@ public class PersonController {
     }
 
     private void fillFaceAndPicture(List<Person> allPerson) {
+        ArrayList<Person> removePerson = new ArrayList<>();
         for (Person person : allPerson) {
             String[] pids = person.getPictureUid().split(",");
-            List<Picture> pictureList = pictureMapper.selectBatchIds(Arrays.asList(pids));
-            person.setPictureList(pictureList);
-            List<Face> faceList = faceService.lambdaQuery().select(Face::getId, Face::getPersonId, Face::getPictureId, Face::getUrl).eq(Face::getPersonId, person.getId()).list();
-            faceList.forEach((f) -> f.setPersonName(person.getName()));
-            person.setFaceList(faceList);
+            List<Picture> pictureList = pictureService.list(Wrappers.<Picture>lambdaQuery().eq(Picture::getWastepaper,false).in(Picture::getId, pids));
+            if(pictureList.size() > 0){
+                person.setPictureList(pictureList);
+                ArrayList<Integer> existedPids = new ArrayList<>();
+                pictureList.forEach((p) -> existedPids.add(p.getId()));
+                /*过滤掉移入废纸篓的face*/
+                List<Face> faceList = faceService.lambdaQuery().select(Face::getId, Face::getPersonId, Face::getPictureId, Face::getUrl)
+                        .eq(Face::getPersonId, person.getId()).in(Face::getPictureId,existedPids).list();
+                faceList.forEach((f) -> f.setPersonName(person.getName()));
+                person.setFaceList(faceList);
+            }else {
+                removePerson.add(person);
+            }
+        }
+        if(removePerson.size() > 0){
+            allPerson.removeAll(removePerson);
         }
     }
 }

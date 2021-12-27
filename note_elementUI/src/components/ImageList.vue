@@ -309,6 +309,7 @@
                                 return ids.indexOf(inner.id) == -1
                             })
                         })
+                        this.syncPersonData()
                     })
                 } else { //恢复所有
                     this.https.recoverAllPictures().then(({data}) => {
@@ -318,6 +319,7 @@
                         /*2.清空当前回收站*/
                         this.$store.state.wastepaperPictureList = []
                         this.$store.state.currentImageList = []
+                        this.syncPersonData()
                     })
                 }
 
@@ -370,6 +372,10 @@
                         })
                         this.$store.state.wastepaperPictureList.unshift(...checkedImages)
                     }
+
+                    /*3.更新person数据*/
+                    /*人脸数据*/
+                    this.syncPersonData()
                 })
             },
             clearRecyleBin() {
@@ -470,6 +476,11 @@
                     console.log(data)
                 })
             },
+            syncPersonData() {
+                this.https.getPersons().then(({data}) => {
+                    this.$store.state.persons = data.data
+                })
+            }
         },
         mounted() {
             /*esc键关闭图片信息显示*/
