@@ -1,5 +1,6 @@
 package ppppp.evernote.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.additional.update.impl.LambdaUpdateChainWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,6 +44,7 @@ public class PersonController {
     FaceMapper faceMapper;
     @Autowired
     PictureMapper pictureMapper;
+
     /*将人物聚合封装*/
     @RequestMapping("/allPersons")
     public String getAllPersons() {
@@ -59,7 +61,7 @@ public class PersonController {
         /*2.从服务器中删除*/
         /*3.从 person、picture表中删除face*/
         boolean removeFace = faceService.removeById(face.getId());
-        deleteImageFromServer("/mydata/nginx/html/img/face", face.getUrl().replace("http://lpgogo.top/img/face/",""),false);
+        deleteImageFromServer("/mydata/nginx/html/img/face", face.getUrl().replace("http://lpgogo.top/img/face/", ""), false);
         boolean deleteFaceFromPictureAndPerson = deleteFaceFromPictureAndPerson(face.getId(), face.getPersonId(), face.getPictureId());
         return ResultUtil.successWithData(removeFace && deleteFaceFromPictureAndPerson);
     }
@@ -68,9 +70,9 @@ public class PersonController {
         /*更新人物*/
         boolean updatePerson = false;
         Person person = personService.getById(personId);
-        if(person.getCount() == 1){
+        if (person.getCount() == 1) {
             updatePerson = personService.removeById(personId);
-        }else {
+        } else {
             person.setCount(person.getCount() - 1);
             updatePerson = personService.updateById(person);
         }
@@ -78,7 +80,7 @@ public class PersonController {
         /*更新图片*/
 
         Picture picture = pictureService.getById(pictureId);
-        picture.setFaceUid(picture.getFaceUid().replace(faceId + ",",""));
+        picture.setFaceUid(picture.getFaceUid().replace(faceId + ",", ""));
         boolean updatePicture = pictureService.updateById(picture);
         return updatePerson && updatePicture;
     }
@@ -88,6 +90,52 @@ public class PersonController {
     public String updatePersonName(@RequestBody Person person) {
         boolean b = personService.updateById(person);
         return ResultUtil.successWithData(b);
+    }
+
+
+    /*移动人脸*/
+    @PostMapping("/moveFaceTo")
+    public String moveFaceTo(@RequestBody HashMap obj) {
+
+        /*1.修改person表
+            a.原person 移除 picture_uid中 face对应的picture_id
+            b.新person 新增(新建person) picture_uid*/
+        /*2.修改face表 将person_id 改为新的id*/
+
+        /*修改原person表*/
+        boolean updateOperson = false;
+        boolean updateNperson = false;
+        Face nface = JSON.parseObject(JSON.toJSONString(obj.get("face")), Face.class);
+        Face oFace = faceService.getById(nface.getId());
+        Person oPerson = personService.getById(oFace.getPersonId());
+        if(oPerson.getPictureUid().split(",").length == 1){
+            updateOperson = personService.removeById(oPerson.getId());
+        }else {
+            oPerson.setPictureUid(oPerson.getPictureUid().replace(oFace.getPictureId() + ",",""));
+            updateOperson = personService.updateById(oPerson);
+        }
+
+        /*修改新person表*/
+        String createPersonName = (String) obj.get("createPersonName");
+        if(createPersonName.length() > 0){
+            updateNperson = personService.save(new Person(nface.getPersonId(),createPersonName,1,nface.getPictureId() + ","));
+        }else {
+            Person nPerson = personService.getById(nface.getPersonId());
+            String pictureUid = nPerson.getPictureUid();
+            /*不存在该pid时才添加*/
+            if(pictureUid.indexOf(nface.getPictureId()+",") == -1){
+                nPerson.setPictureUid(pictureUid + (nface.getPictureId()+","));
+                nPerson.setCount(nPerson.getCount() + 1);
+                updateNperson = personService.updateById(nPerson);
+            }
+        }
+        /*修改face表*/
+        nface.setFaceEncoding(null);
+        nface.setFaceLocations(null);
+        nface.setFaceLandmarks(null);
+        boolean updateFace = faceService.updateById(nface);
+
+        return ResultUtil.successWithData(updateNperson && updateOperson && updateFace);
     }
 
     /*todo 事务*/
@@ -109,13 +157,13 @@ public class PersonController {
 
         //3.去重合并 pictureUid
         String toPersonPictureUid = toPerson.getPictureUid() + fromPerson.getPictureUid();
-        List<String> personUids =  new ArrayList<>(Arrays.asList(toPersonPictureUid.split(",")));
+        List<String> personUids = new ArrayList<>(Arrays.asList(toPersonPictureUid.split(",")));
         List uniqueList = personUids.stream().distinct().collect(Collectors.toList());
-        toPersonPictureUid = uniqueList.toString().substring(1,uniqueList.toString().length()-1).replaceAll(" ","") + ",";
+        toPersonPictureUid = uniqueList.toString().substring(1, uniqueList.toString().length() - 1).replaceAll(" ", "") + ",";
         toPerson.setPictureUid(toPersonPictureUid);
         boolean update1 = personService.updateById(toPerson);
 
-        //3.删除from
+        //4.删除from
         boolean b = personService.removeById(fromIndex);
 
         return ResultUtil.successWithData(update && update1 && b);
@@ -126,7 +174,7 @@ public class PersonController {
             String[] pids = person.getPictureUid().split(",");
             List<Picture> pictureList = pictureMapper.selectBatchIds(Arrays.asList(pids));
             person.setPictureList(pictureList);
-            List<Face> faceList = faceService.lambdaQuery().select(Face::getId, Face::getPersonId,Face::getPictureId,Face::getUrl).eq(Face::getPersonId, person.getId()).list();
+            List<Face> faceList = faceService.lambdaQuery().select(Face::getId, Face::getPersonId, Face::getPictureId, Face::getUrl).eq(Face::getPersonId, person.getId()).list();
             faceList.forEach((f) -> f.setPersonName(person.getName()));
             person.setFaceList(faceList);
         }

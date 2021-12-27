@@ -23,4 +23,11 @@ public class Person {
     private List<Face> faceList = new ArrayList<>();
     @TableField(exist = false)
     private List<Picture> pictureList = new ArrayList<>();
+
+    public Person(Integer id, String name, int count, String pictureUid) {
+        this.id = id;
+        this.name =name;
+        this.count = count;
+        this.pictureUid = pictureUid;
+    }
 }

@@ -253,12 +253,21 @@ public class PictureController {
     public void checkKnowFaceData() throws IOException {
         int count = faceService.count();
         BufferedReader reader = new BufferedReader(new FileReader(knownFaceIdsPath));
-        String readLine = reader.readLine();
+        String readLine = reader.readLine().replaceAll(" +"," ");
         if( readLine != null){
-            String[] line = readLine.replaceAll(" +"," ").split(" ");
+            String[] line = readLine.split(" ");
             /*若两者不相等 重写文件*/
             if(count != line.length){
                 reWriteKnownFace();
+            }else {
+            //    判断 是否需要重写 face_id.txt
+            //    两者的顺序是否一致 因为有可能手动调整了person_id
+                List<Face> faceList = faceService.lambdaQuery().select(Face::getPersonId).list();
+                StringBuilder s = new StringBuilder();
+                faceList.forEach((f) -> s.append(f.getPersonId() + " "));
+                if(!s.toString().equalsIgnoreCase(readLine)){
+                    reWriteKnownFaceIds();
+                }
             }
         }
     }
@@ -269,12 +278,7 @@ public class PictureController {
         Person person = personService.getById(faceNameId);
         //新建人物
         if (person == null) {
-            Person name = new Person();
-            name.setName("添加姓名");
-            name.setId(faceNameId);
-            name.setCount(1);
-            name.setPictureUid(pictureId + ",");
-            personService.save(name);
+            personService.save(new Person(faceNameId,"添加姓名",1,pictureId + ","));
         } else {// 更新人物
             person.setPictureUid(person.getPictureUid() + pictureId + ",");
             person.setCount(person.getCount() + 1);

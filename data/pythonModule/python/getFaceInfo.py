@@ -88,6 +88,14 @@ def getFaceInfo(imgpath):
     print(face_alignment(img_rgb))
     # return faceDic
 
+
+def reWrite_known_data(face_id, face_encoding):
+    with open(abs_pre + 'known_face_ids.txt', 'a+') as f:
+        f.write(str(face_id)+' ')
+    with open(abs_pre + 'known_face_encodings.txt', 'a+') as f:
+        f.write(str(face_encoding.tolist()).replace("[","").replace("]","").replace(","," ") + '\n')
+
+
 def getFaceIndex(face_encodings):
     # 从本地读取人脸文件
     known_face_encodings = np.loadtxt(abs_pre + 'known_face_encodings.txt').tolist()
@@ -99,10 +107,7 @@ def getFaceIndex(face_encodings):
         face_id = 0
         for face_encoding in  face_encodings:
             #  更新两个txt文件
-            with open(abs_pre + 'known_face_ids.txt', 'a+') as f:
-                f.write(str(face_id)+' ')
-            with open(abs_pre + 'known_face_encodings.txt', 'a+') as f:
-                f.write(str(face_encoding.tolist()).replace("[","").replace("]","").replace(","," ") + '\n')
+            reWrite_known_data(face_id,face_encoding)
             faceId += str(face_id) + ","
             face_id += 1
         return faceId
@@ -125,10 +130,7 @@ def getFaceIndex(face_encodings):
             max_faceId +=1
             face_id = max_faceId
         #  更新两个txt文件
-        with open(abs_pre + 'known_face_ids.txt', 'a+') as f:
-            f.write(' '+str(face_id))
-        with open(abs_pre + 'known_face_encodings.txt', 'a+') as f:
-            f.write('\n' + str(face_encoding.tolist()).replace("[","").replace("]","").replace(","," "))
+        reWrite_known_data(face_id,face_encoding)
         faceId += str(face_id) + ","
     return faceId
 

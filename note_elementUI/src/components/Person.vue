@@ -75,11 +75,12 @@
                                         :src="face.url"
                                         fit="cover">
                                 </el-image>
+                                <!--移除 或 移动人脸-->
                                 <div>
                                     <el-button @click="deleteFace(face)">移除</el-button>
-                                    <el-select v-model="face.personName" :style="{width: tool.getCharLength(face.personName)*6 + 70+ 'px'}"
+                                    <!--移动到人物组-->
+                                    <el-select  @change = "moveFaceTo" v-model="face.personName" :style="{width: tool.getCharLength(face.personName)*6 + 70+ 'px'}"
                                                filterable placeholder="请选择"
-                                               @change = "moveFaceTo"
                                                default-first-option
                                                allow-create>
                                         <el-option
@@ -171,32 +172,55 @@
                 /*页面更新*/
                 /*a.to +1 from -1*/
                 let createName = true
+                /*待移动的picture数据*/
+                let picture = this.currentPerson.pictureList.filter(i => i.id == this.currentFace.pictureId)[0]
+
+                /*新的person +1*/
                 for (let p of this.$store.state.persons) {
                     if(p.name == newPersonName)   {
+                        this.currentFace.personId = p.id
                         p.faceList.push(this.currentFace)
+                        /*若该照片在新的person中不存在 则加入*/
+                        if(p.pictureList.filter(i => i.id == picture.id).length == 0){
+                            p.pictureList.push(picture)
+                        }
                         createName = false
                         break;
                     }
                 }
-
-
-                if (this.currentPerson.faceList.length == 1) {
-                    this.$store.state.persons = this.persons.filter(p => p.id != this.currentPerson.id)
-                } else {
-                    this.currentPerson.faceList = this.currentPerson.faceList.filter(f => f.id != this.currentFace.id)
-                }
-
                 if(createName){
-                    /*在服务器新建person*/
+                    this.currentFace.personId = this.$store.state.persons[this.$store.state.persons.length-1].id + 1
                     let newPerson = {
-                        "id": this.$store.state.persons[this.$store.state.persons.length-1].id + 1,
+                        "id": this.currentFace.personId,
                         "name": newPersonName,
                         "count": 1,
-                        "pictureList":[1110],
+                        "pictureList":[picture],
                         "pictureUid": this.currentFace.pictureId + ",",
                         "faceList": [this.currentFace]}
                     this.$store.state.persons.push(newPerson)
                 }
+
+                /*原person -1*/
+                if (this.currentPerson.faceList.length == 1) {
+                    this.$store.state.persons = this.persons.filter(p => p.id != this.currentPerson.id)
+                } else {
+                    this.currentPerson.faceList = this.currentPerson.faceList.filter(f => f.id != this.currentFace.id)
+                    this.currentPerson.pictureList = this.currentPerson.pictureList.filter(i => i.id != this.currentFace.pictureId)
+                }
+
+                /*数据库更新*/
+                /*1.修改face表 将person_id 改为新的id*/
+                /*2.修改person表
+                a.原person 移除 picture_uid中 face对应的picture_id
+                b.新person 新增(新建person) picture_uid
+                */
+                this.https.moveFaceTo({
+                    face:this.currentFace,
+                    createPersonName:createName ? newPersonName:''
+                }).then(({data}) => {
+                    console.log("成功移动人脸", data);
+                })
+
 
             },
             /*删除不需要的人脸*/
