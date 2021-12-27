@@ -1,21 +1,7 @@
 <template>
     <div>
-        <!--横线-->
-        <!-- <div    :style="{left: getFace(p).faceLocations[0],top: getFace(p).faceLocations[1]}"
-                 style="height: 1px;width: 50px;background-color: #c70a0a;position: absolute;z-index: 10;
-        "></div>
-         &lt;!&ndash;竖线&ndash;&gt;
-         <div style="height: 50px;width: 1px;background-color: #c70a0a;
-              position: absolute;
-              z-index: 10;
-              left: 80px;
-              top: 156px;"></div>-->
-        <!-- <canvas id="myCanvas" style="border:1px solid red;">
-             这是浏览器不支持canvas时展示的信息
-         </canvas>
-         <el-button @click="draw">kkk</el-button>-->
         <el-tabs v-model="activeName" @tab-click="handleClick">
-            <el-tab-pane label="人物" name="first">人物
+            <el-tab-pane label="人物" name="first">
                 <!--使用draggable组件-->
                 <draggable v-model="persons" chosenClass="chosen" forceFallback="true" group="people" animation="1000"
                            :disabled="persons.length < 2"
