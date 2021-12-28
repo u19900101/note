@@ -12,9 +12,13 @@ import com.jcraft.jsch.SftpATTRS;
 import net.coobird.thumbnailator.Thumbnails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import ppppp.evernote.config.FtpConfig;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,19 +27,24 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.Vector;
 
-
+@Component
 public class sftp {
     private static final Logger logger = LoggerFactory.getLogger(sftp.class);
-
     private static Date last_push_date = null;
-
     private Session sshSession;
-
     private ChannelSftp channel;
-
     private static ThreadLocal<sftp> sftpLocal = new ThreadLocal<sftp>();
 
+    /** 此处静态方法不能用注入的方式初始化 否则为null
+     *  因为@Atuowire在初始化此对象之后执行 而调用静态方法不会初始化对象*/
+    static FtpConfig ftpConfig;
+    @Autowired
+    FtpConfig ftp;
 
+    @PostConstruct
+    public void init(){
+        ftpConfig=this.ftp;
+    }
    /* public static void main(String[] args) throws Exception {
         new Thread() {
             @Override
@@ -73,7 +82,21 @@ public class sftp {
             }
         }.start();
     }*/
-
+    /**
+     * 获取本地线程存储的sftp客户端
+     *
+     * @return
+     * @throws Exception
+     */
+    public static sftp getSftpUtil() throws Exception {
+        //获取本地线程
+        sftp sftpUtil = sftpLocal.get();
+        if (null == sftpUtil || !sftpUtil.isConnected()) {
+            //将新连接防止本地线程，实现并发处理
+            sftpLocal.set(new sftp(ftpConfig.getHost(),  ftpConfig.getPort(),ftpConfig.getUsername(),ftpConfig.getPassword()));
+        }
+        return sftpLocal.get();
+    }
 
     private sftp(String host, int port, String username, String password) throws Exception {
         JSch jsch = new JSch();
@@ -102,21 +125,7 @@ public class sftp {
         return null != channel && channel.isConnected();
     }
 
-    /**
-     * 获取本地线程存储的sftp客户端
-     *
-     * @return
-     * @throws Exception
-     */
-    public static sftp getSftpUtil(String host, int port, String username, String password) throws Exception {
-        //获取本地线程
-        sftp sftpUtil = sftpLocal.get();
-        if (null == sftpUtil || !sftpUtil.isConnected()) {
-            //将新连接防止本地线程，实现并发处理
-            sftpLocal.set(new sftp(host, port, username, password));
-        }
-        return sftpLocal.get();
-    }
+
 
     /**
      * 释放本地线程存储的sftp客户端
@@ -199,8 +208,8 @@ public class sftp {
      * @param multipartFile
      * @return
      */
-    public static String uploadVideo( File tempFile,String basePath, String remotDir, MultipartFile multipartFile, String fileName) throws IOException {
-
+    public static String uploadVideo( File tempFile,String basePath, String remotDir, MultipartFile multipartFile, String fileName) throws Exception {
+        sftp.getSftpUtil();
         try {
             sftpLocal.get().channel.cd(basePath);
             createDir(remotDir);
@@ -231,12 +240,14 @@ public class sftp {
             if(!delete){
                 System.out.println("文件删除失败 " + tempFile.getAbsolutePath());
             }
+            sftp.release();
         }
         return fileName;
     }
 
     /*上传人脸到服务器*/
-    public static String uploadFaceFile(File tempFile,String basePath, String remotDir) throws IOException {
+    public static String uploadFaceFile(File tempFile,String basePath, String remotDir) throws Exception {
+        sftp.getSftpUtil();
         //上传
         FileInputStream fileInputStream = new FileInputStream(tempFile);
         String fileName = tempFile.getName();
@@ -269,11 +280,13 @@ public class sftp {
             if(!delete){
                 System.out.println("人脸删除失败 ");
             }
+            sftp.release();
         }
         return fileName;
     }
 
-    public static String uploadFile(String basePath, String remotDir, MultipartFile multipartFile, String fileName) throws IOException {
+    public static String uploadFile(String basePath, String remotDir, MultipartFile multipartFile, String fileName) throws Exception {
+        sftp.getSftpUtil();
         //创建目录
         String tempImage = "C:\\Users\\Administrator\\Desktop\\"+UUID.randomUUID()+".jpg";
         File tempFile = new File(tempImage);
@@ -312,6 +325,8 @@ public class sftp {
             if(!delete){
                 System.out.println("文件删除失败 " + tempImage);
             }
+            // todo 切面 aop
+            sftp.release();
         }
         return fileName;
     }
@@ -323,7 +338,7 @@ public class sftp {
             @Override
             public void run() {
                 try {
-                    sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
+                    sftp.getSftpUtil();
                     Boolean deleteFiles = deleteFile(basePath, path, deleteThumbnails);
                     sftp.release();
                 } catch (Exception e) {
@@ -338,7 +353,7 @@ public class sftp {
             @Override
             public void run() {
                 try {
-                    sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
+                    sftp.getSftpUtil();
                     Boolean deleteFiles = deleteFiles(basePath, paths, deleteThumbnails);
                     sftp.release();
                 } catch (Exception e) {

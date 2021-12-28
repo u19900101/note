@@ -146,7 +146,6 @@ public class PictureController {
         File finalVideoFile = videoFile;
         Thread thread = new Thread(() -> {
             try {
-                sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
                 /*上传视频*/
                 String fileName = "";
                 String faceUid = "";
@@ -205,16 +204,14 @@ public class PictureController {
             String imgAbsPath = pictureFile.getAbsolutePath();
             ArrayList<Face> faceArrayList = getFaceMethod(imgAbsPath);
             /*将人脸批量写进数据库  并更新表picture中 face_uid*/
-            if (faceArrayList.size() > 0) {
+            if (faceArrayList!= null) {
                 for (Face face : faceArrayList) {
                     face.setPictureId(pictureId);
                     /*将对其后的人脸上传到服务器 img/face 下 1.获取返回的人脸 fileName*/
                     String faceAbsPath = "D:\\MyMind\\note\\data\\pythonModule\\python\\" + face.getUrl();
                     Thread thread = new Thread(() -> {
                         try {
-                            sftp.getSftpUtil("192.168.56.10", 22, "root", "vagrant");
                             String fileName = sftp.uploadFaceFile(new File(faceAbsPath), "/mydata/nginx/html/img/", "/face");
-                            sftp.release();
                             if (!fileName.equals("error")) {
                                 // System.out.println("人脸上传成功 " + fileName);
                                 String faceUrl = "http://lpgogo.top/img/face/" + fileName;
@@ -598,9 +595,9 @@ public class PictureController {
 
         //逆序
         if (sortway.getCreateTime()) {
-            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getCreateTime).last("limit 10").list(); /*.*/
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getCreateTime).list(); /*.last("limit 10").*/
         } else if (sortway.getUpdateTime()) {
-            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getUpdateTime).last("limit 10").list();
+            pictureList = pictureService.lambdaQuery().eq(Picture::getWastepaper, false).orderByDesc(Picture::getUpdateTime).list();
         }
         //逆序
         if (sortway.getReverse()) {
