@@ -7,10 +7,9 @@ import it.sauronsoftware.jave.Encoder;
 import it.sauronsoftware.jave.EncoderException;
 import it.sauronsoftware.jave.MultimediaInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ppppp.evernote.entity.*;
@@ -297,7 +296,10 @@ public class PictureController {
         // String known_face_ids = "[0, 1, 0, 1]";
 
         try {
-            String pyFilePath = "D:\\MyMind\\note\\data\\pythonModule\\python\\getFaceInfo.py";
+            Resource resource = new ClassPathResource("pyresources\\getFaceInfo.py");
+            //获1.txt的取相对路径
+            String pyFilePath = resource.getFile().getPath();
+            // String pyFilePath = "D:\\MyMind\\note\\data\\pythonModule\\python\\getFaceInfo.py";
             //要指定python的环境 不然使用的系统默认
             String[] args = new String[]{"D:\\MyMind\\note\\venv\\Scripts\\python",
                     pyFilePath, imgAbsPath}; /*, known_face_encodings, known_face_ids*/
@@ -790,7 +792,7 @@ public class PictureController {
         return list;
     }
 
-    public static void getVideoInfo(File pictureFile, Picture picture) throws EncoderException {
+    public static void getVideoInfo(File pictureFile, Picture picture) throws EncoderException, IOException {
 
         Encoder encoder = new Encoder();
         MultimediaInfo m = encoder.getInfo(pictureFile);
@@ -806,13 +808,15 @@ public class PictureController {
 
     }
 
-    public static Date getCreateTime(File file) {
+    public static Date getCreateTime(File file) throws IOException {
         if (file == null) {
             return null;
         }
-        //ffmepg工具地址 todo
-        String ffmpegPath = "D:\\MyMind\\note\\note_admin\\src\\main\\resources\\ffmpeg.exe";
-        // String ffmpegPath = "ffmpeg.exe";
+        //ffmepg工具地址
+        Resource resource = new ClassPathResource("ffmpeg.exe");
+        String ffmpegPath = resource.getFile().getPath();
+        // String ffmpegPath = "D:\\MyMind\\note\\note_admin\\src\\main\\resources\\ffmpeg.exe";
+
         //拼接cmd命令语句
         StringBuffer buffer = new StringBuffer();
         buffer.append(ffmpegPath);
