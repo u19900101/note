@@ -98,6 +98,9 @@ public class sftp {
         return sftpLocal.get();
     }
 
+    private sftp(){
+
+    }
     private sftp(String host, int port, String username, String password) throws Exception {
         JSch jsch = new JSch();
         jsch.getSession(username, host, port);

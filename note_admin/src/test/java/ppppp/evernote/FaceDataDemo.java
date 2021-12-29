@@ -5,13 +5,13 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import ppppp.evernote.entity.Face;
 import ppppp.evernote.entity.Picture;
 import ppppp.evernote.service.FaceService;
 import ppppp.evernote.service.PictureService;
 
-import java.io.*;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 /**
  * @author pppppp
@@ -36,11 +36,11 @@ public class FaceDataDemo {
         String[] line = reader.readLine().replaceAll(" +"," ").split(" ");
         /*若两者不相等 重写文件*/
         if(count != line.length){
-            reWriteKnownFace();
+            // reWriteKnownFace();
         }
     }
 
-    public void reWriteKnownFace() {
+  /*  public void reWriteKnownFace() {
         List<Face> knownFaces = faceService.lambdaQuery().select(Face::getPersonId, Face::getFaceEncoding).list();
         try {
             BufferedWriter out = new BufferedWriter(new FileWriter(knownFaceEncodingsPath));
@@ -55,7 +55,7 @@ public class FaceDataDemo {
         } catch (IOException e) {
             System.out.println("failed reWriteKnownFace");
         }
-    }
+    }*/
 
     @Autowired
     PictureService pictureService;

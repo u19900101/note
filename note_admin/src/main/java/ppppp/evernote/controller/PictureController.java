@@ -9,9 +9,13 @@ import it.sauronsoftware.jave.MultimediaInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import ppppp.evernote.config.KnowFaceConfig;
 import ppppp.evernote.entity.*;
 import ppppp.evernote.mapper.FaceMapper;
 import ppppp.evernote.mapper.PictureMapper;
@@ -60,9 +64,8 @@ public class PictureController {
     FaceMapper faceMapper;
     @Autowired
     PersonService personService;
-
-    final String knownFaceEncodingsPath = "D:\\MyMind\\note\\data\\pythonModule\\python\\known_face_encodings.txt";
-    final String knownFaceIdsPath = "D:\\MyMind\\note\\data\\pythonModule\\python\\known_face_ids.txt";
+    @Autowired
+    KnowFaceConfig knowFaceConfig;
 
     /*获取所有文件*/
     @RequestMapping("/allFiles")
@@ -70,7 +73,6 @@ public class PictureController {
         List<Picture> pictureListList = getSortWayNotes();
         /*给照片封装标签数据 和人脸数据*/
         fillPictureListList(pictureListList);
-
         return ResultUtil.successWithData(pictureListList);
     }
 
@@ -248,7 +250,7 @@ public class PictureController {
     /*检测known_face.txt是否需要更新 因为删除face后，不更新data，改为识别之前进行更新*/
     public void checkKnowFaceData() throws IOException {
         int count = faceService.count();
-        BufferedReader reader = new BufferedReader(new FileReader(knownFaceIdsPath));
+        BufferedReader reader = new BufferedReader(new FileReader(knowFaceConfig.getKnownFaceIdsPath()));
         String readLine = reader.readLine().replaceAll(" +"," ");
         if( readLine != null){
             String[] line = readLine.split(" ");
@@ -339,7 +341,7 @@ public class PictureController {
                 getByReg("\\[{2}\\d+.*?\\]{2}", face_landmarks, line);
             }
 
-            /*对齐的人脸路径*/
+           /*对齐的人脸路径*/
             String[] face_urls = null;
             if ((line = in.readLine()) != null) {
                 //temp_1.jpg,temp_2.jpg,    String absPre = "D:\\MyMind\\note\\data\\pythonModule\\python\\";
@@ -535,8 +537,8 @@ public class PictureController {
     public void reWriteKnownFace() {
         List<Face> knownFaces = faceService.lambdaQuery().select(Face::getPersonId, Face::getFaceEncoding).list();
         try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(knownFaceEncodingsPath));
-            BufferedWriter out2 = new BufferedWriter(new FileWriter(knownFaceIdsPath));
+            BufferedWriter out = new BufferedWriter(new FileWriter(knowFaceConfig.getKnownFaceEncodingsPath()));
+            BufferedWriter out2 = new BufferedWriter(new FileWriter(knowFaceConfig.getKnownFaceIdsPath()));
             for (Face face : knownFaces) {
                 out.write(face.getFaceEncoding().replaceAll(" |\\[|\\]", "").replace(",", " ") + "\n");
                 out2.write(face.getPersonId() + " ");
@@ -553,7 +555,7 @@ public class PictureController {
     public void reWriteKnownFaceIds() {
         List<Face> knownFaces = faceService.lambdaQuery().select(Face::getPersonId).list();
         try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(knownFaceIdsPath));
+            BufferedWriter out = new BufferedWriter(new FileWriter(knowFaceConfig.getKnownFaceIdsPath()));
             for (Face face : knownFaces) {
                 out.write(face.getPersonId() + " ");
             }
