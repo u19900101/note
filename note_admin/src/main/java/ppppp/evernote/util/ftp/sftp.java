@@ -35,15 +35,17 @@ public class sftp {
     private ChannelSftp channel;
     private static ThreadLocal<sftp> sftpLocal = new ThreadLocal<sftp>();
 
-    /** 此处静态方法不能用注入的方式初始化 否则为null
-     *  因为@Atuowire在初始化此对象之后执行 而调用静态方法不会初始化对象*/
+    /**
+     * 此处静态方法不能用注入的方式初始化 否则为null
+     * 因为@Atuowire在初始化此对象之后执行 而调用静态方法不会初始化对象
+     */
     static FtpConfig ftpConfig;
     @Autowired
     FtpConfig ftp;
 
     @PostConstruct
-    public void init(){
-        ftpConfig=this.ftp;
+    public void init() {
+        ftpConfig = this.ftp;
     }
    /* public static void main(String[] args) throws Exception {
         new Thread() {
@@ -82,6 +84,7 @@ public class sftp {
             }
         }.start();
     }*/
+
     /**
      * 获取本地线程存储的sftp客户端
      *
@@ -93,14 +96,15 @@ public class sftp {
         sftp sftpUtil = sftpLocal.get();
         if (null == sftpUtil || !sftpUtil.isConnected()) {
             //将新连接防止本地线程，实现并发处理
-            sftpLocal.set(new sftp(ftpConfig.getHost(),  ftpConfig.getPort(),ftpConfig.getUsername(),ftpConfig.getPassword()));
+            sftpLocal.set(new sftp(ftpConfig.getHost(), ftpConfig.getPort(), ftpConfig.getUsername(), ftpConfig.getPassword()));
         }
         return sftpLocal.get();
     }
 
-    private sftp(){
+    private sftp() {
 
     }
+
     private sftp(String host, int port, String username, String password) throws Exception {
         JSch jsch = new JSch();
         jsch.getSession(username, host, port);
@@ -127,7 +131,6 @@ public class sftp {
     private boolean isConnected() {
         return null != channel && channel.isConnected();
     }
-
 
 
     /**
@@ -165,7 +168,6 @@ public class sftp {
     private static void createDir(String createpath) throws Exception {
         if (!isDirExist(createpath)) {
             String pathArry[] = createpath.split("/");
-
             for (String path : pathArry) {
                 if (StringUtils.isEmpty(path)) {
                     continue;
@@ -179,6 +181,8 @@ public class sftp {
                     sftpLocal.get().channel.cd(path);
                 }
             }
+        } else {
+            sftpLocal.get().channel.cd(createpath);
         }
     }
 
@@ -207,26 +211,27 @@ public class sftp {
 
     /**
      * 上传文件(cd目录一定要注意，层层cd 直接cd一个全路径是不起作用的)
-     * @param remotDir 上传ftp的目录
+     *
+     * @param remotDir      上传ftp的目录
      * @param multipartFile
      * @return
      */
-    public static String uploadVideo( File tempFile,String basePath, String remotDir, MultipartFile multipartFile, String fileName) throws Exception {
+    public static String uploadVideo(File tempFile, String remotDir, MultipartFile multipartFile, String fileName) throws Exception {
         sftp.getSftpUtil();
         try {
-            sftpLocal.get().channel.cd(basePath);
+            sftpLocal.get().channel.cd(ftpConfig.getBasepath());
             createDir(remotDir);
 
             //列出服务器指定的文件列表
-            Vector ls = sftpLocal.get().channel.ls(basePath + remotDir);
+            Vector ls = sftpLocal.get().channel.ls(ftpConfig.getBasepath() + remotDir);
 
             // 判断文件是否重名  i=2 是排除 两个文件 . 和 ..
             for (int i = 2; i < ls.size(); i++) {
                 ChannelSftp.LsEntry l = (ChannelSftp.LsEntry) ls.get(i);
-                if(l.getFilename().equals(fileName)){
+                if (l.getFilename().equals(fileName)) {
                     System.out.println("重名鸟...");
                     String[] s = fileName.split("\\.");
-                    fileName = s[0] + "_"+ UUID.randomUUID().toString().substring(0,2) + "." + s[1];
+                    fileName = s[0] + "_" + UUID.randomUUID().toString().substring(0, 2) + "." + s[1];
                     i = 1;
                 }
             }
@@ -238,9 +243,9 @@ public class sftp {
         } catch (Exception e) {
             System.out.println(e.getLocalizedMessage() + e.getMessage() + e.toString());
             logger.error(e.getLocalizedMessage() + e.getMessage() + e.toString());
-        }finally {
+        } finally {
             boolean delete = tempFile.delete();
-            if(!delete){
+            if (!delete) {
                 System.out.println("文件删除失败 " + tempFile.getAbsolutePath());
             }
             sftp.release();
@@ -249,7 +254,7 @@ public class sftp {
     }
 
     /*上传人脸到服务器*/
-    public static String uploadFaceFile(File tempFile,String basePath, String remotDir) throws Exception {
+    public static String uploadFaceFile(File tempFile, String basePath, String remotDir) throws Exception {
         sftp.getSftpUtil();
         //上传
         FileInputStream fileInputStream = new FileInputStream(tempFile);
@@ -264,10 +269,10 @@ public class sftp {
             // 判断文件是否重名  i=2 是排除 两个文件 . 和 ..
             for (int i = 2; i < ls.size(); i++) {
                 ChannelSftp.LsEntry l = (ChannelSftp.LsEntry) ls.get(i);
-                if(l.getFilename().equals(fileName)){
+                if (l.getFilename().equals(fileName)) {
                     System.out.println("重名鸟...");
                     String[] s = fileName.split("\\.");
-                    fileName = s[0] + "_"+ UUID.randomUUID().toString().substring(0,2) + "." + s[1];
+                    fileName = s[0] + "_" + UUID.randomUUID().toString().substring(0, 2) + "." + s[1];
                     i = 1;
                 }
             }
@@ -278,9 +283,9 @@ public class sftp {
             System.out.println("人脸图图上传成功");
         } catch (Exception e) {
             System.out.println("error" + e.getLocalizedMessage() + e.getMessage() + e.toString());
-        }finally {
+        } finally {
             boolean delete = tempFile.delete();
-            if(!delete){
+            if (!delete) {
                 System.out.println("人脸删除失败 ");
             }
             sftp.release();
@@ -288,34 +293,33 @@ public class sftp {
         return fileName;
     }
 
-    public static String uploadFile(String basePath, String remotDir, MultipartFile multipartFile, String fileName) throws Exception {
+    public static String uploadFile(String remotDir, MultipartFile multipartFile, String fileName) throws Exception {
         sftp.getSftpUtil();
         //创建目录
-        String tempImage = "C:\\Users\\Administrator\\Desktop\\"+UUID.randomUUID()+".jpg";
-        File tempFile = new File(tempImage);
+
+        File tempFile = File.createTempFile(String.valueOf(UUID.randomUUID()), ".jpg");
 
         try {
-            sftpLocal.get().channel.cd(basePath);
+            sftpLocal.get().channel.cd(ftpConfig.getBasepath());
             createDir(remotDir);
-
             //列出服务器指定的文件列表
-            Vector ls = sftpLocal.get().channel.ls(basePath + remotDir);
+            Vector ls = sftpLocal.get().channel.ls(ftpConfig.getBasepath() + remotDir);
 
             // 判断文件是否重名  i=2 是排除 两个文件 . 和 ..
             for (int i = 2; i < ls.size(); i++) {
                 ChannelSftp.LsEntry l = (ChannelSftp.LsEntry) ls.get(i);
-                if(l.getFilename().equals(fileName)){
+                if (l.getFilename().equals(fileName)) {
                     System.out.println("重名鸟...");
                     String type = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
-                    String name = fileName.substring(0,fileName.lastIndexOf("."));
-                    fileName = name.replaceAll("\\.| ","_") + "_"+ UUID.randomUUID().toString().substring(0,2) + type;
+                    String name = fileName.substring(0, fileName.lastIndexOf("."));
+                    fileName = name.replaceAll("\\.| ", "_") + "_" + UUID.randomUUID().toString().substring(0, 2) + type;
                     i = 1;
                 }
             }
             //上传原图文件
             sftpLocal.get().channel.put(multipartFile.getInputStream(), fileName);
-           // 上传缩略图 用于列表
-            Thumbnails.of(multipartFile.getInputStream()).width(400).toFile(tempImage);
+            // 上传缩略图 用于列表
+            Thumbnails.of(multipartFile.getInputStream()).width(400).toFile(tempFile.getAbsoluteFile());
             FileInputStream fileInputStream = new FileInputStream(tempFile);
             sftpLocal.get().channel.put(fileInputStream, fileName.split("\\.")[0] + "_thumbnails." + fileName.split("\\.")[1]);
             //便于文件关闭
@@ -323,10 +327,10 @@ public class sftp {
             System.out.println("缩略图上传成功");
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage() + e.getMessage() + e.toString());
-        }finally {
+        } finally {
             boolean delete = tempFile.delete();
-            if(!delete){
-                System.out.println("文件删除失败 " + tempImage);
+            if (!delete) {
+                System.out.println("文件删除失败 " + tempFile.getAbsoluteFile());
             }
             // todo 切面 aop
             sftp.release();
@@ -335,14 +339,14 @@ public class sftp {
     }
 
 
-    public static void deleteImageFromServer(String basePath, String path, boolean deleteThumbnails) {
+    public static void deleteImageFromServer(String path, boolean deleteThumbnails) {
 
         new Thread() {
             @Override
             public void run() {
                 try {
                     sftp.getSftpUtil();
-                    Boolean deleteFiles = deleteFile(basePath, path, deleteThumbnails);
+                    Boolean deleteFiles = deleteFile(ftpConfig.getBasepath(), path, deleteThumbnails);
                     sftp.release();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -350,30 +354,96 @@ public class sftp {
             }
         }.start();
     }
-    public static void deleteImageFromServer(String basePath, ArrayList<String> paths, boolean deleteThumbnails) {
 
-        new Thread() {
+    public static boolean deleteImageFromServer(ArrayList<String> deleteImageUrls, ArrayList<String> deleteFaceUrls) throws InterruptedException {
+        final boolean[] deleteFiles = {false};
+        Thread thread = new Thread() {
             @Override
             public void run() {
                 try {
                     sftp.getSftpUtil();
-                    Boolean deleteFiles = deleteFiles(basePath, paths, deleteThumbnails);
+                    /*删除照片时顺带删除人脸*/
+                    deleteFiles[0] = deleteFiles(deleteImageUrls, deleteFaceUrls);
                     sftp.release();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        }.start();
+        };
+        thread.start();
+        thread.join();
+        return deleteFiles[0];
     }
-    public static Boolean deleteFiles(String basePath,ArrayList<String> paths,boolean deleteThumbnails) throws IOException {
+
+    public static boolean deleteImageFromServer(ArrayList<String> paths, boolean deleteThumbnails) throws InterruptedException {
+        final boolean[] deleteFiles = {false};
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    sftp.getSftpUtil();
+                    String basepath = ftpConfig.getBasepath();
+                    /*指定删除人脸*/
+                    if (!deleteThumbnails) {
+                        // "/mydata/nginx/html/img/face"
+                        basepath += "face/";
+                    }
+                    /*删除照片时顺带删除人脸*/
+                    deleteFiles[0] = deleteFiles(basepath, paths, deleteThumbnails);
+                    sftp.release();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread.start();
+        thread.join();
+        return deleteFiles[0];
+    }
+
+    public static Boolean deleteFiles(ArrayList<String> deleteImageUrls, ArrayList<String> deleteFaceUrls) throws IOException {
+        boolean flag = true;
+        try {
+            /*删除face*/
+            if(deleteFaceUrls.size() > 0){
+                sftpLocal.get().channel.cd(ftpConfig.getBasepath().replace("img","face"));
+                for (String path : deleteFaceUrls) {
+                    /*删除face*/
+                    sftpLocal.get().channel.rm(path);
+                }
+            }
+
+            /*删除照片和缩略图*/
+            if(deleteImageUrls.size() > 0){
+                sftpLocal.get().channel.cd(ftpConfig.getBasepath());
+                for (String path : deleteImageUrls) {
+                    /*删除大图*/
+                    sftpLocal.get().channel.rm(path);
+                    /*删除缩略图 NAME_thumbnails.jpg*/
+                    String s = path.split("\\.")[0] + "_thumbnails." + path.split("\\.")[1];
+                    sftpLocal.get().channel.rm(s);
+                }
+            }
+
+
+            System.out.println("删除成功");
+        } catch (Exception e) {
+            System.out.println("删除服务器文件失败" + e.getLocalizedMessage() + e.getMessage() + e.toString());
+            flag = false;
+        }
+        return flag;
+    }
+
+    public static Boolean deleteFiles(String basePath, ArrayList<String> paths, boolean deleteThumbnails) throws IOException {
         boolean flag = true;
         try {
             sftpLocal.get().channel.cd(basePath);
             for (String path : paths) {
                 /*删除大图*/
                 sftpLocal.get().channel.rm(path);
+
                 /*删除缩略图 NAME_thumbnails.jpg*/
-                if(deleteThumbnails){
+                if (deleteThumbnails) {
                     String s = path.split("\\.")[0] + "_thumbnails." + path.split("\\.")[1];
                     sftpLocal.get().channel.rm(s);
                 }
@@ -385,15 +455,16 @@ public class sftp {
         }
         return flag;
     }
+
     /*删除单张*/
-    public static Boolean deleteFile(String basePath,String path,boolean deleteThumbnails) throws IOException {
+    public static Boolean deleteFile(String basePath, String path, boolean deleteThumbnails) throws IOException {
         boolean flag = true;
         try {
             sftpLocal.get().channel.cd(basePath);
             /*删除大图*/
             sftpLocal.get().channel.rm(path);
             /*删除缩略图 NAME_thumbnails.jpg*/
-            if(deleteThumbnails){
+            if (deleteThumbnails) {
                 String s = path.split("\\.")[0] + "_thumbnails." + path.split("\\.")[1];
                 sftpLocal.get().channel.rm(s);
             }

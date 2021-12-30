@@ -62,7 +62,7 @@ public class PersonController {
         /*2.从服务器中删除*/
         /*3.从 person、picture表中删除face*/
         boolean removeFace = faceService.removeById(face.getId());
-        deleteImageFromServer("/mydata/nginx/html/img/face", face.getUrl().replace("http://lpgogo.top/img/face/", ""), false);
+        deleteImageFromServer(face.getUrl().replace("http://lpgogo.top/img/face/", ""), false);
         boolean deleteFaceFromPictureAndPerson = deleteFaceFromPictureAndPerson(face.getId(), face.getPersonId(), face.getPictureId());
         return ResultUtil.successWithData(removeFace && deleteFaceFromPictureAndPerson);
     }

@@ -1,6 +1,7 @@
 package ppppp.evernote.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.additional.update.impl.LambdaUpdateChainWrapper;
 import com.drew.imaging.ImageMetadataReader;
 import it.sauronsoftware.jave.Encoder;
@@ -13,8 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import ppppp.evernote.config.FtpConfig;
 import ppppp.evernote.config.KnowFaceConfig;
 import ppppp.evernote.entity.*;
 import ppppp.evernote.mapper.FaceMapper;
@@ -120,6 +123,8 @@ public class PictureController {
         return ResultUtil.successWithData(updateById);
     }
 
+    @Autowired
+    FtpConfig ftpConfig;
 
     /*每张照片都发送一次请求上传*/
     @PostMapping("/uploadFileAndInsert")
@@ -151,9 +156,9 @@ public class PictureController {
                 String fileName = "";
                 String faceUid = "";
                 if (finalVideoFile != null) {
-                    fileName = sftp.uploadVideo(finalVideoFile, "/mydata/nginx/html/img", "/" + uploadDir, multipartFile, finalPicture.getTitle());
+                    fileName = sftp.uploadVideo(finalVideoFile, uploadDir, multipartFile, finalPicture.getTitle());
                 } else {
-                    fileName = sftp.uploadFile("/mydata/nginx/html/img", "/" + uploadDir, multipartFile, finalPicture.getTitle());
+                    fileName = sftp.uploadFile(uploadDir, multipartFile, finalPicture.getTitle());
                 }
                 sftp.release();
                 if (!fileName.equals("error")) {
@@ -162,7 +167,8 @@ public class PictureController {
                     if (!fileName.equals(finalPicture.getTitle())) {
                         finalPicture.setTitle(fileName);
                     }
-                    String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
+                    // String imgUrl = "http://lpgogo.top/img/" + uploadDir + "/" + fileName;
+                    String imgUrl = "http://47.101.137.245/img/" + uploadDir + "/" + fileName;
                     finalPicture.setUrl(imgUrl);
                     // 保存文件信息到数据库
                     boolean save = pictureService.save(finalPicture);
@@ -181,7 +187,7 @@ public class PictureController {
         if (finalVideoFile == null) {
             new Thread(() -> {
                 try {
-                    faceRecognition(multipartFile, finalPicture.getId());
+                    faceRecognition(finalPicture.getUrl(), finalPicture.getId());
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -196,74 +202,91 @@ public class PictureController {
     }
 
     /*进行人脸识别 若存在人脸则写入face表中 并且更新picture表*/
-    private void faceRecognition(MultipartFile multipartFile, Integer pictureId) throws IOException, InterruptedException {
+    private void faceRecognition(String imageUrl, Integer pictureId) throws IOException, InterruptedException {
         /*1.检测known_face.txt是否需要更新*/
         checkKnowFaceData();
-        File pictureFile = File.createTempFile(String.valueOf(UUID.randomUUID()), multipartFile.getOriginalFilename());
-        try {
-            multipartFile.transferTo(pictureFile);
-            String imgAbsPath = pictureFile.getAbsolutePath();
-            ArrayList<Face> faceArrayList = getFaceMethod(imgAbsPath);
-            /*将人脸批量写进数据库  并更新表picture中 face_uid*/
-            if (faceArrayList!= null) {
-                for (Face face : faceArrayList) {
-                    face.setPictureId(pictureId);
-                    /*将对其后的人脸上传到服务器 img/face 下 1.获取返回的人脸 fileName*/
-                    String faceAbsPath = "D:\\MyMind\\note\\data\\pythonModule\\python\\" + face.getUrl();
-                    Thread thread = new Thread(() -> {
-                        try {
-                            String fileName = sftp.uploadFaceFile(new File(faceAbsPath), "/mydata/nginx/html/img/", "/face");
-                            if (!fileName.equals("error")) {
-                                // System.out.println("人脸上传成功 " + fileName);
-                                String faceUrl = "http://lpgogo.top/img/face/" + fileName;
-                                face.setUrl(faceUrl);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-                    thread.start();
-                    thread.join();
-                }
-                /*保存人脸到数据库*/
-                boolean b = faceService.saveBatch(faceArrayList);
-                /*更新对应的picture*/
-                if (b) {
-                    String faceUid = "";
-                    for (Face face : faceArrayList) {
-                        int faceNameId = face.getPersonId();
-                        /*若出现新的面孔 则创建新的faceName*/
-                        updatePerson(faceNameId, pictureId);
-                        faceUid += face.getId() + ",";
-                    }
-                    Picture picture = pictureMapper.selectById(pictureId);
-                    picture.setFaceUid(faceUid);
-                    pictureService.updateById(picture);
-                }
+        // multipartFile.transferTo(pictureFile);
+        // String imgAbsPath = pictureFile.getAbsolutePath();
+        ArrayList<Face> faceArrayList = getFaceFromServer(imageUrl);
+        /*将人脸批量写进数据库  并更新表picture中 face_uid*/
+        if (faceArrayList != null) {
+            for (Face face : faceArrayList) {
+                face.setPictureId(pictureId);
             }
-        } finally {
-            if (!pictureFile.delete()) {
-                System.out.println("人脸识别的临时文件删除失败...");
+            /*保存人脸到数据库*/
+            boolean b = faceService.saveBatch(faceArrayList);
+            /*更新对应的picture*/
+            if (b) {
+                String faceUid = "";
+                for (Face face : faceArrayList) {
+                    int faceNameId = face.getPersonId();
+                    /*若出现新的面孔 则创建新的faceName*/
+                    updatePerson(faceNameId, pictureId);
+                    faceUid += face.getId() + ",";
+                }
+                Picture picture = pictureMapper.selectById(pictureId);
+                picture.setFaceUid(faceUid);
+                pictureService.updateById(picture);
             }
         }
     }
+
+    public ArrayList<Face> getFaceFromServer(String imageUrl) {
+        RestTemplate restTemplate = new RestTemplate();
+        //1. 简单Get请求
+        String rootUrl = "http://47.101.137.245:5000";
+        // String imageUrl = "http://47.101.137.245/img/l.jpg";
+
+        HashMap<String, Object> res = restTemplate.getForObject(rootUrl + "?imageUrl=" + imageUrl, HashMap.class);
+        int faceNum = (int) res.get("faceNum");
+        /*判断是否检测到了人脸*/
+        if (faceNum == 0) {
+            System.out.println("未检测到人脸");
+            return null;
+        }
+
+        ArrayList<Face> faces = new ArrayList<>();
+        ArrayList<String> face_name_ids = (ArrayList<String>) res.get("face_name_ids");
+        ArrayList<ArrayList<String>> face_encodings = (ArrayList<ArrayList<String>>) res.get("face_encodings");
+        ArrayList<ArrayList<String>> face_locations = (ArrayList<ArrayList<String>>) res.get("face_locations");
+        ArrayList<ArrayList<String>> face_landmarks = (ArrayList<ArrayList<String>>) res.get("face_landmarks");
+
+        /*对齐的人脸路径*/
+        ArrayList<String> face_urls = (ArrayList) res.get("face_urls");
+
+        /*将人脸封装为单张*/
+        for (int i = 0; i < faceNum; i++) {
+            Face face = new Face();
+            face.setPersonId(Integer.valueOf(JSONObject.toJSONString(face_name_ids.get(i))));
+            face.setFaceEncoding(JSONObject.toJSONString(face_encodings.get(i)));
+            face.setFaceLandmarks(JSONObject.toJSONString(face_landmarks.get(i)));
+            face.setFaceLocations(JSONObject.toJSONString(face_locations.get(i)));
+            face.setUrl(face_urls.get(i));
+            faces.add(face);
+        }
+        boolean save = faceService.save(faces.get(0));
+        System.out.println(save);
+        return faces;
+    }
+
+
     /*检测known_face.txt是否需要更新 因为删除face后，不更新data，改为识别之前进行更新*/
     public void checkKnowFaceData() throws IOException {
         int count = faceService.count();
         BufferedReader reader = new BufferedReader(new FileReader(knowFaceConfig.getKnownFaceIdsPath()));
-        String readLine = reader.readLine().replaceAll(" +"," ");
-        if( readLine != null){
+        String readLine = reader.readLine().replaceAll(" +", " ");
+        if (readLine != null) {
             String[] line = readLine.split(" ");
             /*若两者不相等 重写文件*/
-            if(count != line.length){
+            if (count != line.length) {
                 reWriteKnownFace();
-            }else {
-            //    判断 是否需要重写 face_id.txt
-            //    两者的顺序是否一致 因为有可能手动调整了person_id
+            } else {
+                //    判断 是否需要重写 face_id.txt
+                //    两者的顺序是否一致 因为有可能手动调整了person_id
                 List<Face> faceList = faceService.lambdaQuery().select(Face::getPersonId).list();
                 StringBuilder s = new StringBuilder();
                 faceList.forEach((f) -> s.append(f.getPersonId() + " "));
-                if(!s.toString().equalsIgnoreCase(readLine)){
+                if (!s.toString().equalsIgnoreCase(readLine)) {
                     reWriteKnownFaceIds();
                 }
             }
@@ -276,7 +299,7 @@ public class PictureController {
         Person person = personService.getById(faceNameId);
         //新建人物
         if (person == null) {
-            personService.save(new Person(faceNameId,"添加姓名",1,pictureId + ","));
+            personService.save(new Person(faceNameId, "添加姓名", 1, pictureId + ","));
         } else {// 更新人物
             person.setPictureUid(person.getPictureUid() + pictureId + ",");
             person.setCount(person.getCount() + 1);
@@ -341,7 +364,7 @@ public class PictureController {
                 getByReg("\\[{2}\\d+.*?\\]{2}", face_landmarks, line);
             }
 
-           /*对齐的人脸路径*/
+            /*对齐的人脸路径*/
             String[] face_urls = null;
             if ((line = in.readLine()) != null) {
                 //temp_1.jpg,temp_2.jpg,    String absPre = "D:\\MyMind\\note\\data\\pythonModule\\python\\";
@@ -374,7 +397,7 @@ public class PictureController {
     }
 
     @PostMapping("/deleteImage")
-    public String deleteImage(@RequestBody Picture picture) {
+    public String deleteImage(@RequestBody Picture picture) throws InterruptedException {
         picture = pictureService.getById(picture.getId());
         // 1.更新 标签数量
         if (picture.getTagUid() != null) {
@@ -397,8 +420,9 @@ public class PictureController {
             isLogicalDelete = pictureService.removeById(picture.getId());
             if (isLogicalDelete) { //在服务器上进行删除 http://lpgogo.top/img/2016-08-16/2.jpg
                 ArrayList<String> stringArrayList = new ArrayList<>();
-                stringArrayList.add(picture.getUrl().replace("http://lpgogo.top/img/", ""));
-                deleteImageFromServer("/mydata/nginx/html/img", stringArrayList,true);
+                // stringArrayList.add(picture.getUrl().replace("http://lpgogo.top/img/", ""));
+                stringArrayList.add(picture.getUrl().replace("http://47.101.137.245/img/", ""));
+                deleteImageFromServer(stringArrayList, true);
             }
             // 修改废纸篓的数量 -1
             isWastepaperSucceed = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - 1));
@@ -417,10 +441,9 @@ public class PictureController {
     }
 
 
-
     /*批量移入到回收站或者从回收站彻底删除*/
     @PostMapping("/deleteImageBatch")
-    public String delete(@RequestBody HashMap obj) throws IOException {
+    public String delete(@RequestBody HashMap obj) throws IOException, InterruptedException {
 
         ArrayList<Integer> deleteImageIds = (ArrayList) obj.get("deleteIds");
         String type = (String) obj.get("type");
@@ -457,32 +480,51 @@ public class PictureController {
     }
 
     /*批量彻底删除照片*/
-    private boolean deleteImageBatch(ArrayList<Integer> deleteImageIds) throws IOException {
+    private boolean deleteImageBatch(ArrayList<Integer> deleteImageIds) throws IOException, InterruptedException {
 
         /*1.找到要删除照片*/
         List<Picture> pictureList = pictureMapper.selectBatchIds(deleteImageIds);
-        /*2.更新face表 3.重写known_face文件 再删除照片*/
-        updateFaceTable(pictureList);
 
-        /*4.更新imageTag相关*/
-        updateImageTag(pictureList);
-
-        /*3.修改废纸篓的数量*/
-        Notebook wastepaperNotebook = notebookService.getById(10); //回收站id为10
-        boolean updateWastePaper = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - deleteImageIds.size()));
-
-        /*5.批量删除照片*/
-        int deleteBatchIds = pictureMapper.deleteBatchIds(deleteImageIds);
         /*6.从服务器删除照片*/
         ArrayList<String> deleteImageUrls = new ArrayList<>();
+        ArrayList<String> deleteFaceUrls = new ArrayList<>();
         for (Picture picture : pictureList) {
             // 1.更新 标签数量
-            deleteImageUrls.add(picture.getUrl().replace("http://lpgogo.top/img/", ""));
+            // deleteImageUrls.add(picture.getUrl().replace("http://lpgogo.top/img/", ""));
+            deleteImageUrls.add(picture.getUrl().replace("http://47.101.137.245/img/", ""));
+            String faceUid = picture.getFaceUid();
+            if( faceUid != null && faceUid.length() > 1){
+                String[] faceIds = faceUid.split(",");
+                List<Face> faceList = faceService.lambdaQuery().select(Face::getUrl).in(Face::getId,Arrays.asList(faceIds)).list();
+                faceList.forEach(face ->  deleteFaceUrls.add(face.getUrl().replace("http://47.101.137.245/face/", "")));
+            }
+
         }
-        deleteImageFromServer("/mydata/nginx/html/img", deleteImageUrls,true);
+
+        boolean deleteImageFromServer = deleteImageFromServer(deleteImageUrls, deleteFaceUrls);
+
+        int deleteBatchIds = -1;
+        boolean updateWastePaper = false;
+        /*从服务删除成功后才从操作数据库*/
+        if (deleteImageFromServer) {
+            /*2.更新face表 3.重写known_face文件 再删除照片*/
+            updateFaceTable(pictureList);
+
+            /*4.更新imageTag相关*/
+            updateImageTag(pictureList);
+
+            /*3.修改废纸篓的数量*/
+            Notebook wastepaperNotebook = notebookService.getById(10); //回收站id为10
+            updateWastePaper = notebookService.updateById(wastepaperNotebook.setNoteCount(wastepaperNotebook.getNoteCount() - deleteImageIds.size()));
+
+            /*5.批量删除照片*/
+            deleteBatchIds = pictureMapper.deleteBatchIds(deleteImageIds);
+        }
         return updateWastePaper && deleteBatchIds == deleteImageIds.size();
 
     }
+
+
 
     private void updateImageTag(List<Picture> pictureList) {
         for (Picture picture : pictureList) {
@@ -498,7 +540,7 @@ public class PictureController {
     }
 
 
-    private void updateFaceTable(List<Picture> pictureList) throws IOException {
+    private void updateFaceTable(List<Picture> pictureList) throws IOException, InterruptedException {
         for (Picture picture : pictureList) {
             String faceUid = picture.getFaceUid();
             if (faceUid != null && faceUid.length() > 1) {
@@ -510,11 +552,12 @@ public class PictureController {
                 List<Face> faces = faceMapper.selectBatchIds(faceUids);
                 for (Face f : faces) {
                     // 1.更新 标签数量
-                    deleteFaceUrls.add(f.getUrl().replace("http://lpgogo.top/img/face/", ""));
+                    // deleteFaceUrls.add(f.getUrl().replace("http://lpgogo.top/img/face/", ""));
+                    deleteFaceUrls.add(f.getUrl().replace("http://47.101.137.245/face/", ""));
                     /*2.更新人物 将pid从人物中移除 若移除后无pid 则将该人物删除*/
-                    updatePersonByPid(f.getPersonId(),picture.getId());
+                    updatePersonByPid(f.getPersonId(), picture.getId());
                 }
-                deleteImageFromServer("/mydata/nginx/html/img/face", deleteFaceUrls,false);
+                boolean deleteImageFromServer = deleteImageFromServer(deleteFaceUrls, false);
                 faceMapper.deleteBatchIds(faceUids);
             }
         }
@@ -524,9 +567,9 @@ public class PictureController {
         Person person = personService.getById(faceNameId);
         String replaceAll = person.getPictureUid().replaceAll(pictureId + ",", "");
         /*当人物pid为空时 删除*/
-        if(replaceAll.length() == 0){
+        if (replaceAll.length() == 0) {
             personService.removeById(faceNameId);
-        }else {
+        } else {
             person.setPictureUid(replaceAll);
             person.setCount(person.getCount() - 1);
             personService.updateById(person);
@@ -632,44 +675,6 @@ public class PictureController {
         imgInfo.setSize(size);
         return imgInfo;
     }
-
-   /* @PostMapping("/uploadFile")
-    public Map<String, Object> uploadFile(HttpServletRequest request) {
-
-        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
-        List<MultipartFile> fileList = multiRequest.getFiles("file");
-        ArrayList<Map<String, Object>> item = new ArrayList<>();
-        Map<String, Object> map = new HashMap<>();
-        for (MultipartFile file : fileList) {
-            Map<String, Object> temp = new HashMap<>();
-            if (file.isEmpty()) {
-                map.put("uploaded", -1);
-                map.put("errorMessage", "上传失败...");
-                return map;
-            }
-
-            String fileName = file.getOriginalFilename();
-            // String filePath = "C:\\Users\\Administrator\\Desktop\\temp\\";
-            // File dest = new File(filePath + fileName);
-            try {
-                // file.transferTo(dest); // 保存到本地
-                byte[] bytes = file.getBytes();
-                FTPUtil.sshSftp(bytes, file.getOriginalFilename());
-                temp.put("fileName", fileName);
-                temp.put("url", "http://lpgogo.top/img/" + fileName);
-                item.add(temp);
-            } catch (Exception e) {
-                System.out.println("bug");
-                map.put("uploaded", -1);
-                map.put("errorMessage", "上传失败...");
-                return map;
-            }
-        }
-
-        map.put("uploaded", 1); //"上传成功"
-        map.put("item", item);
-        return map;
-    }*/
 
     // 1.获取照片的拍摄时间 经度 纬度信息  宽高
     public static Picture getImgInfo(InputStream file, String fileName) throws Exception {

@@ -42,6 +42,7 @@
 
                 <!--图片上传-->
                 <el-tooltip class="item" style="float: right" content="上传" placement="bottom">
+                    <!-- action="http://47.101.137.245/api/admin/file/uploadFileAndInsert"-->
                     <el-upload
                             action="http://lpgogo.top/api/admin/file/uploadFileAndInsert"
                             :on-success="uploadSuccess"
