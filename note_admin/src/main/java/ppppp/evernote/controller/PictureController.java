@@ -236,7 +236,7 @@ public class PictureController {
         //1. 简单Get请求
         String rootUrl = "http://47.101.137.245:5000";
         // String imageUrl = "http://47.101.137.245/img/l.jpg";
-
+        System.out.println("发送请求");
         HashMap<String, Object> res = restTemplate.getForObject(rootUrl + "?imageUrl=" + imageUrl, HashMap.class);
         int faceNum = (int) res.get("faceNum");
         /*判断是否检测到了人脸*/
