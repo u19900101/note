@@ -180,7 +180,12 @@
                     /*人物*/
                     case 'person': //人物 id=14
                         this.toPage('person')
+                        //点击人物时重新请求数据
                         this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 14)[0]
+                        /*人脸数据*/
+                        this.https.getPersons().then(({data}) => {
+                            this.$store.state.persons = data.data
+                        })
                         break;
                     default:
                         /*区分是 点击的是笔记本 还是 标签*/

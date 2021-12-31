@@ -197,9 +197,9 @@
             this.$bus.$on("imageToMap", this.imageToMap)
         },
         mounted() {
-            this.$router.push({name: 'notepage'})
+            // this.$router.push({name: 'notepage'})
             // this.$router.push({name: 'calendar'})
-            // this.$router.push({name: 'map'})
+            this.$router.push({name: 'map'})
             // this.$router.push({name: 'person'})
             // this.$router.push({name: 'imageList'})
         }

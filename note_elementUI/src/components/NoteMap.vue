@@ -57,6 +57,7 @@
             /*初始化地图*/
             initMap() {
                 let data = [...this.$store.state.notes]
+                console.log("初始化笔记地图的长度",data.length)
                 this.position = [data[0].lnglat.split(',')[0], data[0].lnglat.split(',')[1]]
                 this.title = data[0].title
                 this.createTime = data[0].createTime

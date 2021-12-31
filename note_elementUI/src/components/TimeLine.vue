@@ -7,10 +7,9 @@
                                             style="font-size: 20px;"></i></el-button>
                 <el-button @click="nextDay"><i class="iconfont icon-play-next-button"></i></el-button>
             </div>
-            <!--<div style="margin-top: 10px;text-align: center"> {{date.split(" ")[0]}}</div>-->
-            <div style="margin-top: 10px;text-align: center"> {{dateData[dateIndex][0]
-                ?dateData[dateIndex][0].createTime.substring(0,10)
-                :dateData[dateIndex][1].createTime.substring(0,10)}}
+           <!--时间显示-->
+            <div style="margin-top: 10px;text-align: center">
+                {{getDayKey(this.dateIndex)}}
             </div>
         </div>
 
@@ -22,20 +21,37 @@
                     :format-tooltip="formatTooltip"
                     ref="slider1">
             </el-slider>
+
+
             <div style="display: flex;justify-content:space-between;margin-top: 4px;">
-                <div v-for="(d,index) in dateData">
+                <!--990为滑条长度-->
+                <div v-for="i in 990">
+                    <div @mouseenter="mouseEnterLine(Number(i*maxValue/990))"
+                         :style="{backgroundColor: noteData[getDayKey(Number(i*maxValue/990))] || imageData[getDayKey(Number(i*maxValue/990))] ?'#000000' :'#ffffff'}"
+                         class="vLine">
+                    </div>
+                    <!--影响性能 暂不使用-->
+                    <!--<el-tooltip class="item" effect="dark"
+                                :content="noteData[getDayKey(i)] ? noteData[getDayKey(i)].title :(imageData[getDayKey(i)] ? '图片':'空')"
+                                placement="bottom">
+                        &lt;!&ndash;密度线&ndash;&gt;
+
+                    </el-tooltip>-->
+
+                </div>
+
+                <!--<div v-for="(d,index) in dateData">
                     <el-tooltip class="item" effect="dark"
                                 :content="dateData[index][0].title ? dateData[index][0].title : (dateData[index][1].images ? '图片':'无内容')"
                                 placement="bottom">
+                        &lt;!&ndash;密度线&ndash;&gt;
                         <div @mouseenter="mouseEnterLine(index)"
                              :style="{backgroundColor: dateData[index][0].title || dateData[index][1].images ?'#000000' :'#ffffff'}"
                              class="vLine"></div>
                     </el-tooltip>
-                </div>
+                </div>-->
             </div>
         </div>
-
-
     </div>
 </template>
 
@@ -49,6 +65,9 @@
                 timeIndex: 0,//定时器
                 maxValue: 0,
                 dateData: [],
+                noteData: [],
+                imageData: [],
+                yearFrom: '2021',//起始年份
                 isTitleSet: false, //是否已经设置过标题
             }
         },
@@ -65,7 +84,7 @@
                 if (this.dateIndex > 0) {
                     this.dateIndex = this.dateIndex - 1
                     /*跳过空值*/
-                    while (this.dateData[this.dateIndex][0].title == undefined && this.dateData[this.dateIndex][1].images == undefined) {
+                    while (!this.noteData[this.getDayKey(this.dateIndex)] && !this.imageData[this.getDayKey(this.dateIndex)]) {
                         this.dateIndex = this.dateIndex - 1
                         if (this.dateIndex <= -1) {
                             this.dateIndex = this.maxValue
@@ -75,20 +94,22 @@
                 } else {
                     this.dateIndex = this.maxValue
                 }
-                this.showNoteTitle()
             },
             nextDay() {
                 if (this.dateIndex <= this.maxValue - 1) {
-                    this.dateIndex = this.dateIndex + 1
+                    let temp = this.dateIndex
                     /*跳过空值*/
-                    while (this.dateData[this.dateIndex][0].title == undefined && this.dateData[this.dateIndex][1].images == undefined) {
-                        this.dateIndex = this.dateIndex + 1
-                        if (this.dateIndex >= this.maxValue) break
+                    temp = temp + 1
+                    while (!this.noteData[this.getDayKey(temp)] && !this.imageData[this.getDayKey(temp)]) {
+                        temp = temp + 1
+                        if (temp >= this.maxValue) break
                     }
+                    this.dateIndex = temp
                 } else {
                     this.dateIndex = 0
                 }
-                this.showNoteTitle()
+                // this.showNoteTitle()
+                console.log('nextDay ...')
             },
             formatDate(date) {
                 let month = '' + (date.getMonth() + 1),
@@ -98,6 +119,21 @@
                 if (day.length < 2) day = '0' + day;
 
                 return [year, month, day].join('-');
+            },
+            createDayKey(arr){
+                let res = {}
+                /*判断是否要逆序*/
+                if (arr.length > 1) {
+                    if (new Date(arr[0].createTime) - new Date(arr[arr.length - 1].createTime) > 0) {
+                        arr.reverse()
+                    }
+                }
+                arr.forEach(f =>{
+                    let day = f.createTime.substring(0,10)
+                    res[day] = f
+                })
+                // 将一年中的第几天转化为 yyyy-MM-dd
+                return res
             },
             initArr(arr) {
                 /*判断是否要逆序*/
@@ -129,11 +165,12 @@
                 }
 
             },
+            /*按照年区分*/
             initDateData(noteArr, imageArr) {
                 let minDay = noteArr[0].createTime.substring(0, 10)
                 let dNote = 0, dImage = 0
                 if (new Date(noteArr[0].createTime) - new Date(imageArr[0].createTime) > 0) {
-                    minDay = imageArr[0].createTime
+                    minDay = imageArr[0].createTime.substring(0, 10)
                     dNote = (new Date(noteArr[0].createTime.substring(0, 10)) - new Date(imageArr[0].createTime.substring(0, 10))) / 86400000
                     dNote = parseInt(dNote)
                 } else {
@@ -144,33 +181,70 @@
                     ? imageArr[imageArr.length - 1].createTime.substring(0, 10)
                     : imageArr[imageArr.length - 1].createTime.substring(0, 10)
 
-                this.maxValue = parseInt((new Date(maxDay) - new Date(minDay)) / 86400000)
+                let maxValue = parseInt((new Date(maxDay) - new Date(minDay)) / 86400000)
                 /*合并*/
                 let data = []
 
-                for (let i = 0; i <= this.maxValue; i++) {
+                for (let i = 0; i <= maxValue; i++) {
                     let tNote = '', tImage = ''
                     if (i - dNote >= 0 && i - dNote < noteArr.length) tNote = noteArr[i - dNote]
                     if (i - dImage >= 0 && i - dImage < imageArr.length) tImage = imageArr[i - dImage]
                     data.push([tNote, tImage])
                 }
+                // this.maxValue = 366
                 return data
+                // return data
             },
             fillAbsentDate() {
+
                 let noteArr = require('lodash').cloneDeep(this.$store.state.notes)
+                //获取note的年份
+                let noteYearFrom = noteArr[0].createTime.substring(0,4)
+                let noteYearTo = noteArr[noteArr.length -1].createTime.substring(0,4)
                 /*合并同一天中的多篇笔记*/
-                this.initArr(this.groupNoteByDay(noteArr))
+                noteArr = this.createDayKey(this.groupNoteByDay(noteArr))
+                this.noteData = noteArr
+                // this.initArr(this.groupNoteByDay(noteArr))
                 //初始化当天图片
                 let imageArr = this.tool.groupImages('day', require('lodash').cloneDeep(this.$store.state.fileList))
                 imageArr.forEach(i => {
                     i.createTime = i.createTime.replace("年", "-").replace("月", "-").replace("日", "")
                 })
-                this.initArr(imageArr)
-                /*对齐两个时间 生成一个大数组*/
-                this.dateData = this.initDateData(noteArr, imageArr)
-                // console.log(this.dateData)
-            },
+                let imageYearFrom = imageArr[0].createTime.substring(0,4)
+                let imageYearTo = imageArr[imageArr.length -1].createTime.substring(0,4)
+                imageArr = this.createDayKey(imageArr)
+                this.imageData = imageArr
 
+                let yearFrom = Math.min(Number(imageYearFrom), Number(imageYearTo), Number(noteYearFrom), Number(noteYearTo))
+                let yearTo = Math.max(Number(imageYearFrom), Number(imageYearTo), Number(noteYearFrom), Number(noteYearTo))
+                this.yearFrom = yearFrom
+                this.maxValue =  (new Date((yearTo+1) + "-01-01").getTime() -  new Date(yearFrom + "-01-01").getTime())/(24*3600*1000)
+                console.log("kk")
+            },
+            initDateData2(noteArr, imageArr) {
+
+                let minDay = noteArr[0].createTime.substring(0, 10)
+                let dNote = 0, dImage = 0
+                if (new Date(noteArr[0].createTime) - new Date(imageArr[0].createTime) > 0) {
+                    minDay = imageArr[0].createTime.substring(0, 10)
+                    dNote = (new Date(noteArr[0].createTime.substring(0, 10)) - new Date(imageArr[0].createTime.substring(0, 10))) / 86400000
+                    dNote = parseInt(dNote)
+                } else {
+                    dImage = (new Date(imageArr[0].createTime.substring(0, 10)) - new Date(noteArr[0].createTime.substring(0, 10))) / 86400000
+                    dImage = parseInt(dImage)
+                }
+                let maxDay = new Date(noteArr[noteArr.length - 1].createTime) - new Date(imageArr[imageArr.length - 1].createTime) > 0
+                    ? imageArr[imageArr.length - 1].createTime.substring(0, 10)
+                    : imageArr[imageArr.length - 1].createTime.substring(0, 10)
+
+                let maxValue = parseInt((new Date(maxDay) - new Date(minDay)) / 86400000)
+
+                let index = 60
+                let year = 2017
+                let day = new Date(new Date(year.toString()).getTime() + (index-1) * 24 * 3600*1000).toISOString().substring(0,10)
+                console.log(day,res[day]);
+
+            },
             play() {
                 /*暂停*/
                 if (!this.isPlay) {
@@ -193,23 +267,35 @@
                     }, 500)
                 }
             },
+            getDayKey(index){
+                let dayKey = new Date(new Date(this.yearFrom.toString()).getTime() + index * 24 * 3600*1000).toISOString().substring(0,10)
+                return dayKey
+            },
             timelineChange(value) {
                 /*定位笔记*/
-                if (!this.isTitleSet) {
-                    let {createTime, lnglat, title} = this.dateData[this.dateIndex][0]
+                console.log('timelineChange')
+                let note = this.noteData[this.getDayKey(this.dateIndex)]
+                if (!this.isTitleSet && note) {
+
+                    let {createTime, lnglat, title} = note
                     this.$store.state.isImageTitle = false
                     if (title) {
                         this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
                     }
                     /*初始化地图要展示的图片*/
                     this.setDayImages(title)
+                }else {
+                    /*初始化地图要展示的图片*/
+                    this.setDayImages('')
                 }
                 this.isTitleSet = false
+
+
             },
             setDayImages(title) {
-                if (this.dateData[this.dateIndex][1].images) {
+                if (this.imageData[this.getDayKey(this.dateIndex)]) {
                     //    当当天没有笔记时 查看是否有图片，有的话就显示图片的地理位置
-                    this.$store.state.dayImages = this.dateData[this.dateIndex][1].images
+                    this.$store.state.dayImages = this.imageData[this.getDayKey(this.dateIndex)].images
                     /*当天无笔记时 尝试以当天的图片来进行定位*/
                     if (!title) {
                         for (let dayImage of this.$store.state.dayImages) {
@@ -232,8 +318,9 @@
                     val = 0
                 }
                 /*优先返回笔记的标题作为显示*/
-                let noteTitle = this.dateData[this.dateIndex][0].title
-                return noteTitle ? noteTitle : (this.dateData[this.dateIndex][1].images ? '图片' : '无内容');
+                return this.noteData[this.getDayKey(this.dateIndex)]
+                    ? this.noteData[this.getDayKey(this.dateIndex)].title
+                    : (this.imageData[this.getDayKey(this.dateIndex)] ? '图片' : '无内容');
             },
             /*在note跳转时定位时间轴  通过title和 day 来确定index 同一天中可能有多条笔记*/
             setDateIndex(title, createTime) {
@@ -261,7 +348,7 @@
             },
             /*显示滑块的提示信息*/
             showNoteTitle() {
-                this.$refs.slider1.setPosition(this.dateIndex)
+                // this.$refs.slider1.setPosition(this.dateIndex)
             },
             /*合并笔记中一天内的多个标题*/
             groupNoteByDay(notes) {
@@ -273,6 +360,7 @@
                 }
                 return notes
             },
+
 
         },
         mounted() {
