@@ -43,7 +43,7 @@
                 /*高德地图相关*/
                 marker: '',
                 map: '',
-                position: [],
+                position: [114,30],
                 makerClick: false,
                 mapStyle: this.$store.state.sortWay.maptheme,//地图的主题
                 title: '',
@@ -57,8 +57,8 @@
             /*初始化地图*/
             initMap() {
                 let data = [...this.$store.state.notes]
-                console.log("初始化笔记地图的长度",data.length)
-                this.position = [data[0].lnglat.split(',')[0], data[0].lnglat.split(',')[1]]
+                this.position = [Number(data[0].lnglat.split(',')[0]), Number(data[0].lnglat.split(',')[1])]
+                console.log("position is ",this.position)
                 this.title = data[0].title
                 this.createTime = data[0].createTime
                 let marker, map = new AMap.Map("container", {
@@ -94,9 +94,10 @@
 
             /*地图跳转到某点显示*/
             toPoint(lng, lat, title, createTime) {
+                console.log('topoint...')
                 this.makerClick = true
-                this.position = [lng, lat]
-                this.updateMapCenter(this.position)
+                this.position = [Number(lng), Number(lat)]
+                this.updateMapCenter()
                 this.updateContent(title, createTime)
             },
             // 实例化点标记
@@ -177,7 +178,6 @@
             },
             updateMapCenter() {
                 this.clearMarker()
-                // this.position = [this.position[0] + 0.0001, this.position[1] + 0.0001]
                 this.addMarker()
                 this.map.setCenter(this.position); //设置地图中心点
             },
@@ -304,13 +304,9 @@
         },
         mounted() {
             this.initMap()
-            this.$bus.$on('toPoint', this.toPoint)
         },
         created() {
-            // console.log('map created ...')
-        },
-        destroyed() {
-            // this.map.off('zoomchange', this.mapZoom);
+            this.$bus.$on('toPoint', this.toPoint)
         },
         watch: {
             mapStyle(flag) {

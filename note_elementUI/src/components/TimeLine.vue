@@ -23,7 +23,7 @@
             </el-slider>
 
 
-            <div style="display: flex;justify-content:space-between;margin-top: 4px;">
+            <div style="display: flex;justify-content:space-between;margin-top: 4px;" id="kkktest">
                 <!--990为滑条长度-->
                 <div v-for="i in 990">
                     <div @mouseenter="mouseEnterLine(Number(i*maxValue/990))"
@@ -280,7 +280,7 @@
                     let {createTime, lnglat, title} = note
                     this.$store.state.isImageTitle = false
                     if (title) {
-                        this.$bus.$emit('toPoint', lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
+                        this.$bus.$emit('toPoint',lnglat.split(',')[0], lnglat.split(',')[1], title, createTime)
                     }
                     /*初始化地图要展示的图片*/
                     this.setDayImages(title)
@@ -326,22 +326,20 @@
             setDateIndex(title, createTime) {
                 for (let i = 0; i <= this.maxValue; i++) {
                     /*笔记或者图片的定位*/
-                    let isImage = this.dateData[i][1] ? this.dateData[i][1].createTime.substring(0, 10) == createTime.substring(0, 10) : false
-                    let isNote = (this.dateData[i][0].createTime.substring(0, 10) == createTime.substring(0, 10)) && this.dateData[i][0].title == title
+                    let isNote = this.noteData[this.getDayKey(i)]
+                    let isImage = this.imageData[this.getDayKey(i)]
                     if (isImage || isNote) {
-                        let temp = isNote ? this.dateData[i][0] : this.dateData[i][1].images[0]
+                        let temp = isNote ? isNote : isImage
                         this.$bus.$emit('toPoint', temp.lnglat.split(',')[0], temp.lnglat.split(',')[1], title, createTime)
                         this.dateIndex = i
-                        if (this.dateData[this.dateIndex][1].images) {
+                        if (this.imageData[this.getDayKey(i)]) {
                             //  当当天没有笔记时 查看是否有图片，有的话就显示图片的地理位置
-                            this.$store.state.dayImages = this.dateData[this.dateIndex][1].images
+                            this.$store.state.dayImages = this.imageData[this.getDayKey(i)].images
                         } else {
                             /*清空*/
                             this.$store.state.dayImages = []
                         }
-
                         this.isTitleSet = true
-
                         break
                     }
                 }
