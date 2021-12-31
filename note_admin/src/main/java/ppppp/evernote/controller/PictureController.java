@@ -264,8 +264,6 @@ public class PictureController {
             face.setUrl(face_urls.get(i));
             faces.add(face);
         }
-        boolean save = faceService.save(faces.get(0));
-        System.out.println(save);
         return faces;
     }
 
