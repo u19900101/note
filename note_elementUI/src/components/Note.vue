@@ -1,6 +1,8 @@
 <template>
-    <div>
-        <el-container v-if="$store.state.currentNoteList.length > 0" :style="{height :$store.state.clientH + 'px'}">
+    <div id="note">
+        <el-container v-if="$store.state.currentNoteList.length > 0"
+                      :style="{height :$store.state.clientH + 'px',
+                       width:($store.state.clientW - $store.state.sortWay.navWidth - $store.state.sortWay.listWidth-30) + 'px'}">
             <!--标题 & 工具栏--> <!--$router.history.current.name != 'imageList'-->
             <el-header v-if="$router.history.current.name == 'notepage'" style="padding: 0 5px;">
                 <!--笔记本 标签 收藏 删除  日期 位置-->
@@ -262,22 +264,7 @@
             },
             deleteClick() {
                 console.log('deleteClick...')
-                let msg = this.$store.state.currentNote.wastepaper ? '彻底删除' : '移入到废纸篓'
-                this.$confirm('此操作将该笔记' + msg + ', 是否继续?', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning',
-                    center: true
-                }).then(() => {
-                    this.deleteNote()
-                    this.$message({type: 'success', message: '成功!', duration: 1000,});
-                }).catch(() => {
-                    this.$message({
-                        type: 'info',
-                        message: '已取消',
-                        duration: 1000,
-                    });
-                });
+                this.deleteNote()
             },
 
             deleteNote() {

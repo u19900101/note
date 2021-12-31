@@ -135,6 +135,7 @@
                 /*默认文件视图模式关闭*/
                 switch (data.id) {
                     case 'insertNote':
+                        this.toPage('notepage')
                         this.insertNote();
                         break;
                     case 'allStarNotes': // 收藏笔记

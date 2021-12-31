@@ -21,6 +21,8 @@ import ppppp.evernote.util.ResultUtil;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static ppppp.evernote.util.RequestUtils.sendPostRequest;
 
@@ -169,8 +171,9 @@ public class NoteController {
     public String insertNote(@RequestBody Note note) {
         // 设置修改时间为当前时间
         note.setCreateTime(new Date());
-        note.setTitle("");
-        note.setContent("");
+        note.setTitle("标题");
+        note.setContent("# 标题 \n内容");
+        note.setSummary("新建内容");
         noteService.save(note);
         Note newNote = noteService.getById(note.getId());
 
@@ -215,11 +218,24 @@ public class NoteController {
                     note.getTagList().add(tag);
                 }
             }
-            if (note.getMediaUid() != null) {
-                for (String mediaId : note.getMediaUid().split(",")) {
-                    //todo 图片视频表
-                    note.getMediaList().add(mediaId);
-                }
+            /*从content中提取 封面url和summary*/
+
+            String content = note.getContent();
+            int i = content.indexOf('\n') + 1; //去掉标题
+            String replaceAll = content.substring(i).replaceAll("\\<img.*?\\>|\\<video.*?video\\>|\\n","");
+            int end = 50 > replaceAll.length() ? replaceAll.length() : 50;
+            String summary = replaceAll.substring(0, end);
+            note.setSummary(summary);
+
+            Pattern p = Pattern.compile("\\<img.*?\\>");
+            Matcher m = p.matcher(content);
+            while (m.find()) {
+                String sub = content.substring(m.start(), m.end());
+                System.out.println(sub);
+                String s = sub.substring(sub.indexOf("\"") + 1);
+                String url = s.substring(0, s.indexOf("\""));
+                note.setMediaUid(url);
+                break;
             }
         }
     }
@@ -231,9 +247,9 @@ public class NoteController {
 
         // 默认均为日期逆序为正常排序
         if (sortway.getCreateTime()) {
-            noteList = noteService.lambdaQuery().eq(Note::getWastepaper, false).orderByDesc(Note::getCreateTime).last("limit 10").list();
+            noteList = noteService.lambdaQuery().eq(Note::getWastepaper, false).orderByDesc(Note::getCreateTime).list();/*.last("limit 10")*/
         } else if (sortway.getUpdateTime()) {
-            noteList = noteService.lambdaQuery().eq(Note::getWastepaper, false).orderByDesc(Note::getUpdateTime).last("limit 10").list();
+            noteList = noteService.lambdaQuery().eq(Note::getWastepaper, false).orderByDesc(Note::getUpdateTime).list();
         }
         //逆序
         if (sortway.getReverse()) {

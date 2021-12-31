@@ -1,4 +1,5 @@
 <template>
+    <!--两个高度设置是为了滑动条的美化-->
     <el-container id="noteList" :style="{height: $store.state.clientH + 'px'}" style="background-color: #FFFFFF;">
         <el-container id="kkkk" :style="{height:noteListH}">
             <el-header style="height:64px;padding: 0px">
@@ -52,7 +53,7 @@
                         <div>
                             <!--笔记列表-->
                             <el-container>
-                                <el-aside :style="{width: noteListWidth + 'px'}" >
+                                <el-aside :style="{width: noteListWidth + 'px'}">
                                     <div>
                                         <div v-for="(note,index) in $store.state.currentNoteList">
                                             <!-- type="flex" 为了让图片居中 -->
@@ -62,9 +63,9 @@
                                                     @mouseenter.native="enterIndex = index"
                                                     :id="index"
                                                     :style="{
-                                            width: noteListWidth + 'px',
-                                            backgroundColor:getBgColor(index),
-                                             border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
+                                                        width: noteListWidth + 'px',
+                                                        backgroundColor:getBgColor(index),
+                                                         border:$store.state.currentIndex === index ? '1px solid #C3E5F5': '1px solid #D7DADC'}"
                                                     style="padding-left: 5px;border: 1px solid #D7DADC;border-radius: 5px;"
                                                     type="flex">
 
@@ -84,7 +85,6 @@
                                                             <span v-if="$store.state.isSearchMode"
                                                                   v-html="note.content"></span>
                                                             <span v-else> {{note.summary}}</span>
-                                                            <!--replace("# " + note.title + "\n\n","")-->
                                                         </div>
                                                     </el-row>
 
@@ -92,14 +92,14 @@
                                                     <el-row>
                                                         <!--根据排序方式来决定显示的时间类型 note.createTime -->
                                                         <span style="font-size: mini;color: #49a2de">
-                                            {{$store.state.sortWay.updateTime ? '更新时间' : '创建时间'}}
-                                                            <!--若有别名字段就显示别名-->
-                                            {{
-                                            $store.state.sortWay.updateTime
-                                            ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
-                                            : (note.createTimeAlias ? note.createTimeAlias:note.createTime)
-                                            }}
-                                        </span>
+                                                            {{$store.state.sortWay.updateTime ? '更新时间' : '创建时间'}}
+                                                                            <!--若有别名字段就显示别名-->
+                                                            {{
+                                                            $store.state.sortWay.updateTime
+                                                            ? (note.updateTimeAlias ? note.updateTimeAlias:note.updateTime)
+                                                            : (note.createTimeAlias ? note.createTimeAlias:note.createTime)
+                                                            }}
+                                                        </span>
                                                     </el-row>
                                                 </el-col>
                                                 <!--图片-->
@@ -108,11 +108,11 @@
                                                               :src="note.mediaUid"
                                                               fit="cover">
                                                     </el-image>
-                                                    <!--  <el-image v-else
-                                                                :src="require('../assets/images/gofree.jpg')"
-                                                                fit="cover">
-                                                      </el-image>-->
                                                 </el-col>
+                                               <!-- <el-image v-else
+                                                          :src="require('../assets/images/gofree.jpg')"
+                                                          fit="cover">
+                                                </el-image>-->
                                             </el-row>
                                         </div>
                                     </div>
@@ -164,7 +164,7 @@
                 lastTime: 0, //定时器的初始值
                 widthLastTime: 0,
                 noteListH: document.body.clientHeight - 64 + 'px', //列表滑框的高度
-                clientH: document.body.clientHeight +  'px', //列表滑框的高度
+                clientH: document.body.clientHeight + 'px', //列表滑框的高度
             }
         },
         methods: {
@@ -441,23 +441,24 @@
                 if (currentPixelRatio !== lastPixelRatio) {
                     vm.noteListH = document.body.clientHeight - 64 + 'px'
                     vm.$store.state.clientH = document.body.clientHeight
-                    console.log('页面缩放变化了', vm.noteListH,'当前页面高度', document.body.clientHeight);
+                    vm.$store.state.clientW = document.body.clientWidth
+                    console.log('页面缩放变化了', vm.noteListH, '当前页面高度', document.body.clientHeight);
                 }
                 lastPixelRatio = currentPixelRatio;
                 /*日历视图单元格高度计算 页面渲染的问题*/
-               /* vm.$nextTick(_ => {
-                    console.log('dateItemDivH',document.getElementsByClassName('date-item')[0].clientHeight) //96
-                    console.log('dayName',document.getElementsByClassName('date-item')[0].firstChild.firstChild.clientHeight)//19
-                    console.log('dayContentH',document.getElementsByClassName('date-item')[0].firstChild.firstChild.nextElementSibling.clientHeight)//19
-                 /!*   console.log('dateItemDivH',document.getElementsByClassName('date-item')[0])
-                    console.log('dateItemDivH',document.getElementsByClassName('date-item'))*!/
-                });*/
+                /* vm.$nextTick(_ => {
+                     console.log('dateItemDivH',document.getElementsByClassName('date-item')[0].clientHeight) //96
+                     console.log('dayName',document.getElementsByClassName('date-item')[0].firstChild.firstChild.clientHeight)//19
+                     console.log('dayContentH',document.getElementsByClassName('date-item')[0].firstChild.firstChild.nextElementSibling.clientHeight)//19
+                  /!*   console.log('dateItemDivH',document.getElementsByClassName('date-item')[0])
+                     console.log('dateItemDivH',document.getElementsByClassName('date-item'))*!/
+                 });*/
             });
 
             /*动态定位到笔记所在列表中的位置*/
-            if(this.$store.state.fromCalender){
+            if (this.$store.state.fromCalender) {
                 /*106.67 列表的大致高度*/
-                this.$refs['scroll'].wrap.scrollTop =  106.67 *( this.$store.state.currentIndex -2) //想滚到哪个高度，就写多少
+                this.$refs['scroll'].wrap.scrollTop = 106.67 * (this.$store.state.currentIndex - 2) //想滚到哪个高度，就写多少
                 this.$store.state.fromCalender = false
             }
         }

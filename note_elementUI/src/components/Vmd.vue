@@ -102,24 +102,35 @@
                 },
                 /*监听输入框发生变化时保存修改*/
                 input(content) {
-                    vm.$store.state.currentNote.content = content
-                    // 没有标题,默认提取前10个字符为标题'
-                    let title = content.substring(0, 10)
-                    let note = {
-                        id: vm.$store.state.currentNote.id,
-                        content: content,
-                        title: title
+                    if( content && (content != '\n')){
+                        vm.$store.state.currentNote.content = content
+                        // 没有标题,默认提取前10个字符为标题'
+                        let title = content.substring(0, content.indexOf('\n') + 1)
+                        vm.$store.state.currentNote.title = title.replace("#",'')
+
+                        let i = content.indexOf('\n') + 1; //去掉标题
+                        let replaceAll = content.substring(i).replaceAll("\\<img.*?\\>|\\<video.*?video\\>|\\n","");
+                        let end = 50 > replaceAll.length ? replaceAll.length : 50;
+                        let summary = replaceAll.substring(0, end);
+                        vm.$store.state.currentNote.summary = summary;
+
+                        let note = {
+                            id: vm.$store.state.currentNote.id,
+                            content: content,
+                            title: title ? title: "#"
+                        }
+                        // 提取标题
+                        let re = /# .+?\n\n/;
+                        if (content.match(re)) {
+                            // console.log(content.match(re)[0].substring(2))
+                            title = content.match(re)[0].substring(2)
+                            note.title = title.replace("\n\n", "")
+                        }
+                        vm.https.updateNote(note).then(({data}) => {
+                            console.log("修改数据库成功", data);
+                        })
                     }
-                    // 提取标题
-                    let re = /# .+?\n\n/;
-                    if (content.match(re)) {
-                        // console.log(content.match(re)[0].substring(2))
-                        title = content.match(re)[0].substring(2)
-                        note.title = title.replace("\n\n", "")
-                    }
-                    vm.https.updateNote(note).then(({data}) => {
-                        console.log("修改数据库成功", data);
-                    })
+
                 },
                 width: "80%",  /*编辑器总宽度，支持 %*/
             })
@@ -173,7 +184,8 @@
         },
         watch: {
             '$store.state.currentNote'() {
-                this.contentEditor.setValue(this.$store.state.currentNote.content)
+                let content = this.$store.state.currentNote.content
+                this.contentEditor.setValue((content && (content != '\n')) ? content: "# 标题\n内容" )
                 this.contentEditor.setTheme(this.editortheme ? "light": "dark",this.contentTheme ? "light": "dark","dark")
                 //清空撤销和重做记录栈
                 this.contentEditor.clearStack()

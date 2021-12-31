@@ -1,5 +1,5 @@
 <template>
-    <el-container :style="{height: $store.state.clientH + 'px'}">
+    <el-container>
         <!--数据加载-->
         <div v-if="loadingState" class="loadingImage"> <!--让图片居中显示-->
             <!--手动设置图片高度 让其占满整个屏幕  设置百分比无效-->
@@ -14,7 +14,7 @@
         <!--数据加载成功后 页面展示-->
         <el-container v-else id="home">
             <!--导航栏-->
-            <el-aside class="widthSyncChild">
+            <el-aside class="widthSyncChild" id = "nav">
                 <noteNav/>
             </el-aside>
 
@@ -23,7 +23,7 @@
                 <router-view name="notepage"></router-view>
             </keep-alive>
             <!--笔记和标签页面展示-->
-            <el-main style="padding: 0">
+            <el-main style="padding: 0;width: 1146px;" id = "imageList">
                 <keep-alive>
                     <router-view name="imageList"></router-view>
                     <router-view name="noteBook_tag"></router-view>
