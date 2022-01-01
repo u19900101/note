@@ -769,7 +769,7 @@
                         /*地图*/
                         {
                             id: 'map',
-                            title: '地图 (' + this.$store.state.notes.length + ')'
+                            title: '地图 (' + (this.$store.state.notes.length +  this.$store.state.fileList.length) + ')'
                         },
                         /*人物*/
                         {
@@ -778,7 +778,7 @@
                         },
                         {
                             id: 'allNotes',
-                            title: '全部笔记 (' + this.$store.state.notes.length + ')'
+                            title: '全部笔记 (' + this.$store.state.notes.length +')'
                         },
                         /*笔记本*/
                         {

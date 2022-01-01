@@ -28,6 +28,8 @@
                     <router-view name="imageList"></router-view>
                     <router-view name="noteBook_tag"></router-view>
                 </keep-alive>
+                <!--不缓存map-->
+                <router-view name="map"></router-view>
                 <!-- <imageList v-if="$store.state.fileMode"></imageList>-->
                 <!--笔记本和标签页面-->
                 <!--  <noteBook_tag v-else></noteBook_tag>-->

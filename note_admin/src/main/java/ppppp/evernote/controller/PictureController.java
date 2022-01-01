@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ppppp.evernote.config.FtpConfig;
@@ -24,6 +23,7 @@ import ppppp.evernote.mapper.FaceMapper;
 import ppppp.evernote.mapper.PictureMapper;
 import ppppp.evernote.service.*;
 import ppppp.evernote.util.MyUtils;
+import ppppp.evernote.util.RestTemplateUtil;
 import ppppp.evernote.util.ResultUtil;
 import ppppp.evernote.util.ftp.sftp;
 
@@ -232,12 +232,12 @@ public class PictureController {
     }
 
     public ArrayList<Face> getFaceFromServer(String imageUrl) {
-        RestTemplate restTemplate = new RestTemplate();
+
         //1. 简单Get请求
         String rootUrl = "http://47.101.137.245:5000";
         // String imageUrl = "http://47.101.137.245/img/l.jpg";
         System.out.println("发送请求");
-        HashMap<String, Object> res = restTemplate.getForObject(rootUrl + "?imageUrl=" + imageUrl, HashMap.class);
+        HashMap<String, Object> res = RestTemplateUtil.getInstance().getForObject(rootUrl + "?imageUrl=" + imageUrl, HashMap.class);
         int faceNum = (int) res.get("faceNum");
         /*判断是否检测到了人脸*/
         if (faceNum == 0) {

@@ -189,7 +189,8 @@
             },
             fillAbsentDate() {
 
-                let noteArr = require('lodash').cloneDeep(this.$store.state.notes)
+                // let noteArr = require('lodash').cloneDeep(this.$store.state.notes)
+                let noteArr = this.$store.state.notes
                 //获取note的年份
                 let noteYearFrom = noteArr[0].createTime.substring(0, 4)
                 let noteYearTo = noteArr[noteArr.length - 1].createTime.substring(0, 4)
@@ -198,7 +199,8 @@
                 this.noteData = noteArr
 
                 //初始化当天图片
-                let imageArr = this.tool.groupImages('day', require('lodash').cloneDeep(this.$store.state.fileList))
+                // let imageArr = this.tool.groupImages('day', require('lodash').cloneDeep(this.$store.state.fileList))
+                let imageArr = this.tool.groupImages('day', this.$store.state.fileList)
                 imageArr.forEach(i => {
                     i.createTime = i.createTime.replace("年", "-").replace("月", "-").replace("日", "")
                 })
@@ -351,6 +353,7 @@
             });
         },
         created() {
+            console.log('timeline created...')
             this.fillAbsentDate();
         },
     }

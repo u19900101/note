@@ -49,7 +49,7 @@ export default new VueRouter({
             name: 'map',
             path:'/map',
             components: {
-                imageList: NoteMap,
+                map: NoteMap,
             },
         },
         {
