@@ -16,7 +16,6 @@
             <div id="container"></div>
         </el-main>
         <div style="position:absolute;display:flex;bottom: 72px; margin-left: 20px;">
-
             <!--展示图片-->
             <div v-for="(image,indexInner) in this.$store.state.dayImages">
                 <imageDetail :image-scale="'200px'"
@@ -52,7 +51,6 @@
                 showImageInfo: false,
             }
         },
-        computed: {},
         methods: {
             /*初始化地图*/
             initMap() {
@@ -96,12 +94,14 @@
                 });
             },
 
-            /*地图跳转到某点显示*/
+            /*地图跳转到某点显示 同时可以进行只更新标题*/
             toPoint(lng, lat, title, createTime) {
                 console.log('topoint...')
                 this.makerClick = true
-                this.position = [Number(lng), Number(lat)]
-                this.updateMapCenter()
+                if(lng != 0){
+                    this.position = [Number(lng), Number(lat)]
+                    this.updateMapCenter()
+                }
                 this.updateContent(title, createTime)
             },
             // 实例化点标记

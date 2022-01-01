@@ -213,7 +213,6 @@
                 this.maxValue = (new Date((yearTo) + "-12-31").getTime() - new Date(yearFrom + "-01-01").getTime()) / (24 * 3600 * 1000)
                 console.log("kk")
             },
-
             play() {
                 /*暂停*/
                 if (!this.isPlay) {
@@ -267,14 +266,21 @@
                     this.$store.state.dayImages = this.imageData[this.getDayKey(this.dateIndex)].images
                     /*当天无笔记时 尝试以当天的图片来进行定位*/
                     if (!title) {
+                        let getImageMapInfo = false //标记是否找到了在地图上标注的信息
                         for (let dayImage of this.$store.state.dayImages) {
                             console.log('dayImage', dayImage)
                             if (dayImage.lnglat) {
                                 console.log('dayImage.lnglat', dayImage.lnglat)
                                 this.$store.state.isImageTitle = true
+                                getImageMapInfo =true
                                 this.$bus.$emit('toPoint', dayImage.lnglat.split(',')[0], dayImage.lnglat.split(',')[1], dayImage.title, dayImage.createTime)
                                 break
                             }
+                        }
+                        /*若照片均无坐标 则将第一张照片作为标题和时间*/
+                        if(!getImageMapInfo){
+                            this.$store.state.isImageTitle = true
+                            this.$bus.$emit('toPoint', 0, 0, this.$store.state.dayImages[0].title, this.$store.state.dayImages[0].createTime)
                         }
                     }
                 } else {
