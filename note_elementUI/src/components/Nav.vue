@@ -147,6 +147,8 @@
                     case 'noteBooks': //'笔记本'
                         break;
                     case 'allNotes'://所有笔记
+                        //先对页面进行初始化
+                        this.toPage('notepage')
                         this.$store.state.currentNoteBook = this.$store.state.noteBooks.filter((n) => n.id == 0)[0]
                         this.initCurrentNoteListByName("notes", 0);
                         break;
@@ -236,7 +238,6 @@
                         /*初始化预览 给占个位 不然第一次点击时不出现大图*/
                         // this.$store.state.currentImageUrlList = [1, 2, 3]
                     } else {
-                        this.toPage('notepage')
                         this.$store.state.currentNoteBookNoteList = this.$store.state[currentNoteBookName]
                         this.$store.state.currentNoteList = this.$store.state[currentNoteBookName]
                     }
