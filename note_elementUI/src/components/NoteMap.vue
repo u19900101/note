@@ -72,24 +72,28 @@
                     defaultType: this.$store.state.sortWay.maptype ? 1 : 0 //0代表默认，1代表卫星
                 }));
 
-                //给切换图层添加事件
-                let domImageMask = document.querySelector(".amap-maptype-con");
-                domImageMask.addEventListener("click", () => {
-                    console.log('切换图层')
-                    this.$store.state.sortWay.maptype = !this.$store.state.sortWay.maptype
-                    /*写进数据库*/
-                    this.https.updateSortWay({id: 1, maptype: this.$store.state.sortWay.maptype}).then(({data}) => {
-                        console.log('更新数据库中的图层')
-                    })
-                });
-
                 this.map = map
                 this.addMarker()
-
                 /*给地图绑定缩放事件*/
                 // map.on('zoomchange', this.mapZoom);
                 /*添加历史坐标*/
                 this.initMakers(data)
+                this.$nextTick(function(){
+                    //给切换图层添加事件
+                    let domImageMask = document.querySelector(".amap-maptype-con");
+                    if (!domImageMask) {
+                        console.log('失败 绑定切换图层添加事件')
+                        return;
+                    }
+                    domImageMask.addEventListener("click", () => {
+                        console.log('切换图层')
+                        this.$store.state.sortWay.maptype = !this.$store.state.sortWay.maptype
+                        /*写进数据库*/
+                        this.https.updateSortWay({id: 1, maptype: this.$store.state.sortWay.maptype}).then(({data}) => {
+                            console.log('更新数据库中的图层')
+                        })
+                    });
+                });
             },
 
             /*地图跳转到某点显示*/
@@ -219,8 +223,8 @@
                     vm.createTime = ev.rawData.createTime
                     // console.log('click', ev.rawData)
                     vm.position = ev.lnglat
-                    vm.updateMapCenter(vm.position)
-                    vm.updateContent()
+                    vm.updateMapCenter()
+                    vm.updateContent(ev.rawData.title, ev.rawData.createTime)
                     /*同步时间轴的位置*/
                     vm.$bus.$emit('setDateIndex', ev.rawData.title, ev.rawData.createTime)
                 });
@@ -270,8 +274,8 @@
                     vm.createTime = ev.rawData.createTime
                     // console.log('click', ev.rawData)
                     vm.position = ev.lnglat
-                    vm.updateMapCenter(vm.position)
-                    vm.updateContent()
+                    vm.updateMapCenter()
+                    vm.updateContent(ev.rawData.title, ev.rawData.createTime)
                     /*同步时间轴的位置*/
                     vm.$bus.$emit('setDateIndex', ev.rawData.title, ev.rawData.createTime)
                 });
@@ -296,7 +300,6 @@
                     }
                 });
                 imageLayer.render();
-                // this.layer = layer
             },
             getShowImageInfo(showImageInfo) {
                 this.showImageInfo = showImageInfo
@@ -304,6 +307,7 @@
         },
         mounted() {
             this.initMap()
+            console.log('initedMap')
         },
         created() {
             this.$bus.$on('toPoint', this.toPoint)

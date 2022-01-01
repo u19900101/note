@@ -87,7 +87,7 @@ const state = {
     /*************地图*************/
     noteClickLocation: false, //控制从笔记第一次进入地图时 鼠标经过密度线 地图中心不移动
     isImageTitle : false, //地图上的标题是否为照片名称  控制点击标题是否跳转到笔记
-
+    sliderW : 0, //时间选滑动条的宽度
     /*人物*/
     persons : [],//人脸图片聚合类  {"id": 3, "name": "添加姓名", "pictureList": [ "faceList": [{ "id": 15,"faceNameId": 3,
     personNum: 0,                                                                                   // "pictureId": 159,
