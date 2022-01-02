@@ -100,10 +100,9 @@
 </template>
 
 <script>
-    // prettier-ignore
     const MONTH_ARR_CN = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
-    // prettier-ignore
     const MONTH_ARR_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Ang', 'Sep', 'Oct', 'Nov', 'Dec']
+
     function getMonthMaxDate(year, month) {
         const isGapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
         switch (month) {
@@ -124,12 +123,15 @@
                 return isGapYear ? 29 : 28
         }
     }
+
     function getDayOfWeek(year, month, date) {
         return new Date(year, month - 1, date).getDay()
     }
+
     function isNaNs(...args) {
         return Array.prototype.map.call(args, item => isNaN(item))
     }
+
     // import timeline from './TimeLine'
 
     export default {
@@ -162,13 +164,14 @@
 
         data() {
             return {
-                curYear: 2017,
-                curMonth: 1,
+                // curYear: new Date().getFullYear(),
+                curYear: 2021,
+                curMonth: 12,
                 curYearRangeStart: Math.floor(2017 / 10) * 10,
                 curYearRangeEnd: Math.floor(2017 / 10) * 10 + 9,
                 paneStatus: 0 /* 0 date-pane, 1 month-pane, 2 year-pane */,
                 firstDayOfWeek: 1, //0:周日作为一周的开始 1：周一作为第一天
-                selectedMonth: new Date(2017, 0, 1),
+                selectedMonth: new Date(2021, 11, 1),
                 dateArr: []
             }
         },
@@ -208,6 +211,9 @@
         },
 
         computed: {
+            dayKeyNotes() {
+                return this.createDayKey(this.$store.state.notes)
+            },
             weekthArr() {
                 let weekArr = []
                 let firstW = this.getWeekth(this.dateArr[6].val)
@@ -322,12 +328,13 @@
 
                     // 6 line max: 6 * 7 = 42  根据月份选择显示几行日历数据
 
-                    this.dateArr = preDateArr
+                    let monthData = preDateArr
                         .concat(curDateArr)
                         .concat(nextDateArr)
                         .slice(this.firstDayOfWeek, curDateArr.length + preDateArr.length - this.firstDayOfWeek > 35 ? 42 + this.firstDayOfWeek : 35 + this.firstDayOfWeek)
+                    this.fillTitle(monthData)
+                    this.dateArr = monthData
                 }
-
             },
             /*可手动输入 按下回车键跳转到月份*/
             keyEnter() {
@@ -415,7 +422,13 @@
                 tarMonth = tarMonth < 10 ? '-0' + tarMonth : '-' + tarMonth
                 tarDay = tarDay < 10 ? '-0' + tarDay : '-' + tarDay
                 let dateStr = tarYear + tarMonth + tarDay
-                let note = this.$store.state.notes.filter((n) => n.createTime.split(" ")[0] == dateStr)[0]
+                let note = this.$store.state.notes.filter((n, index) => {
+                    //恰好匹配当天的数据
+                    if (n.createTime.split(" ")[0] != dateStr) {//不匹配当前的数据时，往前面找，看看是否前一天有两天笔记
+                        console.log('kkk', this.$store.state.notes[index])
+                    }
+                    return n.createTime.split(" ")[0] == dateStr
+                })[0]
                 return note ? note.title : ''
             },
             toSpecificDate(year, month, date) {
@@ -480,23 +493,66 @@
                         tarYear = this.curYear + 1
                     } else {
                         tarMonth = this.curMonth + 1
+                        if (tarMonth < 10) {
+                            tarMonth = '0' + tarMonth
+                        }
                     }
                 }
 
-                return new Array(endDate - beginDate + 1).fill().map((_, index) => ({
-                    val: `${tarYear}-${tarMonth}-${index + beginDate}`,
+                let monthData = new Array(endDate - beginDate + 1).fill().map((_, index) => ({
+                    val: `${tarYear}-${tarMonth}-${index + beginDate >= 10 ? index + beginDate : '0' + (index + beginDate)}`,
                     date: index + beginDate,
                     monthFlag,
                     dotted: monthFlag === 1 && this.dotArr[index],
                     isToday: this._getDateStr(this.today) === `${tarYear}-${tarMonth}-${index + beginDate}`,
                     dayOfWeek: getDayOfWeek(tarYear, tarMonth, index + beginDate),
-                    title: this.getTitle(tarYear, tarMonth, index + beginDate),
                 }))
+                return monthData
             },
 
             _getDateStr(date) {
                 return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-            }
+            },
+            createDayKey(arr) {
+                let res = {}
+                /*判断是否要逆序*/
+                if (arr.length > 1) {
+                    if (new Date(arr[0].createTime) - new Date(arr[arr.length - 1].createTime) > 0) {
+                        arr.reverse()
+                    }
+                }
+                arr.forEach((f) => {
+                    let day = f.createTime.substring(0, 10)
+                    if (!res[day]) {
+                        res[day] = f
+                    } else {
+                        //当出现重复天数时 判断是否需要将其写入前一天
+                        let dayjs = require('dayjs');
+                        let fDay = dayjs(day).add(-1, 'day').format('YYYY-MM-DD')
+                        if(!res[fDay]){
+                            //插入key
+                            let temp = res[day]
+                            delete res[day]
+                            res[fDay] = f
+                            res[day] = temp
+                        }
+                    }
+                })
+                // 将一年中的第几天转化为 yyyy-MM-dd
+                return res
+            },
+            fillTitle(monthData) {
+                let notes = this.dayKeyNotes
+                for (let day of monthData) {
+                    if (notes[day.val]) {
+                        day.title = notes[day.val].title
+                    } else {
+                        //往后一天去找笔记
+
+                        day.title = ''
+                    }
+                }
+            },
         }
     }
 </script>

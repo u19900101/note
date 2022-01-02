@@ -5,6 +5,16 @@ import os
 import time
 from HtmlToMd.pyMyql import isTagExist, insertTag, insertNote, closeConn
 WEBSITE = "http://lpgogo.top/img/"
+# 去掉文件和文件夹名称中的特殊字符
+def renameFiles(path):
+    fileList=os.listdir(path)
+    for i in fileList:
+        if os.path.isdir(path + "\\"+i):
+            renameFiles(path + "\\"+i)
+        # 中英文逗号
+        if re.findall(r'[\s\[\],，。]', i):
+            os.rename(path + "\\"+i,path + "\\"+re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', i)))
+            print("重命名文件" + i)
 def d8_to_utc(d8_time):
     d8_time = time.strptime(d8_time, "%Y/%m/%d %H:%M")
     #3.将时间数组转换为时间戳
@@ -26,15 +36,18 @@ def video_match(matched):
             filename =  re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', matchObj.group(1)))
             value = "\n\n<video controls preload=\"auto\" src=\"" + WEBSITE + filename + "\"></video>\n\n"
     return value
+# 将html转化为md
 def htmlToMd(dir,htmlPath):
-    with open(dir + htmlPath, 'r', encoding='UTF-8') as f:
-
+    with open(dir +"/"+ htmlPath, 'r', encoding='UTF-8') as f:
         htmlpage = f.read()
         # 处理html格式文件中的内容
         text = md(htmlpage)
-        text = text.replace("body, td {\n font-family: 微软雅黑;\n font-size: 10pt;\n }\n", "")
+        # 非贪婪匹配去点 body, td ...}
+        text = re.sub(r'body[\s\S]*?}', '', text)
         # 1.去除多余的换行
         text = re.sub(r'(\n)+', "\n", re.sub(r' +\n', '\n', text))
+
+
         text = text.replace("\xa0", " ")
         text = text.split("\n")
         result = text[6:]
@@ -118,17 +131,19 @@ def addHttp(httpname,content):
             filename  = re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', matchObj.group(1))).replace('_"点击下载"','')
             content = content.replace(i,'\n\n<img src="' + httpname +  filename + '" alt = "' +filename + '" style="zoom:30%;"/>\n\n')
     return content
-dir = "D:\MyJava\mylifeImg\others\读研期间\\"
-# dir = "temp\\"
+dir = "D:\MyJava\mylifeImg\others\我的抗战2.0\\"
+# dir = "./temp"
+# 去除文件名称中的特殊字符
+renameFiles(dir)
 for i in os.listdir(dir):
-    if i.endswith(".html"):
-        # print(i)
+    if i.endswith(".html") and (i.startswith("5.342") or i.startswith("5.343")or i.startswith("5.344")or i.startswith("5.345")):
+        print(i)
         title, createTime, updateTime, location, lng_lat, tagList, content = md_sql(htmlToMd(dir,i))
-        # with open(dir + i.replace(".html",".md"), 'w', encoding='UTF-8') as f:
-        #     f.write(createTime + "\n" + updateTime+ "\n" +location+ "\n" +lng_lat+ "\n" +str(tagList)+ "\n" +content)
-        # 1.封装 tag 写进tag表中
-        # 写入 note表中
+        # 封装 tag 写进tag表中 写入 note表中
         insertNote(title,getTag_uid(tagList), createTime, updateTime, location, lng_lat,  str(content))
+#       写入md
+#       with open(dir + i.replace(".html",".md"), 'w', encoding='UTF-8') as f:
+#           f.write(createTime + "\n" + updateTime+ "\n" +location+ "\n" +lng_lat+ "\n" +str(tagList)+ "\n" +content)
 # 关闭数据库连接
 closeConn()
 

@@ -103,15 +103,6 @@
                 // this.showNoteTitle()
                 console.log('nextDay ...')
             },
-            formatDate(date) {
-                let month = '' + (date.getMonth() + 1),
-                    day = '' + date.getDate(),
-                    year = date.getFullYear();
-                if (month.length < 2) month = '0' + month;
-                if (day.length < 2) day = '0' + day;
-
-                return [year, month, day].join('-');
-            },
             createDayKey(arr) {
                 let res = {}
                 /*判断是否要逆序*/
@@ -148,7 +139,7 @@
                             let temp = new Date(cd)
                             let dateTime = new Date(temp.setDate(cd.getDate() + j + 1));
                             arr.splice(i + 1 + j, 0, {
-                                "createTime": this.formatDate(dateTime),
+                                "createTime": this.tool.formatDate(dateTime),
                             })
                         }
                         i += detalDay - 1

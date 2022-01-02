@@ -7,7 +7,7 @@ cursor = db.cursor()
 def insertTag(tagName):
     timestr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     sql = "INSERT INTO tag(title, sort,create_time,update_time) VALUES ('%s', '%s', '%s', '%s')" % \
-          (tagName,getMaxSort()[0][0] + 1,timestr,timestr)
+          (tagName,getMaxSort() + 1,timestr,timestr)
     try:
         # 执行sql语句
         cursor.execute(sql)
@@ -25,7 +25,11 @@ def getMaxSort():
     try:
         # 执行SQL语句
         cursor.execute(sql)
-        return cursor.fetchall()
+        res = cursor.fetchall()
+        if(res[0][0] is None):
+            return 0
+        else:
+            return res[0][0]
     except:
         print("Error: unable to fetch data")
 

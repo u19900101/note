@@ -14,6 +14,7 @@ export default {
             setTimeoutUpdate,
             getThumbnails,
             isImageType,getCharLength,
+            formatDate,
         }
     }
 }
@@ -22,6 +23,15 @@ export default {
 let dayjs = require('dayjs');
 dayjs().format();
 
+function  formatDate(date) {
+    let month = '' + (date.getMonth() + 1),
+        day = '' + date.getDate(),
+        year = date.getFullYear();
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
+}
 /*封装缩略图的链接*/
 function getThumbnails(url, title) {
     let kk = url.replace(title, title.split(".")[0] + "_thumbnails." + title.split(".")[1])
