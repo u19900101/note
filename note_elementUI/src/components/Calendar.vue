@@ -102,7 +102,7 @@
 <script>
     const MONTH_ARR_CN = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
     const MONTH_ARR_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Ang', 'Sep', 'Oct', 'Nov', 'Dec']
-
+    let dayjs = require('dayjs');
     function getMonthMaxDate(year, month) {
         const isGapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
         switch (month) {
@@ -522,21 +522,14 @@
                     }
                 }
                 arr.forEach((f) => {
+                    let hour = f.createTime.split(" ")[1].split(":")[0]
+                    console.log();
+                    //12点以前的笔记都算前一天
                     let day = f.createTime.substring(0, 10)
-                    if (!res[day]) {
-                        res[day] = f
-                    } else {
-                        //当出现重复天数时 判断是否需要将其写入前一天
-                        let dayjs = require('dayjs');
-                        let fDay = dayjs(day).add(-1, 'day').format('YYYY-MM-DD')
-                        if(!res[fDay]){
-                            //插入key
-                            let temp = res[day]
-                            delete res[day]
-                            res[fDay] = f
-                            res[day] = temp
-                        }
+                    if(Number(hour) < 12){
+                        day = dayjs(day).add(-1, 'day').format('YYYY-MM-DD')
                     }
+                    res[day] = f
                 })
                 // 将一年中的第几天转化为 yyyy-MM-dd
                 return res
