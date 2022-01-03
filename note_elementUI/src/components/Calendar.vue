@@ -212,7 +212,8 @@
 
         computed: {
             dayKeyNotes() {
-                return this.createDayKey(this.$store.state.notes)
+                let notes = [...this.$store.state.notes]
+                return this.createDayKey(notes)
             },
             weekthArr() {
                 let weekArr = []
