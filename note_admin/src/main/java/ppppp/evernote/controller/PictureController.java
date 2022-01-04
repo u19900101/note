@@ -143,7 +143,8 @@ public class PictureController {
                 picture.setCreateTime(new Date());
             }
             videoFile = (File) videoInfo.get(1);
-        } else {
+        }
+        else {
             picture = getPictureInfo(multipartFile);
         }
 
