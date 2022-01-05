@@ -1,14 +1,13 @@
 # 获取照片的基本信息
 # title location  widthH lnglat createTime updateTime tagUid faceUid url size lastTime
 import ntpath
-
 import exifread
 import os
 import time
 from PIL import Image
-from HtmlToMd.faceReg import getFaceInfo
-from HtmlToMd.func import get_locationName, insertFace, insertPicture, insertFaceIntoPicture, update_insert_person
-from HtmlToMd.ssh import uploadFile
+from HtmlToMd.faceReg import getFaceInfo, local_known_face_encodings, local_known_face_ids
+from HtmlToMd.sql import get_locationName, insertFace, insertPicture, insertFaceIntoPicture, update_insert_person
+from HtmlToMd.ssh import uploadFile, uploadFileCover
 def getLatOrLng(refKey, tudeKey,tags):
     """
     获取经度或纬度
@@ -47,43 +46,52 @@ def getPictureInfo(path):
     createTime = str(tags['EXIF DateTimeOriginal'])
     createTime = createTime[:4] + "-" + createTime[5:7] + "-" + createTime[8:]
     return size,widthH,createTime,updateTime,lnglat,location
+
 remote_face_dir = "/mydata/nginx/html/face"
 remote_img_dir = "/mydata/nginx/html/img"
+romote_py = "/mydata/python"
 yu_url = "http://lpgogo.top"
 
+def get_local_picture_info_upload_insert(local_picture_path):
+    # 获取照片的基本信息
+    size,widthH,createTime,updateTime,lnglat,location = getPictureInfo(local_picture_path)
+
+    # 上传图片到服务器 按照月进行分类
+    remote_file_path = uploadFile(local_picture_path, remote_img_dir+ '/' + createTime[:7])
+    if remote_file_path is None:
+        # return "error"
+        print("失败  图片上传 ...",remote_file_path)
+    # 将图片信息写进数据库
+    img_url = yu_url + remote_file_path.replace(remote_img_dir,'/img')
+    picture_id = insertPicture(ntpath.basename(remote_file_path),location,widthH,lnglat,createTime,updateTime,img_url,size)
+
+    # 进行人脸识别 并上传人脸到服务器
+    res = getFaceInfo(local_picture_path)
+    if res:
+        face_uids = []
+        for i in range(res['faceNum']) :
+            remote_file_path = uploadFile(res["face_urls"][i], remote_face_dir + '/' + createTime[:7])
+            if remote_file_path is None:
+                # return "error"
+                print('失败  人脸上传')
+                break
+            # personId pictureId faceEncoding faceLocations faceLandmarks url
+            url = yu_url + remote_file_path.replace(remote_face_dir,'/face')
+            face_id = insertFace(res['face_name_ids'][i],picture_id,res['face_encodings'][i],res['face_locations'][i], res['face_landmarks'][i],url)
+            # 更新或新建person
+            update_insert_person(res['face_name_ids'][i],picture_id)
+            face_uids.append(face_id)
+        # 将人脸信息写进picture中
+        insertFaceIntoPicture(picture_id,",".join('%s' %a for a in face_uids)  + ",")
+        print('成功  人脸上传',ntpath.basename(remote_file_path))
+    # 覆盖本地的know_data.txt到服务器
+    uploadFileCover(local_known_face_encodings, romote_py)
+    uploadFileCover(local_known_face_ids, romote_py)
+    return img_url
+
 local_picture_path = "1.jpg"
-# 获取照片的基本信息
-size,widthH,createTime,updateTime,lnglat,location = getPictureInfo(local_picture_path)
-
-# 上传图片到服务器 按照月进行分类
-remote_file_path = uploadFile(local_picture_path, remote_img_dir+ '/' + createTime[:7])
-if remote_file_path is None:
-    # return "error"
-    print("失败  图片上传 ...",remote_file_path)
-# 将图片信息写进数据库
-picture_id = insertPicture(ntpath.basename(remote_file_path),location,widthH,lnglat,createTime,updateTime,yu_url + remote_file_path.replace(remote_img_dir,'/img'),size)
-
-# 进行人脸识别 并上传人脸到服务器
-res = getFaceInfo(local_picture_path)
-if res:
-    face_uids = []
-    for i in range(res['faceNum']) :
-        remote_file_path = uploadFile(res["face_urls"][i], remote_face_dir + '/' + createTime[:7])
-        if remote_file_path is None:
-            # return "error"
-            print('失败  人脸上传')
-            break
-        # personId pictureId faceEncoding faceLocations faceLandmarks url
-        url = yu_url + remote_file_path.replace(remote_face_dir,'/face')
-        face_id = insertFace(res['face_name_ids'][i],picture_id,res['face_encodings'][i],res['face_locations'][i], res['face_landmarks'][i],url)
-        # 更新或新建person
-        update_insert_person(res['face_name_ids'][i],picture_id)
-        face_uids.append(face_id)
-    # 将人脸信息写进picture中
-    insertFaceIntoPicture(picture_id,",".join('%s' %a for a in face_uids)  + ",")
-    print('成功  人脸上传',ntpath.basename(remote_file_path))
-
-
-
+# 对图片的基本信息进行采集 获取相关人脸信息 将所有信息均写入数据库中 获取图片在服务器中的路径
+img_url = get_local_picture_info_upload_insert(local_picture_path)
+print(img_url)
 # 修改笔记中的图片路径为服务器路径
 

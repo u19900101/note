@@ -227,7 +227,28 @@ def get_face_count():
     except Exception as e:
         print(e)
         db.rollback()
+def rewrite_known_data_from_db():
+    # 先将文件清空
+    with open('known_face_ids.txt', 'w') as f:
+        f.write('')
+    with open('known_face_encodings.txt', 'w') as f:
+        f.write('')
+    sql = "SELECT person_id,face_encoding FROM face"
+    try:
+        cursor.execute(sql)
+        # 获取所有记录列表
+        results = cursor.fetchall()
+        # 存在就更新
+        if results:
+            for face in results:
+                with open('known_face_ids.txt', 'a+') as f:
+                    f.write(str(face[0]) + ' ')
+                with open('known_face_encodings.txt', 'a+') as f:
+                    f.write(re.sub(r'[\[\],]','',face[1]) + '\n')
 
+    except Exception as e:
+        print(e)
+        db.rollback()
 # picture操作
 def insertPicture(title,location,widthH,lnglat,createTime,updateTime,url,size):
     sql = "INSERT INTO picture(title,location,width_h,lnglat,create_time,update_time,url,size)  " \

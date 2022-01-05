@@ -1,4 +1,4 @@
-from HtmlToMd.func import renameFiles, insertNote, getTag_uid, md_sql, htmlToMd, closeConn
+from HtmlToMd.sql import renameFiles, insertNote, getTag_uid, md_sql, htmlToMd, closeConn
 import os
 dir = "D:\MyJava\mylifeImg\others\我的抗战2.0\\"
 # dir = "./temp"
