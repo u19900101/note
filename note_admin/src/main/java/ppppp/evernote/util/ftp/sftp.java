@@ -5,10 +5,7 @@ package ppppp.evernote.util.ftp;
  * @date 2021/11/26 22:53
  */
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.*;
 import net.coobird.thumbnailator.Thumbnails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -404,26 +401,37 @@ public class sftp {
     public static Boolean deleteFiles(ArrayList<String> deleteImageUrls, ArrayList<String> deleteFaceUrls) throws IOException {
         boolean flag = true;
         try {
-            /*删除face*/
-            if(deleteFaceUrls.size() > 0){
-                sftpLocal.get().channel.cd(ftpConfig.getBasepath().replace("img","face"));
-                for (String path : deleteFaceUrls) {
-                    /*删除face*/
-                    sftpLocal.get().channel.rm(path);
-                }
-            }
-
             /*删除照片和缩略图*/
             if(deleteImageUrls.size() > 0){
-                sftpLocal.get().channel.cd(ftpConfig.getBasepath());
                 for (String path : deleteImageUrls) {
                     /*删除大图*/
-                    sftpLocal.get().channel.rm(path);
+                    String[] split = path.split("/");
+                    String dir = split[4];
+                    String fileName = split[5];
+                    String tempDir = ftpConfig.getBasepath() + dir;
+                    sftpLocal.get().channel.cd(tempDir);
+                    sftpLocal.get().channel.rm(fileName);
                     /*删除缩略图 NAME_thumbnails.jpg*/
-                    String s = path.split("\\.")[0] + "_thumbnails." + path.split("\\.")[1];
+                    String s = fileName.split("\\.")[0] + "_thumbnails." + fileName.split("\\.")[1];
                     sftpLocal.get().channel.rm(s);
                 }
             }
+
+
+            /*删除face*/
+            if(deleteFaceUrls.size() > 0){
+
+                for (String path : deleteFaceUrls) {
+                    /*删除face*/
+                    String[] split = path.split("/");
+                    String dir = split[4];
+                    String fileName = split[5];
+                    String tempDir = ftpConfig.getBasepath().replace("img","face") + dir;
+                    sftpLocal.get().channel.cd(tempDir);
+                    sftpLocal.get().channel.rm(fileName);
+                }
+            }
+
 
 
             System.out.println("删除成功");

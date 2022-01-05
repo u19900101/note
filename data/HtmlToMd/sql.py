@@ -181,8 +181,9 @@ def syncData():
         if get_face_count() != len(count):
             print('同步人脸数据')
             rewrite_known_data_from_db()
-
-
+            # 覆盖本地的know_data.txt到服务器
+            uploadFileCover(local_known_face_encodings, romote_py)
+            uploadFileCover(local_known_face_ids, romote_py)
 # ******************** 获取图片的基本信息******************** #
 def getLatOrLng(refKey, tudeKey,tags):
     """
@@ -193,12 +194,14 @@ def getLatOrLng(refKey, tudeKey,tags):
     ref = tags[refKey].printable
     LatOrLng = tags[tudeKey].printable[1:-1].replace(" ", "").replace("/", ",").split(",")
     # print(LatOrLng)
-    LatOrLng = float(LatOrLng[0]) + float(LatOrLng[1]) / 60 + float(LatOrLng[2])*float(LatOrLng[3]) / 3600
+    latlng = float(LatOrLng[0]) + float(LatOrLng[1]) / 60
+    if float(LatOrLng[3]) > 0:
+        latlng +=  float(LatOrLng[2])/float(LatOrLng[3]) / 3600
     if refKey == 'GPS GPSLatitudeRef' and tags[refKey].printable != "N":
-        LatOrLng = LatOrLng * (-1)
+        latlng = latlng * (-1)
     if refKey == 'GPS GPSLongitudeRef' and tags[refKey].printable != "E":
-        LatOrLng = LatOrLng * (-1)
-    return LatOrLng
+        latlng = latlng * (-1)
+    return latlng
 def getPictureInfo(path):
     f = open(path, 'rb')
     tags = exifread.process_file(f)
@@ -207,14 +210,10 @@ def getPictureInfo(path):
     updateTime = time.strftime("%Y/%m/%d %H:%M", time.localtime())
     updateTime = d8_to_utc(updateTime)
     # 对无法识别的图片进行另一种方式的信息获取
-    if(len(tags) == 0):
-        path = "1.jpg"
+    if 'EXIF ExifImageWidth' not in tags and 'Image ImageWidth' not in tags:
         img = Image.open(path)
         widthH = str(img.size[0]) +"x"+ str(img.size[1])
         return size,widthH,updateTime,updateTime,'',''
-    # for tag in tags.keys():
-    #     print("Key: {0}, value {1}".format(tag, tags[tag]))
-    # 打印照片其中一些信息
     lat = getLatOrLng('GPS GPSLatitudeRef', 'GPS GPSLatitude',tags)  # 纬度
     lng = getLatOrLng('GPS GPSLongitudeRef', 'GPS GPSLongitude',tags)  # 经度
     if lat > 0 and lng > 0:
@@ -225,10 +224,15 @@ def getPictureInfo(path):
         location = ''
     if 'EXIF ExifImageWidth' in tags:
         widthH = str(tags['EXIF ExifImageWidth']) + "x"+  str(tags['EXIF ExifImageLength'])
-        createTime = str(tags['EXIF DateTimeOriginal'])
     else:
         widthH = str(tags['Image ImageWidth']) + "x"+  str(tags['Image ImageLength'])
-        createTime = str(tags['Image DateTime'])
+    if 'EXIF DateTimeOriginal' not in tags and 'Image DateTime' not in tags:
+        createTime = updateTime
+    else:
+        if'EXIF DateTimeOriginal' in tags:
+            createTime = str(tags['EXIF DateTimeOriginal'])
+        else:
+            createTime = str(tags['Image DateTime'])
     createTime = createTime[:4] + "/" + createTime[5:7] + "/" + createTime[8:-3]
     createTime = d8_to_utc(createTime)
     return size,widthH,createTime,updateTime,lnglat,location
@@ -248,7 +252,9 @@ def get_local_picture_info_upload_insert(local_picture_path):
         im=Image.open(local_picture_path)
         im.thumbnail((400,400))
         file_name = ntpath.basename(remote_file_path)
-        temp_path = './temp/'+ file_name.split('.')[0] + '_thumbnails.' + file_name.split('.')[1]
+        if len(re.findall(r'.jpg|.png|.jpeg',file_name)) == 0:
+            file_name += '.jpg'
+        temp_path = './temp/'+ file_name.split('.')[0] + '_thumbnails.' + file_name.split('.')[-1]
         im.save(temp_path)
         uploadFile(temp_path, remote_img_dir+ '/' + createTime[:7])
         os.remove(temp_path)
@@ -342,7 +348,7 @@ def get_locationName(lng, lat):
         r = requests.get(url='https://restapi.amap.com/v3/geocode/regeo',
                          params={'location':  str(lng)+','+ str(lat), 'key': key})
         result = r.json()
-        if result:
+        if result['status'] == '1':
             return result['regeocode']['formatted_address']
         return ''
 def getFiled(targetArr):
@@ -486,7 +492,7 @@ def insertFace(personId,pictureId,faceEncoding,faceLocations,faceLandmarks,url):
         # print('face sql保存成功')
         return uid
     except Exception as e:
-        print(e)
+        print('insertFace',e)
         db.rollback()
 def insertFaceIntoPicture(picture_id,face_uid):
     try:
@@ -495,7 +501,7 @@ def insertFaceIntoPicture(picture_id,face_uid):
         cursor.execute(sql,val)
         db.commit()
     except Exception as e:
-        print(e)
+        print('insertFaceIntoPicture',e)
         db.rollback()
 def get_face_count():
     try:
@@ -553,14 +559,14 @@ def update_insert_person(person_id,picture_id):
         results = cursor.fetchall()
         # 存在就更新
         if results:
-            sql = "UPDATE person SET picture_uid = %s,count = %s"
+            sql = "UPDATE person SET picture_uid = %s,count = %s where id = %s"
             if results[0][3]:
                 if str(picture_id) + "," in results[0][3]:
-                    val = (results[0][3] ,results[0][2] + 1)
+                    val = (results[0][3] ,results[0][2] + 1,person_id)
                 else:
-                    val = (results[0][3] + str(picture_id) + ",",results[0][2] + 1)
+                    val = (results[0][3] + str(picture_id) + ",",results[0][2] + 1,person_id)
             else:
-                val = (str(picture_id) + ",",results[0][2] + 1)
+                val = (str(picture_id) + ",",results[0][2] + 1,person_id)
             cursor.execute(sql,val)
         #  插入
         else:
@@ -571,4 +577,43 @@ def update_insert_person(person_id,picture_id):
     except Exception as e:
         print(e)
         db.rollback()
+# 手动同步person和face数据
+def sync_person_from_face():
+    try:
+        sql = "SELECT person_id,picture_id FROM face"
+        cursor.execute(sql)
+        # 获取所有记录列表
+        results = cursor.fetchall()
+        # 存在就更新
+        for face in results:
+            person_id = face[0]
+            picture_id = face[1]
+            sql = "SELECT * FROM person where id  = %s"
+            val = (person_id)
+            cursor.execute(sql,val)
+            # 获取所有记录列表
+            results = cursor.fetchall()
+            if results:
+                sql = "UPDATE person SET picture_uid = %s,count = %s where id = %s"
+                if results[0][3]:
+                    if str(picture_id) + "," in results[0][3]:
+                        val = (results[0][3] ,results[0][2] + 1,person_id)
+                    else:
+                        val = (results[0][3] + str(picture_id) + ",",results[0][2] + 1,person_id)
+                else:
+                    val = (str(picture_id) + ",",results[0][2] + 1,person_id)
+                cursor.execute(sql,val)
+            #  插入
+            else:
+                sql = "INSERT into person SET id = %s,name = %s,picture_uid = %s,count = %s"
+                val = (person_id,'未命名',str(picture_id) + ",",1)
+                cursor.execute(sql,val)
+            db.commit()
+    except Exception as e:
+        print(e)
+        db.rollback()
 syncData()
+
+# 手动同步person和face
+
+

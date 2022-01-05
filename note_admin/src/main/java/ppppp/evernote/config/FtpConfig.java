@@ -17,5 +17,6 @@ public class FtpConfig {
     public String username;
     private String password;
     private String basepath;
+    private String dns;
 }
 
