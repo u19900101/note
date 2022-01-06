@@ -132,8 +132,6 @@
         return Array.prototype.map.call(args, item => isNaN(item))
     }
 
-    // import timeline from './TimeLine'
-
     export default {
         name: 'Calendar',
         components: {
@@ -164,14 +162,13 @@
 
         data() {
             return {
-                // curYear: new Date().getFullYear(),
-                curYear: 2021,
-                curMonth: 12,
-                curYearRangeStart: Math.floor(2017 / 10) * 10,
-                curYearRangeEnd: Math.floor(2017 / 10) * 10 + 9,
+                curYear: new Date().getFullYear(),
+                curMonth: new Date().getMonth() + 1,
+                selectedMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+                curYearRangeStart: Math.floor(new Date().getFullYear() / 10) * 10,
+                curYearRangeEnd: Math.floor(new Date().getFullYear() / 10) * 10 + 9,
                 paneStatus: 0 /* 0 date-pane, 1 month-pane, 2 year-pane */,
                 firstDayOfWeek: 1, //0:周日作为一周的开始 1：周一作为第一天
-                selectedMonth: new Date(2021, 11, 1),
                 dateArr: []
             }
         },
@@ -501,7 +498,7 @@
                 }
 
                 let monthData = new Array(endDate - beginDate + 1).fill().map((_, index) => ({
-                    val: `${tarYear}-${tarMonth}-${index + beginDate >= 10 ? index + beginDate : '0' + (index + beginDate)}`,
+                    val: `${tarYear}-${tarMonth >= 10 ? tarMonth : '0' + tarMonth}-${index + beginDate >= 10 ? index + beginDate : '0' + (index + beginDate)}`,
                     date: index + beginDate,
                     monthFlag,
                     dotted: monthFlag === 1 && this.dotArr[index],
@@ -524,7 +521,6 @@
                 }
                 arr.forEach((f) => {
                     let hour = f.createTime.split(" ")[1].split(":")[0]
-                    console.log();
                     //12点以前的笔记都算前一天
                     let day = f.createTime.substring(0, 10)
                     if(Number(hour) < 12){
@@ -541,8 +537,6 @@
                     if (notes[day.val]) {
                         day.title = notes[day.val].title
                     } else {
-                        //往后一天去找笔记
-
                         day.title = ''
                     }
                 }

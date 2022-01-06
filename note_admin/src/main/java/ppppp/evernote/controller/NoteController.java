@@ -76,6 +76,10 @@ public class NoteController {
         // 设置修改时间为当前时间
         note.setUpdateTime(new Date());
         // 更新 笔记
+        if(note.getContent()!= null){
+            String summaryFromContent = getSummaryFromContent(note.getContent());
+            note.setSummary(summaryFromContent);
+        }
         boolean b = noteService.updateById(note);
 
         // 更新 笔记本  携带 pid 则表示移动笔记
@@ -121,8 +125,10 @@ public class NoteController {
             String[] tagIdList = note.getTagUid().split(",");
             for (String tagId : tagIdList) {
                 Tag tag = tagService.getById(tagId);
-                tag.setNoteCount(tag.getNoteCount() - 1);
-                tagService.updateById(tag);
+                if(tag != null){
+                    tag.setNoteCount(tag.getNoteCount() - 1);
+                    tagService.updateById(tag);
+                }
             }
         }
 
@@ -174,6 +180,7 @@ public class NoteController {
         note.setTitle("标题");
         note.setContent("# 标题 \n内容");
         note.setSummary("新建内容");
+        note.setTagUid("");
         noteService.save(note);
         Note newNote = noteService.getById(note.getId());
 
@@ -215,16 +222,15 @@ public class NoteController {
             if (note.getTagUid() != null && note.getTagUid().length() > 1) {
                 for (String tagId : note.getTagUid().split(",")) {
                     Tag tag = tagService.getById(tagId);
-                    note.getTagList().add(tag);
+                    if(tag != null){
+                        note.getTagList().add(tag);
+                    }
                 }
             }
             /*从content中提取 封面url和summary*/
 
             String content = note.getContent();
-            int i = content.indexOf('\n') + 1; //去掉标题
-            String replaceAll = content.substring(i).replaceAll("\\<img.*?\\>|\\<video.*?video\\>|\\n","");
-            int end = 50 > replaceAll.length() ? replaceAll.length() : 50;
-            String summary = replaceAll.substring(0, end);
+            String summary = getSummaryFromContent(content);
             note.setSummary(summary);
 
             Pattern p = Pattern.compile("\\<img.*?\\>");
@@ -238,6 +244,14 @@ public class NoteController {
                 break;
             }
         }
+    }
+
+    private String getSummaryFromContent(String content) {
+        int i = content.indexOf('\n') + 1; //去掉标题
+        String replaceAll = content.substring(i).replaceAll("\\<img.*?\\>|\\<video.*?video\\>|\\n","");
+        int end = 50 > replaceAll.length() ? replaceAll.length() : 50;
+        String summary = replaceAll.substring(0, end);
+        return summary;
     }
 
     private List<Note> getSortWayNotes() {
