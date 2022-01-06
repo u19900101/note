@@ -63,8 +63,12 @@ public class TagController {
         // 设置修改时间为当前时间
         tag.setCreateTime(new Date());
         /*找到最大sort值赋值给新的tag，不然会出现新建多个tag后无法有效记录排序*/
-        Tag maxSortTag = tagService.lambdaQuery().orderByDesc(Tag::getSort).last("limit 1").list().get(0);
-        tag.setSort(maxSortTag.getSort() + 1);
+        List<Tag> tags = tagService.lambdaQuery().orderByDesc(Tag::getSort).last("limit 1").list();
+        if(tags.size() > 0 ){
+            tag.setSort(tags.get(0).getSort() + 1);
+        }else {
+            tag.setSort(1.0f);
+        }
         tagService.save(tag);
         Tag newTag = tagService.getById(tag.getId());
         return ResultUtil.successWithData(newTag);
@@ -138,7 +142,9 @@ public class TagController {
         /*2.根据新的层级关系 级联更新tag数量*/
         boolean isUpdateTagCountSucceed = updateAncestorsTags(oldPid, newPid);
         //封装tree进行返回
-        if (isUpdateTagCountSucceed) return ResultUtil.successWithData(getTagTree());
+        if (isUpdateTagCountSucceed) {
+            return ResultUtil.successWithData(getTagTree());
+        }
         return ResultUtil.errorWithMessage("error");
     }
 
@@ -147,10 +153,14 @@ public class TagController {
         try {
             // 级联新标签 重新计算数量
             // newPid = 0  表示为一级tag 没有父节点
-            if (newPid != 0) updateTagNoteCount(newPid);
+            if (newPid != 0) {
+                updateTagNoteCount(newPid);
+            }
 
             //级联旧标签 重新计算数量
-            if (oldPid != 0) updateTagNoteCount(oldPid);
+            if (oldPid != 0) {
+                updateTagNoteCount(oldPid);
+            }
         } catch (NoteController.StopMsgException e) {
             isSucceed = false;
         }
@@ -161,7 +171,9 @@ public class TagController {
         updateTagCountById(tagId);
         Tag tag = tagService.getById(tagId);
         /*父节点不为一级节点时 级联更新*/
-        if (tag.getPid() != 0) updateTagNoteCount(tag.getPid());
+        if (tag.getPid() != 0) {
+            updateTagNoteCount(tag.getPid());
+        }
     }
 
 
@@ -178,7 +190,9 @@ public class TagController {
         for (Note note : allNotes) {
             if (note.getTagUid() != null && note.getTagUid().length() > 1) {
                 /*判断两者是否有交集*/
-                if (isIntersection(note.getTagUid(), tagIds).size() > 0) count++;
+                if (isIntersection(note.getTagUid(), tagIds).size() > 0) {
+                    count++;
+                }
             }
         }
         tag.setNoteCount(count);
