@@ -48,6 +48,7 @@
 </template>
 
 <script>
+    let dayjs = require('dayjs');
     export default {
         name: "TimeLine",
         data() {
@@ -112,7 +113,11 @@
                     }
                 }
                 arr.forEach(f => {
+                    let hour = f.createTime.split(" ")[1].split(":")[0]
                     let day = f.createTime.substring(0, 10)
+                    if(Number(hour) < 12){
+                        day = dayjs(day).add(-1, 'day').format('YYYY-MM-DD')
+                    }
                     res[day] = f
                 })
                 // 将一年中的第几天转化为 yyyy-MM-dd
@@ -181,13 +186,13 @@
             fillAbsentDate() {
 
                 // let noteArr = require('lodash').cloneDeep(this.$store.state.notes)
-                let noteArr = this.$store.state.notes
+                let noteArr = [...this.$store.state.notes]
                 //获取note的年份
                 let noteYearFrom = noteArr[0].createTime.substring(0, 4)
                 let noteYearTo = noteArr[noteArr.length - 1].createTime.substring(0, 4)
                 /*合并同一天中的多篇笔记*/
-                noteArr = this.createDayKey(this.groupNoteByDay(noteArr))
-                this.noteData = noteArr
+                // noteArr = this.createDayKey(this.groupNoteByDay(noteArr))
+                this.noteData = this.createDayKey(noteArr)
 
                 //初始化当天图片
                 // let imageArr = this.tool.groupImages('day', require('lodash').cloneDeep(this.$store.state.fileList))
@@ -292,8 +297,29 @@
             },
             /*在note跳转时定位时间轴  通过title和 day 来确定index 同一天中可能有多条笔记*/
             setDateIndex(title, createTime) {
-                for (let i = 0; i <= this.maxValue; i++) {
-                    /*笔记或者图片的定位*/
+                //12点以前的笔记都算前一天
+                let hour = createTime.split(" ")[1].split(":")[0]
+                let day = createTime.substring(0, 10)
+                if(Number(hour) < 12){
+                    day = dayjs(day).add(-1, 'day').format('YYYY-MM-DD')
+                }
+                let isNote = this.noteData[day]
+                let isImage = this.imageData[day]
+                if (isImage || isNote) {
+                    let temp = isNote ? isNote : isImage
+                    this.$bus.$emit('toPoint', temp.lnglat.split(',')[0], temp.lnglat.split(',')[1], title, createTime)
+                    this.dateIndex = i
+                    if (this.imageData[this.getDayKey(i)]) {
+                        //  当当天没有笔记时 查看是否有图片，有的话就显示图片的地理位置
+                        this.$store.state.dayImages = this.imageData[this.getDayKey(i)].images
+                    } else {
+                        /*清空*/
+                        this.$store.state.dayImages = []
+                    }
+                    this.isTitleSet = true
+                }
+                /*for (let i = 0; i <= this.maxValue; i++) {
+                    /!*笔记或者图片的定位*!/
                     let isNote = this.noteData[this.getDayKey(i)]
                     let isImage = this.imageData[this.getDayKey(i)]
                     if (isImage || isNote) {
@@ -304,13 +330,13 @@
                             //  当当天没有笔记时 查看是否有图片，有的话就显示图片的地理位置
                             this.$store.state.dayImages = this.imageData[this.getDayKey(i)].images
                         } else {
-                            /*清空*/
+                            /!*清空*!/
                             this.$store.state.dayImages = []
                         }
                         this.isTitleSet = true
                         break
                     }
-                }
+                }*/
             },
             /*显示滑块的提示信息*/
             showNoteTitle() {

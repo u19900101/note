@@ -125,7 +125,7 @@ public class NotebookController {
 
         /*获取数据*/
         System.out.println(obj);
-        Integer currentId = (Integer) obj.get("currentId");
+        Integer currentId = Integer.valueOf((String) obj.get("currentId"));
         Notebook notebook = notebookService.getById(currentId);
         notebook.setUpdateTime(new Date());//设置更新时间
         /*1.级联更新笔记本数量*/

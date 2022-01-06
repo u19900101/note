@@ -157,7 +157,9 @@
             toMap(lnglat, title, createTime) {
                 this.$router.push({name: 'map'})
                 /*定位时间轴 之后会自动在地图上联动定位*/
-                this.$bus.$emit('setDateIndex', title, createTime)
+                this.$nextTick(() => {
+                    this.$bus.$emit('setDateIndex', title, createTime)
+                })
             },
             imageToMap() {
                 /*封装当天图片*/
