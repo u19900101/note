@@ -213,7 +213,14 @@ def getPictureInfo(path):
     if 'EXIF ExifImageWidth' not in tags and 'Image ImageWidth' not in tags:
         img = Image.open(path)
         widthH = str(img.size[0]) +"x"+ str(img.size[1])
-        return size,widthH,updateTime,updateTime,'',''
+        # 如果照片命名中有时间信息就直接采用
+        file_name = ntpath.basename(path)
+        createTime = updateTime
+        if len(re.findall(r'\d{8}_\d{6}', file_name)) > 0:
+            # 将 20220101_120000 --> %Y/%m/%d %H:%M
+            file_name =  file_name[:4] + '/' + file_name[4:6] + '/' +file_name[6:8] + ' '  +file_name[9:11] + ':'+file_name[11:13]
+            createTime = d8_to_utc(file_name)
+        return size,widthH,createTime,updateTime,'',''
     lat = getLatOrLng('GPS GPSLatitudeRef', 'GPS GPSLatitude',tags)  # 纬度
     lng = getLatOrLng('GPS GPSLongitudeRef', 'GPS GPSLongitude',tags)  # 经度
     if lat > 0 and lng > 0:
@@ -252,10 +259,11 @@ def get_local_picture_info_upload_insert(local_picture_path):
         im=Image.open(local_picture_path)
         im.thumbnail((400,400))
         file_name = ntpath.basename(remote_file_path)
-        if len(re.findall(r'.jpg|.png|.jpeg',file_name)) == 0:
-            file_name += '.jpg'
         temp_path = './temp/'+ file_name.split('.')[0] + '_thumbnails.' + file_name.split('.')[-1]
-        im.save(temp_path)
+        if im.format == "PNG":
+            im.save(temp_path,"PNG")
+        else:
+            im.save(temp_path)
         uploadFile(temp_path, remote_img_dir+ '/' + createTime[:7])
         os.remove(temp_path)
     # 将图片信息写进数据库
@@ -293,16 +301,42 @@ def get_local_picture_info_upload_insert(local_picture_path):
 WEBSITE = "http://lpgogo.top/img/"
 db = pymysql.connect(host='192.168.56.10', user='root', password='root', database='canal_test')
 cursor = db.cursor()
+# 若图片无法检测出时间，则查看命名中是否有时间
+
+def get_time_from_name(file_name):
+    # 同一时间格式 Screenshot_20211203_122124_com.tencent.mm.jpg -->  20211203_122124.jpg
+    temp = ntpath.basename(file_name)
+    r = re.findall(r'\d{8}_\d{6}', temp)
+    if len(r) > 0:
+        temp = r[0] + '.jpg'
+    elif temp.__contains__('mmexport'):
+        r = re.findall(r'mmexport\d{13}', temp)
+        if len(r) > 0:
+            stamp = re.sub(r'mmexport','',r[0])
+            name = time.strftime("%Y%m%d %H%M%S", time.localtime(int(stamp)/1000)).replace(" ","_")
+            type = '.jpg'
+            if file_name.__contains__('.mp4'):
+                type = '.mp4'
+            temp =  name + type
+    return file_name.replace(ntpath.basename(file_name),temp)
 # 去掉文件和文件夹名称中的特殊字符
 def renameFiles(path):
     fileList=os.listdir(path)
     for i in fileList:
-        if os.path.isdir(path + "\\"+i):
-            renameFiles(path + "\\"+i)
+        if os.path.isdir(path + "/"+i):
+            renameFiles(path + "/"+i)
         # 中英文逗号
-        if re.findall(r'[\s\[\],，。]', i):
-            os.rename(path + "\\"+i,path + "\\"+re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', i)))
-            print("重命名文件" + i)
+        file_name = re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', i))
+        # 截取照片中不规则命名的时间信息
+        # and len(re.findall(r'.jpg|.png|.jpeg',file_name)) == 0
+        if os.path.isfile(path + "/"+i) \
+                and not file_name.endswith(".html") \
+                and not file_name.endswith(".mp4"):
+            file_name = get_time_from_name(file_name)
+        if i != file_name:
+            os.rename(path + "/"+i,path + "/"+file_name)
+            print("重命名文件" + i,"--> ",file_name)
+
 def d8_to_utc(d8_time):
     d8_time = time.strptime(d8_time, "%Y/%m/%d %H:%M")
     #3.将时间数组转换为时间戳
@@ -417,6 +451,10 @@ def addHttp(httpname,content,dir):
         # 加上网址前缀
         if matchObj.group(1):
             filename  = re.sub(r'_+', '_', re.sub(r'[\s\[\],，。]', '_', matchObj.group(1))).replace('_"点击下载"','')
+            # 截取不规则命名的时间信息
+            filename = get_time_from_name(filename)
+            # if len(re.findall(r'.jpg|.png|.jpeg',filename)) == 0:
+            #     filename += filename.split("_")[1] + '.jpg'
             # 进行图片上传到服务器 并进行人脸识别
             img_url = get_local_picture_info_upload_insert(dir + '/' +filename)
             content = content.replace(i,'\n\n<img src="' + img_url + '" alt = "' +filename.replace('http://lpgogo.top/img/','') + '" style="zoom:30%;"/>\n\n')

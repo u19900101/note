@@ -25,7 +25,7 @@
 
             <div style="display: flex;justify-content:space-between;margin-top: 4px" id="kkktest">
                 <!--990为滑条长度-->
-                <div style="position: relative"> <!--Number(900/maxValue)-->
+                <div style="position: relative">
                     <div  v-for="i in maxValue"
                           v-if="noteData[getDayKey(i)] || imageData[getDayKey(i)]"
                           style="float:left;position: absolute"
@@ -34,13 +34,6 @@
                          left:  i*$store.state.sliderW/maxValue + 'px'}"
                          class="vLine">
                     </div>
-                    <!--影响性能 暂不使用-->
-                    <!--<el-tooltip class="item" effect="dark"
-                                :content="noteData[getDayKey(i)] ? noteData[getDayKey(i)].title :(imageData[getDayKey(i)] ? '图片':'空')"
-                                placement="bottom">
-                        &lt;!&ndash;密度线&ndash;&gt;
-
-                    </el-tooltip>-->
                 </div>
             </div>
         </div>
@@ -113,10 +106,14 @@
                     }
                 }
                 arr.forEach(f => {
-                    let hour = f.createTime.split(" ")[1].split(":")[0]
-                    let day = f.createTime.substring(0, 10)
-                    if(Number(hour) < 12){
-                        day = dayjs(day).add(-1, 'day').format('YYYY-MM-DD')
+                    /*对笔记中的时间进行可能的 -1 操作*/
+                    let day = f.createTime
+                    if(f.createTime.length > 10){
+                        let hour = f.createTime.split(" ")[1].split(":")[0]
+                        let day = f.createTime.substring(0, 10)
+                        if(Number(hour) < 12){
+                            day = dayjs(day).add(-1, 'day').format('YYYY-MM-DD')
+                        }
                     }
                     res[day] = f
                 })
