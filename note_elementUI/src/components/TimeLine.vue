@@ -110,7 +110,7 @@
                     let day = f.createTime
                     if(f.createTime.length > 10){
                         let hour = f.createTime.split(" ")[1].split(":")[0]
-                        let day = f.createTime.substring(0, 10)
+                        day = f.createTime.substring(0, 10)
                         if(Number(hour) < 12){
                             day = dayjs(day).add(-1, 'day').format('YYYY-MM-DD')
                         }
