@@ -590,7 +590,8 @@ def insertPicture(title,location,widthH,lnglat,createTime,updateTime,url,size):
 # person操作
 def update_insert_person(person_id,picture_id):
     sql = "SELECT * FROM person where id  = %s"
-    val = (person_id)
+    person_id = int(person_id)
+    val = (person_id) #数据类型的问题 要加上int 不然总是numpy.int32bug
     try:
         cursor.execute(sql,val)
         # 获取所有记录列表
